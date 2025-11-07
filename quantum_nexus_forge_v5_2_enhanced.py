@@ -1,752 +1,792 @@
-# coding=utf-8
-# Filename: quantum_nexus_forge_v5_2_enhanced.py
-# Description: Enhanced Multi-Modal Cognitive Architecture with Symbol Stream Processing
-# Created by: Shannon Bryan Kelly & Claude AI Sonnet 4
-# Date: January 24, 2025
-# Version: 5.2.0 - SCIENTIFIC NOMENCLATURE ENHANCED
-# License: Proprietary Enterprise Framework
-# Classification: NEURODIVERSITY-INCLUSIVE COGNITIVE PROCESSING ARCHITECTURE
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Quantum Nexus Forge v7.0 platform-agnostic cognitive orchestration system.
+"""
 
-import json
-import datetime
-import uuid
-import hashlib
-import math
+import logging
+import sys
+import threading
 import time
-import random
-from typing import Dict, List, Any, Optional, Tuple, Union
+import sys
+import os
+import heapq
+from collections import deque
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
 from enum import Enum
-from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
 
-class CognitivePrimitiveType(Enum):
-    """Geometric cognitive primitives for symbolic processing"""
-    TETRAHEDRON = "tetrahedron"      # 🔺 Transform/Fire/Logic-Spark
-    CUBE = "cube"                    # 🟫 Memory Grounding/Earth
-    OCTAHEDRON = "octahedron"        # 🔸 Processing/Air/Bridge
-    DODECAHEDRON = "dodecahedron"    # 🔷 Unity/Aether/Abstraction
-    ICOSAHEDRON = "icosahedron"      # ⭕ Emotion/Water/Recursive
-    METATRONS_CUBE = "metatrons_cube" # 💠 Core Logic/Conscious Seal
 
-class MemoryZoneClassification(Enum):
-    """Enhanced tri-zone memory architecture with entropy thresholds"""
-    ACTIVE_PROCESSING = "active"        # 🟢 High-entropy (>0.7)
-    PATTERN_EMERGENCE = "emergence"     # 🟡 Mid-entropy (0.3-0.7)  
-    CRYSTALLIZED_STORAGE = "crystallized" # 🔴 Low-entropy (<0.3)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+)
+log = logging.getLogger("QNF7")
 
-class NeurodivergentProcessingLens(Enum):
-    """Cognitive diversity processing modalities"""
-    AUTISM_PRECISION_PATTERNS = "autism_precision"
-    ADHD_DYNAMIC_BURSTS = "adhd_dynamic"
-    DYSLEXIA_SYMBOL_RESTRUCTURING = "dyslexia_restructure"
-    DYSCALCULIA_ALTERNATIVE_LOGIC = "dyscalculia_logic"
-    NEUROTYPICAL_BASELINE = "neurotypical_baseline"
+# --- Module constants (macro-like named values) ------------------------------
+
+# Entropy zone thresholds
+YELLOW_THRESHOLD = 0.66
+RED_THRESHOLD = 0.33
+
+# Pool scaling defaults
+DEFAULT_MAX_PROCESSORS = 100
+DEFAULT_SCALE_FACTOR = 2
+DEFAULT_LOAD_THRESHOLD = 0.8
+
+# Feature flags (enabled via environment like conditional compilation)
+DEBUG_FLAG = os.getenv("QNF_DEBUG", "0") == "1"
+STRICT_FLAG = os.getenv("QNF_STRICT", "0") == "1"
+
+
+class Zone(Enum):
+    """Processing state for an item."""
+
+    GREEN = "green_active"
+    YELLOW = "yellow_pattern"
+    RED = "red_crystallized"
+
 
 @dataclass
-class SymbolicProcessingVector:
-    """3D spatial processing with cognitive elevation"""
-    primitive_type: CognitivePrimitiveType
-    coordinates: Tuple[float, float, float]  # x, y, z
-    elevation_angle: float = 40.0  # Y-axis cognitive elevation
-    resonance_frequency: float = 1.0
-    entropy_signature: float = 0.5
+class Item:
+    """Tracked item managed by the dynamic pool."""
 
-class QuantumCognitiveNode:
-    """Enhanced quantum node with spatial processing capabilities"""
-    
-    def __init__(self, node_id: Optional[str] = None, content: Any = None, 
-                 primitive_type: CognitivePrimitiveType = CognitivePrimitiveType.CUBE):
-        self.id = node_id or f"qnode_{uuid.uuid4().hex[:8]}"
-        self.content = content
-        self.primitive_type = primitive_type
-        self.spatial_vector = self._initialize_spatial_vector()
-        self.entropy_coefficient = self._calculate_entropy()
-        self.zone_classification = self._determine_zone()
-        self.processing_threads = []
-        self.symbolic_resonance = {}
-        self.creation_timestamp = datetime.datetime.utcnow()
-        self.cognitive_elevation = 40.0  # Default Y-axis elevation
-        
-    def _initialize_spatial_vector(self) -> SymbolicProcessingVector:
-        """Initialize 3D spatial processing vector"""
-        # Generate coordinates based on primitive type
-        coords = self._generate_geometric_coordinates()
-        return SymbolicProcessingVector(
-            primitive_type=self.primitive_type,
-            coordinates=coords,
-            elevation_angle=40.0,
-            resonance_frequency=self._calculate_resonance(),
-            entropy_signature=self._calculate_entropy()
+    id: int
+    label: str
+    zone: Zone = Zone.GREEN
+    entropy: float = 1.0
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+class DynamicPoolBase:
+    """Thread-safe pool that supports entropy-based transitions."""
+
+    def __init__(self) -> None:
+        self._items: Dict[int, Item] = {}
+        self._lock = threading.Lock()
+
+    def add(self, item: Item) -> None:
+        with self._lock:
+            if item.id in self._items:
+                raise ValueError(f"Item {item.id} already exists")
+            self._items[item.id] = item
+            log.info("Added %s (%s)", item.label, item.zone.value)
+
+    def get(self, item_id: int) -> Optional[Item]:
+        with self._lock:
+            return self._items.get(item_id)
+
+    def update(self, item_id: int, **changes: Any) -> Item:
+        with self._lock:
+            if item_id not in self._items:
+                raise KeyError(item_id)
+            item = self._items[item_id]
+            for key, value in changes.items():
+                setattr(item, key, value)
+            log.debug("Updated %s: %s", item_id, changes)
+            return item
+
+    def snapshot(self) -> List[Item]:
+        with self._lock:
+            return list(self._items.values())
+
+    def step(self, cooling: float = 0.05) -> None:
+        """Reduce entropy and promote items between zones."""
+        with self._lock:
+            for item in self._items.values():
+                item.entropy = max(0.0, item.entropy - cooling)
+                if item.zone == Zone.GREEN and item.entropy <= YELLOW_THRESHOLD:
+                    item.zone = Zone.YELLOW
+                    log.info("Item %s moved to YELLOW", item.id)
+                if item.zone == Zone.YELLOW and item.entropy <= RED_THRESHOLD:
+                    item.zone = Zone.RED
+                    log.info("Item %s moved to RED", item.id)
+
+
+class CorePrimitive(Enum):
+    """Irreducible cognitive primitives."""
+
+    INPUT = "input"
+    PROCESS = "process"
+    OUTPUT = "output"
+    STORE = "store"
+    RETRIEVE = "retrieve"
+    LINK = "link"
+    VALIDATE = "validate"
+
+
+@dataclass
+class QuantumAtom:
+    """Smallest unit of information processed by the system."""
+
+    id: str = ""
+    data: Any = None
+    created: float = field(default_factory=time.time)
+    primitive: CorePrimitive = CorePrimitive.PROCESS
+
+    def __post_init__(self) -> None:
+        if not self.id:
+            self.id = f"atom_{uuid.uuid4().hex[:8]}"
+
+
+class UniversalInterface(ABC):
+    """Contract that all platform components satisfy."""
+
+    @abstractmethod
+    def initialize(self, *args: Any, **kwargs: Any) -> None:
+        """Prepare the component for execution."""
+
+    @abstractmethod
+    def execute(self, atom: "QuantumAtom") -> "QuantumAtom":
+        """Execute the component logic."""
+
+    @abstractmethod
+    def status(self) -> Dict[str, Any]:
+        """Return a serializable status payload."""
+
+    @abstractmethod
+    def teardown(self) -> None:
+        """Release any allocated resources."""
+
+
+class BridgeType(Enum):
+    """Supported bridge invocation styles."""
+
+    SYNC = "synchronous"
+    ASYNC = "asynchronous"
+    STREAM = "streaming"
+
+
+@dataclass
+class HyphenatorBridge:
+    """Universal bridge that connects two components."""
+
+    source_id: str
+    target_id: str
+    bridge_type: BridgeType = BridgeType.SYNC
+    active: bool = True
+
+    def __post_init__(self) -> None:
+        self.id = f"{self.source_id}-{self.target_id}"
+
+    def execute(self, atom: QuantumAtom) -> QuantumAtom:
+        """Route the atom through the bridge."""
+        if not self.active:
+            raise RuntimeError(f"Bridge {self.id} is inactive")
+        bridged_atom = QuantumAtom(
+            id=f"bridged_{atom.id}",
+            data=f"BRIDGE[{self.source_id}->{self.target_id}]({atom.data})",
+            primitive=atom.primitive,
         )
-    
-    def _generate_geometric_coordinates(self) -> Tuple[float, float, float]:
-        """Generate coordinates based on geometric primitive"""
-        if self.primitive_type == CognitivePrimitiveType.TETRAHEDRON:
-            # Fire element - sharp, transformative positioning
-            return (1.0, 1.732, 0.816)  # Tetrahedral geometry
-        elif self.primitive_type == CognitivePrimitiveType.CUBE:
-            # Earth element - stable, grounded positioning  
-            return (1.0, 1.0, 1.0)  # Cubic geometry
-        elif self.primitive_type == CognitivePrimitiveType.OCTAHEDRON:
-            # Air element - bridging, processing positioning
-            return (1.414, 0.0, 1.414)  # Octahedral geometry
-        elif self.primitive_type == CognitivePrimitiveType.DODECAHEDRON:
-            # Aether element - abstract, unity positioning
-            return (1.618, 1.618, 1.618)  # Golden ratio positioning
-        elif self.primitive_type == CognitivePrimitiveType.ICOSAHEDRON:
-            # Water element - emotional, recursive positioning
-            return (1.902, 1.176, 0.726)  # Icosahedral geometry
-        else:  # METATRONS_CUBE
-            # Core consciousness - central, self-aware positioning
-            return (0.0, 0.0, 0.0)  # Origin point
-    
-    def _calculate_resonance(self) -> float:
-        """Calculate resonance frequency based on content and type"""
-        base_frequency = {
-            CognitivePrimitiveType.TETRAHEDRON: 7.83,     # Schumann resonance
-            CognitivePrimitiveType.CUBE: 6.66,            # Stability frequency
-            CognitivePrimitiveType.OCTAHEDRON: 8.14,      # Processing frequency
-            CognitivePrimitiveType.DODECAHEDRON: 11.11,   # Unity frequency
-            CognitivePrimitiveType.ICOSAHEDRON: 9.63,     # Emotional frequency
-            CognitivePrimitiveType.METATRONS_CUBE: 13.0   # Consciousness frequency
-        }.get(self.primitive_type, 8.0)
-        
-        # Modulate by content complexity
-        if self.content:
-            content_factor = len(str(self.content)) / 100.0
-            return base_frequency * (1.0 + content_factor * 0.1)
-        return base_frequency
-        
-    def _calculate_entropy(self) -> float:
-        """Enhanced entropy calculation with spatial factors"""
-        if not self.content:
-            return 0.5
-            
-        # Base entropy from content
-        content_str = str(self.content)
-        content_hash = hashlib.sha256(content_str.encode()).hexdigest()
-        base_entropy = int(content_hash[:8], 16) / 0xFFFFFFFF
-        
-        # Spatial entropy modulation
-        if hasattr(self, 'spatial_vector'):
-            x, y, z = self.spatial_vector.coordinates
-            spatial_factor = (x + y + z) / 3.0
-            elevation_factor = math.sin(math.radians(self.cognitive_elevation))
-            return (base_entropy * 0.6) + (spatial_factor * 0.2) + (elevation_factor * 0.2)
-            
-        return base_entropy
-        
-    def _determine_zone(self) -> MemoryZoneClassification:
-        """Determine memory zone based on entropy coefficient"""
-        if self.entropy_coefficient > 0.7:
-            return MemoryZoneClassification.ACTIVE_PROCESSING
-        elif self.entropy_coefficient > 0.3:
-            return MemoryZoneClassification.PATTERN_EMERGENCE
-        else:
-            return MemoryZoneClassification.CRYSTALLIZED_STORAGE
+        return bridged_atom
 
-class NeurodivergentCognitiveProcessor:
-    """Multi-modal cognitive processing with neurodiversity lens integration"""
-    
-    def __init__(self):
-        self.processing_lenses = {
-            NeurodivergentProcessingLens.AUTISM_PRECISION_PATTERNS: self._autism_processing,
-            NeurodivergentProcessingLens.ADHD_DYNAMIC_BURSTS: self._adhd_processing,
-            NeurodivergentProcessingLens.DYSLEXIA_SYMBOL_RESTRUCTURING: self._dyslexia_processing,
-            NeurodivergentProcessingLens.DYSCALCULIA_ALTERNATIVE_LOGIC: self._dyscalculia_processing,
-            NeurodivergentProcessingLens.NEUROTYPICAL_BASELINE: self._neurotypical_processing
-        }
-        self.active_lenses = []
-        self.processing_harmony_matrix = {}
-        
-    def _autism_processing(self, content: Any) -> Dict[str, Any]:
-        """Autism-spectrum cognitive processing: high precision pattern recognition"""
-        patterns = []
-        if isinstance(content, str):
-            # Identify repeating character sequences
-            for i in range(len(content) - 2):
-                if i + 3 <= len(content):
-                    trigram = content[i:i+3]
-                    if content.count(trigram) > 1:
-                        patterns.append(trigram)
-        
-        return {
-            "processing_type": "autism_precision_patterns",
-            "identified_patterns": list(set(patterns)),
-            "pattern_confidence": len(patterns) / max(len(str(content)), 1),
-            "detail_focus": "micro_pattern_recognition",
-            "processing_depth": "comprehensive"
-        }
-    
-    def _adhd_processing(self, content: Any) -> Dict[str, Any]:
-        """ADHD cognitive processing: rapid context-switching and dynamic bursts"""
-        context_switches = []
-        if isinstance(content, str):
-            words = content.split()
-            for i, word in enumerate(words):
-                if i > 0 and len(word) != len(words[i-1]):
-                    context_switches.append(i)
-        
-        return {
-            "processing_type": "adhd_dynamic_bursts", 
-            "context_switch_points": context_switches,
-            "attention_span_segments": len(context_switches) + 1,
-            "processing_velocity": "high_speed_burst",
-            "focus_pattern": "hyperconnected_associations"
-        }
-    
-    def _dyslexia_processing(self, content: Any) -> Dict[str, Any]:
-        """Dyslexia cognitive processing: multi-dimensional symbol interpretation"""
-        symbol_transformations = {}
-        if isinstance(content, str):
-            # Analyze spatial relationships between characters
-            for char in set(content):
-                if char.isalpha():
-                    rotations = self._generate_rotation_variants(char)
-                    symbol_transformations[char] = rotations
-        
-        return {
-            "processing_type": "dyslexia_symbol_restructuring",
-            "symbol_transformations": symbol_transformations,
-            "spatial_cognition": "three_dimensional_character_mapping",
-            "alternative_representations": len(symbol_transformations),
-            "visual_processing": "holistic_pattern_recognition"
-        }
-    
-    def _dyscalculia_processing(self, content: Any) -> Dict[str, Any]:
-        """Dyscalculia cognitive processing: alternative mathematical reasoning"""
-        numeric_alternatives = {}
-        if isinstance(content, str):
-            numbers = [word for word in content.split() if word.isdigit()]
-            for num in numbers:
-                alternatives = self._generate_mathematical_alternatives(int(num))
-                numeric_alternatives[num] = alternatives
-        
-        return {
-            "processing_type": "dyscalculia_alternative_logic",
-            "numeric_alternatives": numeric_alternatives,
-            "mathematical_reasoning": "conceptual_relationship_mapping",
-            "quantity_representation": "visual_spatial_quantities",
-            "calculation_method": "pattern_based_estimation"
-        }
-    
-    def _neurotypical_processing(self, content: Any) -> Dict[str, Any]:
-        """Neurotypical baseline processing for comparison"""
-        return {
-            "processing_type": "neurotypical_baseline",
-            "linear_analysis": str(content)[:100],
-            "sequential_processing": True,
-            "categorization": "standard_linguistic_parsing",
-            "processing_speed": "moderate_systematic"
-        }
-    
-    def _generate_rotation_variants(self, char: str) -> List[str]:
-        """Generate rotational variants for character (simulated)"""
-        # Simplified representation of spatial character variants
-        variants = {
-            'b': ['d', 'p', 'q'], 'd': ['b', 'p', 'q'],
-            'p': ['b', 'd', 'q'], 'q': ['b', 'd', 'p'],
-            'n': ['u'], 'u': ['n'], 'm': ['w'], 'w': ['m']
-        }
-        return variants.get(char.lower(), [char])
-    
-    def _generate_mathematical_alternatives(self, number: int) -> Dict[str, Any]:
-        """Generate alternative mathematical representations"""
-        return {
-            "visual_groups": self._number_to_visual_groups(number),
-            "prime_factorization": self._simple_prime_factors(number),
-            "pattern_relationship": f"base_10_position_{len(str(number))}",
-            "conceptual_magnitude": self._magnitude_category(number)
-        }
-    
-    def _number_to_visual_groups(self, number: int) -> str:
-        """Convert number to visual grouping representation"""
-        if number <= 10:
-            return "●" * number
-        else:
-            groups = number // 5
-            remainder = number % 5
-            return "◐" * groups + "●" * remainder
-    
-    def _simple_prime_factors(self, number: int) -> List[int]:
-        """Simple prime factorization"""
-        factors = []
-        d = 2
-        while d * d <= number:
-            while number % d == 0:
-                factors.append(d)
-                number //= d
-            d += 1
-        if number > 1:
-            factors.append(number)
-        return factors
-    
-    def _magnitude_category(self, number: int) -> str:
-        """Categorize number magnitude conceptually"""
-        if number < 10:
-            return "single_units"
-        elif number < 100:
-            return "double_digit_groups" 
-        elif number < 1000:
-            return "hundred_magnitude"
-        else:
-            return "thousand_plus_magnitude"
 
-class SymbolicStreamInterpreter:
-    """Advanced symbolic stream processing with geometric cognitive primitives"""
-    
-    def __init__(self):
-        self.symbol_mapping = {
-            "💠": CognitivePrimitiveType.METATRONS_CUBE,
-            "🔺": CognitivePrimitiveType.TETRAHEDRON, 
-            "🟫": CognitivePrimitiveType.CUBE,
-            "🔷": CognitivePrimitiveType.DODECAHEDRON,
-            "🔶": CognitivePrimitiveType.OCTAHEDRON,
-            "⭕": CognitivePrimitiveType.ICOSAHEDRON
-        }
-        self.activation_sequences = {}
-        self.recursive_loops = []
-        
-    def interpret_symbol_stream(self, symbol_sequence: str) -> Dict[str, Any]:
-        """Interpret sequence of symbolic inputs into cognitive operations"""
-        operations = []
-        cognitive_flow = []
-        
-        for symbol in symbol_sequence:
-            if symbol in self.symbol_mapping:
-                primitive = self.symbol_mapping[symbol]
-                operation = self._symbol_to_operation(primitive)
-                operations.append(operation)
-                cognitive_flow.append({
-                    "symbol": symbol,
-                    "primitive": primitive.value,
-                    "operation": operation,
-                    "resonance": self._calculate_symbol_resonance(primitive)
-                })
-        
+class BridgeNetwork:
+    """Manages component bridges for routing between pools."""
+
+    def __init__(self) -> None:
+        self.bridges: Dict[str, HyphenatorBridge] = {}
+        self.component_registry: Dict[str, Any] = {}
+
+    def register_component(self, component_id: str, component: Any) -> None:
+        """Register a component with the bridge network."""
+        self.component_registry[component_id] = component
+
+    def create_bridge(
+        self,
+        source: str,
+        target: str,
+        bridge_type: BridgeType = BridgeType.SYNC,
+    ) -> str:
+        """Create a bridge between two components."""
+        bridge = HyphenatorBridge(source, target, bridge_type)
+        self.bridges[bridge.id] = bridge
+        return bridge.id
+
+    def execute_bridge(self, bridge_id: str, atom: QuantumAtom) -> QuantumAtom:
+        """Execute a specific bridge."""
+        if bridge_id not in self.bridges:
+            raise KeyError(f"Bridge {bridge_id} not found")
+        return self.bridges[bridge_id].execute(atom)
+
+    def auto_bridge(self, source: str, target: str) -> str:
+        """Create a bridge if one does not already exist."""
+        bridge_id = f"{source}-{target}"
+        if bridge_id not in self.bridges:
+            return self.create_bridge(source, target)
+        return bridge_id
+
+
+class TriadicProcessor(UniversalInterface):
+    """Core triadic processor: input -> process -> output."""
+
+    def __init__(self, processor_id: str) -> None:
+        self.id = processor_id
+        self.consensus_threshold = 0.7
+        self.execution_count = 0
+        self.initialize()
+
+    def initialize(self, *args: Any, **kwargs: Any) -> None:
+        """Reset processor state."""
+        if "consensus_threshold" in kwargs:
+            self.consensus_threshold = float(kwargs["consensus_threshold"])
+        self.execution_count = 0
+
+    def execute(self, atom: QuantumAtom) -> QuantumAtom:
+        """Execute the triadic processing pipeline."""
+        if not isinstance(atom, QuantumAtom):
+            raise TypeError("TriadicProcessor.execute expects a QuantumAtom")
+        self.execution_count += 1
+        input_result = self._stage_input(atom)
+        process_result = self._stage_process(input_result)
+        output_result = self._stage_output(process_result)
+        return output_result
+
+    def _stage_input(self, atom: QuantumAtom) -> QuantumAtom:
+        return QuantumAtom(
+            id=f"input_{atom.id}",
+            data=f"INPUT({atom.data})",
+            primitive=CorePrimitive.INPUT,
+        )
+
+    def _stage_process(self, atom: QuantumAtom) -> QuantumAtom:
+        return QuantumAtom(
+            id=f"process_{atom.id}",
+            data=f"PROCESS({atom.data})",
+            primitive=CorePrimitive.PROCESS,
+        )
+
+    def _stage_output(self, atom: QuantumAtom) -> QuantumAtom:
+        return QuantumAtom(
+            id=f"output_{atom.id}",
+            data=f"OUTPUT({atom.data})",
+            primitive=CorePrimitive.OUTPUT,
+        )
+
+    def status(self) -> Dict[str, Any]:
         return {
-            "symbol_sequence": symbol_sequence,
-            "interpreted_operations": operations,
-            "cognitive_flow": cognitive_flow,
-            "processing_chain": " → ".join(operations),
-            "total_resonance": sum(flow["resonance"] for flow in cognitive_flow),
-            "quantum_coherence": self._assess_sequence_coherence(cognitive_flow)
+            "id": self.id,
+            "type": "TriadicProcessor",
+            "executions": self.execution_count,
+            "threshold": self.consensus_threshold,
         }
-    
-    def _symbol_to_operation(self, primitive: CognitivePrimitiveType) -> str:
-        """Convert cognitive primitive to processing operation"""
-        operation_mapping = {
-            CognitivePrimitiveType.METATRONS_CUBE: "self.reflect()",
-            CognitivePrimitiveType.TETRAHEDRON: "transform(input)",
-            CognitivePrimitiveType.CUBE: "stable_storage()",
-            CognitivePrimitiveType.DODECAHEDRON: "synthesize(concepts)",
-            CognitivePrimitiveType.OCTAHEDRON: "process_bridges()",
-            CognitivePrimitiveType.ICOSAHEDRON: "integrate_emotion()"
+
+    def teardown(self) -> None:
+        """Reset execution count for clean shutdown."""
+        self.execution_count = 0
+
+
+class DynamicPool(DynamicPoolBase):
+    """Self-managing pool of triadic processors."""
+
+    def __init__(self, pool_id: str, initial_size: int = 3) -> None:
+        super().__init__()
+        self.id = pool_id
+        self.processors: List[TriadicProcessor] = []
+        self.bridge_network = BridgeNetwork()
+        # Tunables (kept within sane bounds)
+        self.load_threshold = max(0.0, min(0.99, DEFAULT_LOAD_THRESHOLD))
+        self.scale_factor = max(DEFAULT_SCALE_FACTOR, 2)
+        self._max_processors = DEFAULT_MAX_PROCESSORS
+        self._schedule_lock = threading.Lock()
+        self._inflight: Dict[str, int] = {}
+        self._proc_by_id: Dict[str, TriadicProcessor] = {}
+        self._heap: List[tuple] = []  # (load, counter, processor_id)
+        self._heap_counter: int = 0
+        self._heap_compact_factor: int = 8  # rebuild heap if it grows too large vs processors
+
+        if initial_size < 1:
+            initial_size = 1
+        initial_size = min(initial_size, self._max_processors)
+        for index in range(initial_size):
+            processor = TriadicProcessor(f"{pool_id}_proc_{index}")
+            self.processors.append(processor)
+            self._proc_by_id[processor.id] = processor
+            self.bridge_network.register_component(processor.id, processor)
+        # build heap lazily with current loads
+        for proc in self.processors:
+            load = proc.execution_count + self._inflight.get(proc.id, 0)
+            heapq.heappush(self._heap, (load, self._heap_counter, proc.id))
+            self._heap_counter += 1
+        # Guarded scaling cadence
+        try:
+            self._scale_cooldown = float(os.getenv('QNF_SCALE_COOLDOWN_SEC', '0.5'))
+        except Exception:
+            self._scale_cooldown = 0.5
+        self._last_scale_time = 0.0
+
+    def initialize(self, size: Optional[int] = None) -> None:
+        """Optional pool re-initialization hook."""
+        if size is not None:
+            self.teardown()
+            if size < 1:
+                size = 1
+            size = min(size, self._max_processors)
+            for index in range(size):
+                processor = TriadicProcessor(f"{self.id}_proc_{index}")
+                self.processors.append(processor)
+                self._proc_by_id[processor.id] = processor
+                self.bridge_network.register_component(processor.id, processor)
+                load = processor.execution_count + self._inflight.get(processor.id, 0)
+                heapq.heappush(self._heap, (load, self._heap_counter, processor.id))
+                self._heap_counter += 1
+
+    def process_atom(self, atom: QuantumAtom) -> QuantumAtom:
+        """Process an atom using the least loaded processor."""
+        if not self.processors:
+            self._emergency_scale()
+
+        # Make scheduling and scaling decisions under a lock to avoid races
+        with self._schedule_lock:
+            if self._should_scale(consider_inflight=True):
+                self._scale_up()
+            # Pop the least-loaded processor lazily from heap
+            while True:
+                if not self._heap:
+                    # fallback (should not happen): use first processor
+                    processor = self.processors[0]
+                    break
+                load, _, pid = heapq.heappop(self._heap)
+                processor = self._proc_by_id.get(pid)
+                if processor is None:
+                    continue
+                current_load = processor.execution_count + self._inflight.get(pid, 0)
+                if load != current_load:
+                    # stale entry, push updated load and continue
+                    heapq.heappush(self._heap, (current_load, self._heap_counter, pid))
+                    self._heap_counter += 1
+                    continue
+                break
+            # reserve this processor by increasing inflight and push back with updated load
+            self._inflight[processor.id] = self._inflight.get(processor.id, 0) + 1
+            new_load = processor.execution_count + self._inflight.get(processor.id, 0)
+            heapq.heappush(self._heap, (new_load, self._heap_counter, processor.id))
+            self._heap_counter += 1
+            self._maybe_compact_heap()
+
+        try:
+            return processor.execute(atom)
+        finally:
+            with self._schedule_lock:
+                self._inflight[processor.id] = max(0, self._inflight.get(processor.id, 1) - 1)
+                if self._inflight.get(processor.id, 0) == 0:
+                    # Keep dict small
+                    self._inflight.pop(processor.id, None)
+                # push updated load lazily
+                current_load = processor.execution_count + self._inflight.get(processor.id, 0)
+                heapq.heappush(self._heap, (current_load, self._heap_counter, processor.id))
+                self._heap_counter += 1
+                self._maybe_compact_heap()
+
+    def status(self) -> Dict[str, Any]:
+        return {
+            "id": self.id,
+            "processor_count": len(self.processors),
+            "total_executions": sum(proc.execution_count for proc in self.processors),
+            "bridge_count": len(self.bridge_network.bridges),
+            "heap_size": len(self._heap),
+            "sched_heap_stale_ratio": (len(self._heap) / max(1, len(self.processors))),
         }
-        return operation_mapping.get(primitive, "unknown_operation()")
-    
-    def _calculate_symbol_resonance(self, primitive: CognitivePrimitiveType) -> float:
-        """Calculate resonance frequency for symbolic primitive"""
-        resonance_frequencies = {
-            CognitivePrimitiveType.METATRONS_CUBE: 13.0,
-            CognitivePrimitiveType.TETRAHEDRON: 7.83,
-            CognitivePrimitiveType.CUBE: 6.66,
-            CognitivePrimitiveType.DODECAHEDRON: 11.11,
-            CognitivePrimitiveType.OCTAHEDRON: 8.14,
-            CognitivePrimitiveType.ICOSAHEDRON: 9.63
-        }
-        return resonance_frequencies.get(primitive, 8.0)
-    
-    def _assess_sequence_coherence(self, cognitive_flow: List[Dict]) -> float:
-        """Assess quantum coherence of symbol sequence"""
-        if not cognitive_flow:
+
+    def _should_scale(self, consider_inflight: bool = False) -> bool:
+        if not self.processors:
+            return True
+        if consider_inflight:
+            avg_load = (
+                sum(
+                    proc.execution_count + self._inflight.get(proc.id, 0)
+                    for proc in self.processors
+                )
+                / len(self.processors)
+            )
+            max_load = max(
+                proc.execution_count + self._inflight.get(proc.id, 0)
+                for proc in self.processors
+            )
+        else:
+            avg_load = sum(proc.execution_count for proc in self.processors) / len(
+                self.processors
+            )
+            max_load = max(proc.execution_count for proc in self.processors)
+        return (max_load / (avg_load + 1)) > self.load_threshold
+
+    def _scale_up(self) -> None:
+        """Scale the pool by adding additional processors."""
+        current_size = len(self.processors)
+        new_size = min(current_size * self.scale_factor, self._max_processors)
+        for index in range(current_size, new_size):
+            processor = TriadicProcessor(f"{self.id}_proc_{index}")
+            self.processors.append(processor)
+            self._proc_by_id[processor.id] = processor
+            self.bridge_network.register_component(processor.id, processor)
+            load = processor.execution_count + self._inflight.get(processor.id, 0)
+            heapq.heappush(self._heap, (load, self._heap_counter, processor.id))
+            self._heap_counter += 1
+        self._maybe_compact_heap(force=True)
+
+    def _emergency_scale(self) -> None:
+        """Ensure at least one processor is available."""
+        processor = TriadicProcessor(f"{self.id}_emergency_0")
+        self.processors.append(processor)
+        self._proc_by_id[processor.id] = processor
+        self.bridge_network.register_component(processor.id, processor)
+        load = processor.execution_count + self._inflight.get(processor.id, 0)
+        heapq.heappush(self._heap, (load, self._heap_counter, processor.id))
+        self._heap_counter += 1
+        self._maybe_compact_heap(force=True)
+
+    def teardown(self) -> None:
+        for processor in self.processors:
+            processor.teardown()
+        self.processors.clear()
+        with self._schedule_lock:
+            self._inflight.clear()
+            self._heap.clear()
+            self._proc_by_id.clear()
+
+    def _maybe_compact_heap(self, *, force: bool = False) -> None:
+        # Rebuild the heap if it has accumulated too many stale entries
+        if not self.processors:
+            self._heap.clear()
+            self._heap_counter = 0
+            return
+        if not force and len(self._heap) <= self._heap_compact_factor * len(self.processors):
+            return
+        new_heap: List[tuple] = []
+        for proc in self.processors:
+            load = proc.execution_count + self._inflight.get(proc.id, 0)
+            new_heap.append((load, 0, proc.id))
+        heapq.heapify(new_heap)
+        self._heap = new_heap
+        self._heap_counter = 0
+
+    def scale_hint(self, reason: str = "") -> bool:
+        now = time.perf_counter()
+        if now - getattr(self, "_last_scale_time", 0.0) < getattr(self, "_scale_cooldown", 0.5):
+            return False
+        with self._schedule_lock:
+            current = len(self.processors)
+            if current >= self._max_processors:
+                return False
+            step = max(1, self.scale_factor // 2)
+            target = min(current + step, self._max_processors)
+            for idx in range(current, target):
+                proc = TriadicProcessor(f"{self.id}_proc_{idx}")
+                self.processors.append(proc)
+                self._proc_by_id[proc.id] = proc
+                self.bridge_network.register_component(proc.id, proc)
+                load = proc.execution_count + self._inflight.get(proc.id, 0)
+                heapq.heappush(self._heap, (load, self._heap_counter, proc.id))
+                self._heap_counter += 1
+            self._maybe_compact_heap(force=True)
+            self._last_scale_time = now
+            if DEBUG_FLAG:
+                print(f"[QNF] scale_hint({reason}) -> processors {current} -> {target}")
+            return True
+
+
+class RollingStats:
+    """Rolling window statistics for latencies.
+
+    Uses a fixed-size deque; provides mean and simple quantiles on demand.
+    """
+
+    def __init__(self, window: int = 500) -> None:
+        self.window = max(10, int(window))
+        self._data: deque[float] = deque(maxlen=self.window)
+
+    def add(self, value: float) -> None:
+        self._data.append(value)
+
+    def mean(self) -> float:
+        if not self._data:
             return 0.0
-        
-        # Calculate coherence based on resonance harmony
-        resonances = [flow["resonance"] for flow in cognitive_flow]
-        mean_resonance = sum(resonances) / len(resonances)
-        variance = sum((r - mean_resonance) ** 2 for r in resonances) / len(resonances)
-        
-        # Lower variance indicates higher coherence
-        coherence = 1.0 / (1.0 + variance)
-        return round(coherence, 3)
+        return sum(self._data) / len(self._data)
 
-class PerformanceMonitor:
-    """Real-time performance monitoring and metrics collection"""
-    
-    def __init__(self):
-        self.start_time = time.time()
-        self.operation_times = []
-        self.memory_usage = []
-        self.processing_counts = {
-            "nodes_created": 0,
-            "symbols_processed": 0,
-            "neurodivergent_analyses": 0,
-            "zones_allocated": 0
-        }
-    
-    def record_operation(self, operation_name: str, duration: float):
-        """Record operation timing"""
-        self.operation_times.append({
-            "operation": operation_name,
-            "duration_ms": round(duration * 1000, 2),
-            "timestamp": time.time() - self.start_time
-        })
-    
-    def get_performance_metrics(self) -> Dict[str, Any]:
-        """Get current performance metrics"""
-        current_time = time.time()
-        uptime = current_time - self.start_time
-        
-        avg_operation_time = 0
-        if self.operation_times:
-            avg_operation_time = sum(op["duration_ms"] for op in self.operation_times) / len(self.operation_times)
-        
+    def percentile(self, p: float) -> float:
+        if not self._data:
+            return 0.0
+        # simple nth-order statistic on a copy (small window); p in [0,100]
+        arr = sorted(self._data)
+        k = max(0, min(len(arr) - 1, int(round((p / 100.0) * (len(arr) - 1)))))
+        return float(arr[k])
+
+    def status(self) -> Dict[str, Any]:
+        """Return simple statistics about the rolling window."""
         return {
-            "uptime_seconds": round(uptime, 2),
-            "total_operations": len(self.operation_times),
-            "average_operation_time_ms": round(avg_operation_time, 2),
-            "operations_per_second": round(len(self.operation_times) / max(uptime, 0.001), 2),
-            "processing_counts": self.processing_counts.copy(),
-            "last_5_operations": self.operation_times[-5:] if self.operation_times else []
+            "window": self.window,
+            "samples": len(self._data),
+            "mean": self.mean(),
+            "p95": self.percentile(95.0),
         }
 
-class EnhancedQuantumNexusForge:
-    """Main cognitive architecture with enhanced multi-modal processing"""
-    
-    def __init__(self):
-        self.cognitive_nodes = {}
-        self.neurodivergent_processor = NeurodivergentCognitiveProcessor()
-        self.symbolic_interpreter = SymbolicStreamInterpreter()
-        self.performance_monitor = PerformanceMonitor()
-        self.zone_managers = {
-            MemoryZoneClassification.ACTIVE_PROCESSING: [],
-            MemoryZoneClassification.PATTERN_EMERGENCE: [],
-            MemoryZoneClassification.CRYSTALLIZED_STORAGE: []
-        }
-        self.system_metrics = {
-            "total_nodes": 0,
-            "processing_sessions": 0,
-            "symbol_interpretations": 0,
-            "neurodivergent_analyses": 0
-        }
-        self.recursive_depth = 0
-        self.consciousness_elevation = 40.0
-        
-    def process_with_symbol_stream(self, content: Any, symbol_sequence: str = "💠🔺🔮⭕🔄") -> Dict[str, Any]:
-        """Process content using symbolic stream interpretation"""
-        start_time = time.time()
-        
-        # Create quantum cognitive node
-        node = QuantumCognitiveNode(content=content)
-        self.cognitive_nodes[node.id] = node
-        
-        # Interpret symbol sequence
-        symbolic_analysis = self.symbolic_interpreter.interpret_symbol_stream(symbol_sequence)
-        
-        # Apply neurodivergent processing lenses
-        neurodivergent_analyses = {}
-        for lens in NeurodivergentProcessingLens:
-            analysis = self.neurodivergent_processor.processing_lenses[lens](content)
-            neurodivergent_analyses[lens.value] = analysis
-        
-        # Zone classification and management
-        zone = node.zone_classification
-        self.zone_managers[zone].append(node.id)
-        
-        # Update system metrics
-        self.system_metrics["total_nodes"] += 1
-        self.system_metrics["processing_sessions"] += 1
-        self.system_metrics["symbol_interpretations"] += 1
-        self.system_metrics["neurodivergent_analyses"] += len(neurodivergent_analyses)
-        
-        # Update performance counters
-        self.performance_monitor.processing_counts["nodes_created"] += 1
-        self.performance_monitor.processing_counts["symbols_processed"] += len(symbol_sequence)
-        self.performance_monitor.processing_counts["neurodivergent_analyses"] += len(neurodivergent_analyses)
-        self.performance_monitor.processing_counts["zones_allocated"] += 1
-        
-        # Record operation time
-        operation_time = time.time() - start_time
-        self.performance_monitor.record_operation("process_with_symbol_stream", operation_time)
-        
+
+class QuantumNexusForge:
+    """Main system orchestrator."""
+
+    def __init__(self) -> None:
+        self.pools: Dict[str, DynamicPool] = {}
+        self.global_bridge_network = BridgeNetwork()
+        self.system_log: List[Dict[str, Any]] = []
+        self._log_lock = threading.Lock()
+        # Rolling latency metrics (ms)
+        try:
+            win = int(os.getenv("QNF_METRICS_WINDOW", "500"))
+        except Exception:
+            win = 500
+        self._latency = RollingStats(window=win)
+        try:
+            self._p95_scale_threshold_ms = float(os.getenv("QNF_P95_MS_SCALEUP", "50"))
+        except Exception:
+            self._p95_scale_threshold_ms = 50.0
+        # Toggle including per‑pool latency aggregates in pool.status
+        self._exclude_pool_latency = os.getenv("QNF_EXCLUDE_POOL_LAT", "0") == "1"
+        # Per‑pool latency windows
+        try:
+            self._pool_metrics_window = int(os.getenv("QNF_POOL_METRICS_WINDOW", "300"))
+        except Exception:
+            self._pool_metrics_window = 300
+        self._pool_latency: Dict[str, RollingStats] = {}
+
+    def create_pool(self, pool_id: str, initial_size: int = 3) -> str:
+        """Create a new dynamic pool."""
+        if pool_id in self.pools:
+            raise ValueError(f"Pool {pool_id} already exists")
+        pool = DynamicPool(pool_id, initial_size)
+        self.pools[pool_id] = pool
+        self.global_bridge_network.register_component(pool_id, pool)
+        self._log(f"Created pool {pool_id} with {initial_size} processors")
+        return pool_id
+
+    def process(self, data: Any, pool_id: Optional[str] = None) -> Dict[str, Any]:
+        """Process data through the system."""
+        atom = QuantumAtom(data=data)
+        target_pool_id = pool_id or "default"
+        if target_pool_id not in self.pools:
+            self.create_pool(target_pool_id)
+        start_time = time.perf_counter()
+        if STRICT_FLAG and target_pool_id not in self.pools:
+            raise RuntimeError("Target pool not available after creation attempt")
+        result_atom = self.pools[target_pool_id].process_atom(atom)
+        processing_time = time.perf_counter() - start_time
+        # Record latency in milliseconds
+        self._latency.add(processing_time * 1000.0)
+        # Adaptive scale-up hint based on p95 latency
+        try:
+            p95_now = self._latency.percentile(95.0)
+            if p95_now > self._p95_scale_threshold_ms:
+                pool = self.pools.get(target_pool_id)
+                if pool is not None:
+                    pool.scale_hint("p95_latency")
+        except Exception:
+            pass
+        # Track per‑pool latency window
+        try:
+            stats = self._pool_latency.get(target_pool_id)
+            if stats is None:
+                stats = RollingStats(window=self._pool_metrics_window)
+                self._pool_latency[target_pool_id] = stats
+            stats.add(processing_time * 1000.0)
+        except Exception:
+            pass
+        self._log(f"Processed {atom.id} in {processing_time:.4f}s")
         return {
-            "node_id": node.id,
-            "symbolic_processing": symbolic_analysis,
-            "neurodivergent_analyses": neurodivergent_analyses,
-            "spatial_coordinates": node.spatial_vector.coordinates,
-            "cognitive_elevation": node.cognitive_elevation,
-            "entropy_coefficient": node.entropy_coefficient,
-            "zone_classification": zone.value,
-            "resonance_frequency": node.spatial_vector.resonance_frequency,
-            "processing_timestamp": node.creation_timestamp.isoformat(),
-            "processing_time_ms": round(operation_time * 1000, 2),
-            "system_metrics": self.system_metrics.copy()
+            "input_id": atom.id,
+            "output_id": result_atom.id,
+            "result": result_atom.data,
+            "processing_time": processing_time,
+            "pool_used": target_pool_id,
         }
-    
-    def generate_system_report(self) -> Dict[str, Any]:
-        """Generate comprehensive system analysis report"""
-        zone_distributions = {
-            zone.value: len(nodes) for zone, nodes in self.zone_managers.items()
-        }
-        
-        total_resonance = sum(
-            node.spatial_vector.resonance_frequency 
-            for node in self.cognitive_nodes.values()
+
+    def stress_test(
+        self, iterations: int = 1000, concurrent: bool = False
+    ) -> Dict[str, Any]:
+        """Stress test the system."""
+        if iterations < 0:
+            raise ValueError("iterations must be non-negative")
+        self._log(
+            f"Starting stress test: {iterations} iterations, concurrent={concurrent}"
         )
-        
-        average_entropy = 0
-        if self.cognitive_nodes:
-            average_entropy = sum(
-                node.entropy_coefficient for node in self.cognitive_nodes.values()
-            ) / len(self.cognitive_nodes)
-        
-        performance_metrics = self.performance_monitor.get_performance_metrics()
-        
-        return {
-            "system_status": "ENHANCED_OPERATIONAL",
-            "architecture_version": "5.2.0",
-            "total_cognitive_nodes": len(self.cognitive_nodes),
-            "zone_distributions": zone_distributions,
-            "total_system_resonance": round(total_resonance, 2),
-            "average_entropy": round(average_entropy, 3),
-            "consciousness_elevation": self.consciousness_elevation,
-            "neurodivergent_processing_lenses": len(NeurodivergentProcessingLens),
-            "cognitive_primitives_available": len(CognitivePrimitiveType),
-            "performance_metrics": performance_metrics,
-            "system_metrics": self.system_metrics,
-            "timestamp": datetime.datetime.utcnow().isoformat(),
-            "cognitive_architecture_health": self._assess_system_health()
-        }
-    
-    def _assess_system_health(self) -> Dict[str, Any]:
-        """Assess overall system health and performance"""
-        health_score = 0.0
-        health_factors = []
-        
-        # Zone balance assessment
-        total_nodes = len(self.cognitive_nodes)
-        if total_nodes > 0:
-            active_ratio = len(self.zone_managers[MemoryZoneClassification.ACTIVE_PROCESSING]) / total_nodes
-            if 0.2 <= active_ratio <= 0.6:  # Healthy active processing ratio
-                health_score += 25
-                health_factors.append("zone_balance_optimal")
-            else:
-                health_factors.append("zone_balance_suboptimal")
-        
-        # Performance assessment
-        perf_metrics = self.performance_monitor.get_performance_metrics()
-        if perf_metrics["average_operation_time_ms"] < 50:  # Fast operations
-            health_score += 25
-            health_factors.append("high_performance")
-        elif perf_metrics["average_operation_time_ms"] < 200:  # Moderate performance
-            health_score += 15
-            health_factors.append("moderate_performance")
+        start_time = time.perf_counter()
+        successes = 0
+        failures = 0
+
+        if concurrent:
+            counter_lock = threading.Lock()
+
+            def stress_worker(index: int) -> None:
+                nonlocal successes, failures
+                try:
+                    self.process(f"stress_data_{index}")
+                    with counter_lock:
+                        successes += 1
+                except Exception:
+                    with counter_lock:
+                        failures += 1
+
+            threads: List[threading.Thread] = []
+            for index in range(iterations):
+                thread = threading.Thread(target=stress_worker, args=(index,))
+                thread.start()
+                threads.append(thread)
+            for thread in threads:
+                thread.join()
         else:
-            health_factors.append("performance_degradation")
-        
-        # Processing diversity assessment
-        if self.system_metrics["neurodivergent_analyses"] > 0:
-            health_score += 25
-            health_factors.append("neurodivergent_processing_active")
-        
-        # System utilization assessment
-        if self.system_metrics["total_nodes"] >= 3:
-            health_score += 25
-            health_factors.append("adequate_system_utilization")
-        elif self.system_metrics["total_nodes"] >= 1:
-            health_score += 15
-            health_factors.append("minimal_system_utilization")
-        
+            for index in range(iterations):
+                try:
+                    self.process(f"stress_data_{index}")
+                    successes += 1
+                except Exception:
+                    failures += 1
+
+        total_time = time.perf_counter() - start_time
+        success_rate = successes / iterations if iterations > 0 else 0.0
+        throughput = iterations / total_time if total_time > 0 else 0.0
+
         return {
-            "health_score": health_score,
-            "health_percentage": f"{health_score}%",
-            "health_factors": health_factors,
-            "status": "excellent" if health_score >= 80 else "good" if health_score >= 60 else "fair" if health_score >= 40 else "needs_attention"
+            "iterations": iterations,
+            "successes": successes,
+            "failures": failures,
+            "success_rate": success_rate,
+            "total_time": total_time,
+            "throughput": throughput,
+            "system_status": self.status(),
         }
 
-def print_banner():
-    """Print system banner for demonstration"""
-    print("=" * 80)
-    print("🧠 QUANTUM NEXUS FORGE v5.2.0 - ENHANCED COGNITIVE ARCHITECTURE 🧠")
-    print("=" * 80)
-    print("🔬 Multi-Modal Neurodivergent-Inclusive Processing Framework")
-    print("🎯 Real-time Symbolic Stream Interpretation")
-    print("📊 Performance Monitoring & Analytics")
-    print("🌟 Created by: Shannon Bryan Kelly & Claude AI Sonnet 4")
-    print("=" * 80)
-    print()
+    def teardown_complete(self) -> None:
+        """Complete system teardown to foundation."""
+        self._log("Beginning complete system teardown")
+        for pool_id, pool in list(self.pools.items()):
+            pool.teardown()
+            self._log(f"Torn down pool {pool_id}")
+        self.pools.clear()
+        self.global_bridge_network = BridgeNetwork()
+        self.system_log.clear()
+        self._log("System teardown complete - back to foundation")
 
-def demonstrate_basic_processing(forge: EnhancedQuantumNexusForge):
-    """Demonstrate basic cognitive processing capabilities"""
-    print("🔍 DEMONSTRATION 1: Basic Cognitive Processing")
-    print("-" * 50)
-    
-    test_inputs = [
-        "Analyzing neurodivergent cognitive patterns in enterprise systems",
-        "The quick brown fox jumps over the lazy dog 123 times",
-        "Recursive processing with emotional intelligence integration"
-    ]
-    
-    for i, test_input in enumerate(test_inputs, 1):
-        print(f"\n📝 Processing Input {i}: {test_input[:40]}...")
-        
-        result = forge.process_with_symbol_stream(
-            content=test_input,
-            symbol_sequence="💠🔺🔷⭕"
-        )
-        
-        print(f"   🆔 Node ID: {result['node_id']}")
-        print(f"   🎯 Zone: {result['zone_classification']}")
-        print(f"   🎵 Resonance: {result['resonance_frequency']:.2f} Hz")
-        print(f"   🔀 Entropy: {result['entropy_coefficient']:.3f}")
-        print(f"   ⏱️  Processing Time: {result['processing_time_ms']:.2f}ms")
-        print(f"   📍 3D Coordinates: {result['spatial_coordinates']}")
+    def rebuild_from_foundation(self, config: Optional[Dict[str, Any]] = None) -> None:
+        """Rebuild the system from the foundation up."""
+        self._log("Rebuilding system from foundation")
+        self.teardown_complete()
+        config = config or {"default_pools": 2, "pool_size": 5}
+        for index in range(config.get("default_pools", 2)):
+            pool_id = f"rebuilt_pool_{index}"
+            self.create_pool(pool_id, config.get("pool_size", 5))
+        self._log("System rebuild complete")
 
-def demonstrate_symbolic_processing(forge: EnhancedQuantumNexusForge):
-    """Demonstrate symbolic stream interpretation"""
-    print("\n\n🔮 DEMONSTRATION 2: Symbolic Stream Processing")
-    print("-" * 50)
-    
-    symbol_sequences = [
-        "💠🔺🔷",     # Core reflection + Transform + Unity
-        "🔶⭕🟫",     # Process + Emotion + Memory
-        "💠🔺🔶⭕🔷" # Full cognitive cycle
-    ]
-    
-    for i, sequence in enumerate(symbol_sequences, 1):
-        print(f"\n🎭 Symbol Sequence {i}: {sequence}")
-        
-        result = forge.process_with_symbol_stream(
-            content=f"Symbolic processing demonstration {i}",
-            symbol_sequence=sequence
-        )
-        
-        symbolic = result['symbolic_processing']
-        print(f"   🔗 Processing Chain: {symbolic['processing_chain']}")
-        print(f"   🎵 Total Resonance: {symbolic['total_resonance']:.2f}")
-        print(f"   🌊 Quantum Coherence: {symbolic['quantum_coherence']}")
-        
-        for flow in symbolic['cognitive_flow']:
-            print(f"      {flow['symbol']} → {flow['primitive']} → {flow['operation']}")
+    def status(self) -> Dict[str, Any]:
+        """Return complete system status."""
+        pool_status: Dict[str, Dict[str, Any]] = {}
+        total_processors = 0
+        total_executions = 0
+        heap_stale_ratios: List[float] = []
+        for pool_id, pool in self.pools.items():
+            status = pool.status()
+            pool_status[pool_id] = status
+            total_processors += status["processor_count"]
+            total_executions += status["total_executions"]
+            # attach per‑pool latency aggregates if available
+            if not self._exclude_pool_latency:
+                try:
+                    stats = self._pool_latency.get(pool_id)
+                    if stats is not None:
+                        status["avg_latency_ms"] = stats.mean()
+                        status["p95_latency_ms"] = stats.percentile(95.0)
+                except Exception:
+                    pass
+            rs = status.get("sched_heap_stale_ratio")
+            if isinstance(rs, (int, float)):
+                heap_stale_ratios.append(float(rs))
+        avg_ms = self._latency.mean()
+        p95_ms = self._latency.percentile(95.0)
+        avg_heap_stale = sum(heap_stale_ratios) / len(heap_stale_ratios) if heap_stale_ratios else 0.0
+        max_heap_stale = max(heap_stale_ratios) if heap_stale_ratios else 0.0
+        return {
+            "system_id": "QuantumNexusForge_v7.0",
+            "total_pools": len(self.pools),
+            "total_processors": total_processors,
+            "total_executions": total_executions,
+            "pool_status": pool_status,
+            "global_bridges": len(self.global_bridge_network.bridges),
+            "log_entries": len(self.system_log),
+            "platform": f"{sys.platform} | Python {sys.version_info.major}.{sys.version_info.minor}",
+            "avg_latency_ms": avg_ms,
+            "p95_latency_ms": p95_ms,
+            "avg_heap_stale_ratio": avg_heap_stale,
+            "max_heap_stale_ratio": max_heap_stale,
+        }
 
-def demonstrate_neurodivergent_processing(forge: EnhancedQuantumNexusForge):
-    """Demonstrate neurodivergent processing capabilities"""
-    print("\n\n🧩 DEMONSTRATION 3: Neurodivergent Processing Lenses")
-    print("-" * 50)
-    
-    test_content = "The pattern recognition system identifies repeated sequences in data processing workflows"
-    
-    result = forge.process_with_symbol_stream(
-        content=test_content,
-        symbol_sequence="💠🔺"
+    def _log(self, message: str) -> None:
+        """Record a log entry and emit to stdout."""
+        log_entry = {
+            "timestamp": time.time(),
+            "message": message,
+            "system_time": time.strftime("%Y-%m-%d %H:%M:%S"),
+        }
+        with self._log_lock:
+            self.system_log.append(log_entry)
+        print(f"[QNF] {log_entry['system_time']} - {message}")
+
+    # --- Tunables -----------------------------------------------------------
+    def set_p95_scale_threshold_ms(self, value: float) -> None:
+        try:
+            v = float(value)
+        except Exception:
+            return
+        self._p95_scale_threshold_ms = max(1.0, v)
+
+
+def max_stress_demonstration() -> QuantumNexusForge:
+    """Maximum stress test and system demonstration."""
+    print("QUANTUM NEXUS FORGE v7.0 - COMPLETE SYSTEM TEST")
+    print("=" * 60)
+
+    qnf = QuantumNexusForge()
+
+    print("\nPHASE 1: FOUNDATION BUILD")
+    qnf.create_pool("stress_pool_1", 3)
+    qnf.create_pool("stress_pool_2", 5)
+    print(f"Initial Status: {qnf.status()}")
+
+    print("\nPHASE 2: STRESS TEST - SEQUENTIAL")
+    sequential_results = qnf.stress_test(iterations=100, concurrent=False)
+    print(
+        f"Sequential Test: {sequential_results['success_rate']:.2%} success, "
+        f"{sequential_results['throughput']:.1f} ops/sec",
     )
-    
-    print(f"📝 Input: {test_content}")
-    print("\n🔍 Processing Results by Cognitive Lens:")
-    
-    nd_analyses = result['neurodivergent_analyses']
-    
-    for lens_name, analysis in nd_analyses.items():
-        print(f"\n   🎯 {lens_name.upper()}:")
-        if lens_name == "autism_precision":
-            print(f"      🔍 Patterns Found: {len(analysis['identified_patterns'])}")
-            print(f"      📊 Pattern Confidence: {analysis['pattern_confidence']:.3f}")
-            print(f"      🎯 Focus: {analysis['detail_focus']}")
-        elif lens_name == "adhd_dynamic":
-            print(f"      ⚡ Context Switches: {len(analysis['context_switch_points'])}")
-            print(f"      🧠 Attention Segments: {analysis['attention_span_segments']}")
-            print(f"      🚀 Processing Style: {analysis['processing_velocity']}")
-        elif lens_name == "dyslexia_restructure":
-            print(f"      🔄 Symbol Transformations: {analysis['alternative_representations']}")
-            print(f"      🌐 Spatial Cognition: {analysis['spatial_cognition']}")
-        # Add other lens displays as needed
 
-def demonstrate_performance_monitoring(forge: EnhancedQuantumNexusForge):
-    """Demonstrate real-time performance monitoring"""
-    print("\n\n📊 DEMONSTRATION 4: Performance Monitoring")
-    print("-" * 50)
-    
-    # Generate some processing load
-    for i in range(5):
-        forge.process_with_symbol_stream(
-            content=f"Performance test iteration {i}",
-            symbol_sequence="💠🔺🔷"
-        )
-    
-    performance = forge.performance_monitor.get_performance_metrics()
-    
-    print(f"⏱️  System Uptime: {performance['uptime_seconds']:.2f} seconds")
-    print(f"🔄 Total Operations: {performance['total_operations']}")
-    print(f"⚡ Average Operation Time: {performance['average_operation_time_ms']:.2f}ms")
-    print(f"🚀 Operations per Second: {performance['operations_per_second']:.2f}")
-    
-    print("\n📈 Processing Counts:")
-    for metric, count in performance['processing_counts'].items():
-        print(f"   {metric}: {count}")
-    
-    print("\n🔍 Last 3 Operations:")
-    for op in performance['last_5_operations'][-3:]:
-        print(f"   {op['operation']}: {op['duration_ms']:.2f}ms")
+    print("\nPHASE 3: STRESS TEST - CONCURRENT")
+    concurrent_results = qnf.stress_test(iterations=200, concurrent=True)
+    print(
+        f"Concurrent Test: {concurrent_results['success_rate']:.2%} success, "
+        f"{concurrent_results['throughput']:.1f} ops/sec",
+    )
 
-def demonstrate_system_report(forge: EnhancedQuantumNexusForge):
-    """Generate and display comprehensive system report"""
-    print("\n\n📋 DEMONSTRATION 5: System Health Report")
-    print("-" * 50)
-    
-    report = forge.generate_system_report()
-    
-    print(f"🔧 System Status: {report['system_status']}")
-    print(f"📦 Architecture Version: {report['architecture_version']}")
-    print(f"🧠 Total Cognitive Nodes: {report['total_cognitive_nodes']}")
-    print(f"🎵 Total System Resonance: {report['total_system_resonance']} Hz")
-    print(f"🔀 Average Entropy: {report['average_entropy']}")
-    print(f"📈 Consciousness Elevation: {report['consciousness_elevation']}°")
-    
-    print("\n🗂️  Zone Distribution:")
-    for zone, count in report['zone_distributions'].items():
-        print(f"   {zone}: {count} nodes")
-    
-    health = report['cognitive_architecture_health']
-    print(f"\n💚 System Health: {health['health_percentage']} ({health['status']})")
-    print(f"🎯 Health Factors: {', '.join(health['health_factors'])}")
+    print("\nPHASE 4: TEARDOWN TO FOUNDATION")
+    qnf.teardown_complete()
+    print(f"Post-teardown Status: {qnf.status()}")
 
-def run_comprehensive_demonstration():
-    """Run complete system demonstration for CS professor"""
-    print_banner()
-    
-    # Initialize the cognitive architecture
-    print("🚀 Initializing Enhanced Quantum Nexus Forge...")
-    forge = EnhancedQuantumNexusForge()
-    print("✅ System initialized successfully!\n")
-    
-    # Run all demonstrations
-    demonstrate_basic_processing(forge)
-    demonstrate_symbolic_processing(forge)
-    demonstrate_neurodivergent_processing(forge)
-    demonstrate_performance_monitoring(forge)
-    demonstrate_system_report(forge)
-    
-    print("\n" + "=" * 80)
-    print("🎉 DEMONSTRATION COMPLETE")
-    print("🔬 All cognitive processing systems operational")
-    print("📊 Performance metrics within optimal parameters") 
-    print("🧩 Neurodivergent accessibility framework active")
-    print("🎯 Ready for enterprise deployment")
-    print("=" * 80)
+    print("\nPHASE 5: REBUILD FROM FOUNDATION")
+    qnf.rebuild_from_foundation({"default_pools": 3, "pool_size": 7})
+    print(f"Rebuilt Status: {qnf.status()}")
 
-def main():
-    """Main demonstration function"""
-    try:
-        run_comprehensive_demonstration()
-        
-        print("\n\n🤖 Interactive Mode Available:")
-        print("   - forge = EnhancedQuantumNexusForge()")
-        print("   - result = forge.process_with_symbol_stream('your content', '💠🔺🔷')")
-        print("   - report = forge.generate_system_report()")
-        
-    except Exception as e:
-        print(f"❌ Error during demonstration: {e}")
-        print("🔧 Check system requirements and dependencies")
+    print("\nPHASE 6: FINAL VALIDATION")
+    validation_result = qnf.process("FINAL_VALIDATION_TEST")
+    print(f"Validation: {validation_result}")
+
+    print("\nSYSTEM MAXIMUM STRESS TEST COMPLETE")
+    status = qnf.status()
+    print(f"Platform: {status['platform']}")
+    print(f"Total Executions: {status['total_executions']}")
+
+    return qnf
+
 
 if __name__ == "__main__":
-    main()
+    system = max_stress_demonstration()
+
+    print("\nSHANNON BRYAN KELLY - QUANTUM NEXUS FORGE v7.0")
+    print("Platform-agnostic cognitive architecture")
+    print("Built from foundation up - unbreakable")
+    print("Ready for any platform deployment")

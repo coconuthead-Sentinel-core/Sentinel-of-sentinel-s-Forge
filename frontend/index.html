@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Quantum Nexus Forge UI</title>
+    <style>
+      body { font-family: system-ui, sans-serif; margin: 2rem; color: #e6edf3; background: #0b1220; }
+      h1 { margin: 0 0 1rem 0; font-size: 1.4rem; }
+      .card { background: #0f1a2b; border: 1px solid #1f2a3a; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+      label { display: block; margin-bottom: 0.25rem; }
+      input[type="text"], textarea { width: 100%; padding: 0.5rem; border-radius: 6px; border: 1px solid #2a3a4f; background: #081120; color: #e6edf3; }
+      button { background: #2b6cb0; color: white; border: none; padding: 0.6rem 1rem; border-radius: 6px; cursor: pointer; }
+      button:hover { background: #2c7bd6; }
+      pre { background: #091426; padding: 0.75rem; border-radius: 6px; overflow: auto; border: 1px solid #1f2a3a; }
+      .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+      @media (max-width: 900px) { .row { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <h1>Quantum Nexus Forge</h1>
+    <div class="row">
+      <div class="card">
+        <h2>Cognition Pipeline</h2>
+        <label for="inputText">Input Data</label>
+        <input id="inputText" type="text" placeholder="Type something..." />
+        <div style="margin-top: 0.5rem;">
+          <button id="runBtn">Run /api/cog/process</button>
+          <button id="statusBtn" style="margin-left: 0.5rem;">Get /api/status</button>
+        </div>
+        <h3>Result</h3>
+        <pre id="result"></pre>
+      </div>
+
+      <div class="card">
+        <h2>Symbolic Rules</h2>
+        <p>Rules map substring → tag (simple contains-based tagging).</p>
+        <textarea id="rulesText" rows="10" spellcheck="false"></textarea>
+        <div style="margin-top: 0.5rem;">
+          <button id="loadRules">Load</button>
+          <button id="saveRules" style="margin-left: 0.5rem;">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Reflective Memory</h2>
+      <div>
+        <button id="memSnap">Snapshot</button>
+        <button id="memClear" style="margin-left: 0.5rem;">Clear</button>
+      </div>
+      <pre id="memory"></pre>
+    </div>
+
+    <div class="row">
+      <div class="card">
+        <h2>Shannon Prime</h2>
+        <button id="primeBtn">Get /api/cog/prime</button>
+        <pre id="prime"></pre>
+      </div>
+      <div class="card">
+        <h2>Metatron Suggestions</h2>
+        <button id="suggBtn">Get /api/cog/suggest</button>
+        <pre id="sugg"></pre>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Tri‑Node Sync & Glyphs</h2>
+      <div class="row">
+        <div>
+          <label>Agent</label>
+          <input id="agentName" type="text" value="Sentinel" />
+          <label style="margin-top:.5rem;">State (JSON)</label>
+          <textarea id="agentState" rows="6">{ "glyph_stage": "structure", "msg": "hello" }</textarea>
+          <div style="margin-top:.5rem;"><button id="syncUpdate">POST /api/sync/update</button></div>
+        </div>
+        <div>
+          <label>Glyph Sequence (JSON array)</label>
+          <textarea id="glyphSeq" rows="6">["structure","logic","emotion","transform","unity"]</textarea>
+          <div style="margin-top:.5rem;"><button id="validateGlyphs">POST /api/glyphs/validate</button></div>
+        </div>
+      </div>
+      <div style="margin-top:.5rem;">
+        <button id="syncSnap">GET /api/sync/snapshot</button>
+        <button id="bootSeq" style="margin-left:.5rem;">GET /api/glyphs/boot</button>
+      </div>
+      <pre id="syncOut"></pre>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+  </html>

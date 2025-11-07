@@ -1,0 +1,52 @@
+[
+  {
+    "id": "query_001",
+    "query": "What is the current status of the Quantum Nexus Forge system?",
+    "context": "User wants to check system health and operational status"
+  },
+  {
+    "id": "query_002",
+    "query": "Explain how the Sentinel Cognition pipeline processes symbolic rules",
+    "context": "User needs technical explanation of cognitive processing"
+  },
+  {
+    "id": "query_003",
+    "query": "Show me the memory state of the reflective pool",
+    "context": "User wants to inspect current memory contents"
+  },
+  {
+    "id": "query_004",
+    "query": "How does the tri-node synchronization between Sentinel, Sora, and Architect work?",
+    "context": "User asking about multi-agent coordination mechanisms"
+  },
+  {
+    "id": "query_005",
+    "query": "Generate a coherent response based on the current conversation context",
+    "context": "User expects contextually relevant AI-generated response"
+  },
+  {
+    "id": "query_006",
+    "query": "What are the available symbolic rules and their purposes?",
+    "context": "User wants to understand rule-based reasoning capabilities"
+  },
+  {
+    "id": "query_007",
+    "query": "Analyze this data using the cognitive neural overlay",
+    "context": "User submitting data for AI processing and analysis"
+  },
+  {
+    "id": "query_008",
+    "query": "How does the Shannon Prime Core track entropy and stability?",
+    "context": "User inquiring about information-theoretic monitoring"
+  },
+  {
+    "id": "query_009",
+    "query": "What metrics are being tracked for system performance?",
+    "context": "User wants operational metrics and monitoring data"
+  },
+  {
+    "id": "query_010",
+    "query": "Explain the purpose of the Metatron Engine in rule generation",
+    "context": "User needs explanation of automated rule suggestion feature"
+  }
+]
