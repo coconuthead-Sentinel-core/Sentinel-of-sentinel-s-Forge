@@ -1,82 +1,92 @@
-# Sentinel Forge: Cognitive AI Orchestration Platform
+# Quantum Nexus Forge
 
-> **Status:** Production Ready v1.0.0 | **Pilot:** VR Studios
+**AI that thinks like neurodivergent minds actually work**
 
-**Sentinel Forge** is an enterprise-grade **AI Orchestration Backend** designed to power intelligent, stateful applications. It combines:
-- **Neuro-Symbolic Architecture:** Blending LLM creativity with structured logic.
-- **Persistent Memory Lattice:** Cosmos DB + Vector Search for long-term recall.
-- **Cognitive Pipelines:** Modular services for Chat, Memory, and System Health.
+An enterprise-grade cognitive architecture that processes information using patterns from ADHD, autism, dyslexia, and other cognitive styles - making AI systems accessible to diverse thinkers instead of forcing conformity.
 
-## 🎯 The "Platform" Concept
-You are not just building a bot; you have built a **Cognitive Engine**.
-- **The Engine:** Sentinel Forge (Backend, API, Database, Logic).
-- **The Vehicle:** VR Studios (The first interface/use-case).
+## 🎯 What It Does
 
-This architecture allows you to deploy VR Studios today, and a completely different application tomorrow, using the same brain.
+Traditional AI assumes everyone thinks the same way. This framework includes specialized processing modes for:
 
-## 🛠️ Core Capabilities
-1.  **Multi-Model Support:** Azure OpenAI (GPT-4) with AAD auth or Mock Mode for dev.
-2.  **Repository Pattern:** Clean separation between logic and data (Cosmos DB).
-3.  **Domain-Driven Design:** Pure Python models independent of infrastructure.
-4.  **Observability:** Built-in metrics, dashboards, and health checks.
+- **ADHD:** Rapid context-switching and dynamic bursts
+- **Autism:** Precision pattern recognition and detail focus  
+- **Dyslexia:** Multi-dimensional symbol interpretation
+- **Dyscalculia:** Alternative mathematical reasoning
 
-## 🚀 Quick Start
+**The Result:** AI systems that adapt to how YOU think, not the other way around.
 
+## 💡 Why It Matters
+
+Current estimate: 15-20% of the population is neurodivergent. Most AI tools ignore this entirely, creating accessibility barriers. This framework proves AI can be built inclusively from the ground up.
+
+**Potential Applications:** 
+- Accessible knowledge management systems
+- Cognitive-diversity-aware AI assistants  
+- Enterprise tools for diverse teams
+- Research into computational models of different thinking styles
+
+## 🚀 Tech Stack
+
+- **Language:** Python 3.11+
+- **Architecture:** Object-oriented with dataclasses and type hints
+- **Key Features:** Three-zone memory system, symbolic processing, real-time performance monitoring
+- **Code Quality:** 1000+ lines, fully typed, production-ready
+
+## 📦 Quick Start
 ```bash
-# 1. Configure environment
-copy .env.example .env
+# Clone the repository
+git clone https://github.com/coconuthead-Sentinel-core/Sentinel-of-sentinel-s-Forge.git
+cd Sentinel-of-sentinel-s-Forge
 
-# 2. Run (Production Mode - real Cosmos + OpenAI)
-set MOCK_AI=false
-python scripts/run_full_eval.py
+# Install dependencies  
+pip install -r requirements.txt
 
-# 3. Or start server manually
-uvicorn backend.main:app --reload --port 8000
-
-# 4. Health check
-curl http://127.0.0.1:8000/api/status
+# Run the demo
+python quantum_nexus_forge_v5_2_enhanced.py
 ```
 
-> **Note:** Cosmos DB Emulator is optional. The system auto-falls back to Mock DB Mode when unavailable.
+## ✨ Core Features
+
+### Three-Zone Memory System
+- **🟢 Active Processing:** High-entropy real-time data (>0.7 entropy)
+- **🟡 Pattern Emergence:** Mid-entropy pattern recognition (0.3-0.7 entropy)
+- **🔴 Crystallized Storage:** Low-entropy stable memory (<0.3 entropy)
+
+### Neurodivergent Processing Lenses
+- Autism precision patterns
+- ADHD dynamic bursts
+- Dyslexia symbol restructuring
+- Dyscalculia alternative logic
+- Neurotypical baseline (for comparison)
+
+### Advanced Capabilities
+- **Symbolic Stream Processing:** Interpret emoji sequences as cognitive operations
+- **Performance Monitoring:** Real-time metrics and system health tracking
+- **Spatial Cognition:** 3D coordinate system with cognitive elevation
+- **Geometric Primitives:** Tetrahedron, Cube, Octahedron, Dodecahedron, Icosahedron
 
 ## 📁 Project Structure
-
 ```
-backend/
-├── domain/models.py      # Pure Python entities (Note, Entity)
-├── infrastructure/       # Cosmos DB repository (auto-fallback to mock)
-├── services/             # ChatService orchestrates AI pipeline
-├── adapters/             # AzureOpenAI ↔ MockOpenAI (swappable)
-├── core/config.py        # Centralized settings (Pydantic)
-└── api.py                # FastAPI routes: router (general), ai_router (guarded)
+Sentinel-of-sentinel-s-Forge/
+├── quantum_nexus_forge_v5_2_enhanced.py  # Main cognitive architecture
+├── demo.py                                # Demonstration script
+├── requirements.txt                       # Python dependencies
+├── __init__.py                            # Package initialization
+└── README.md                              # This file
 ```
 
-## 🚀 Deployment Ready
+## 👤 Author
 
-### Azure App Service (Recommended)
-1. Containerize: `docker build -t sentinel-forge .`
-2. Push to ACR: `az acr build --registry myacr --image sentinel-forge .`
-3. Deploy: Use Azure App Service with container support
-4. Configure: Set environment variables in App Service settings
+**Shannon Bryan Kelly** (Coconut Head)  
+*Neurodivergent AI Architect*
 
-### Local Development
-- Cosmos DB Emulator: Download from Azure portal
-- Azure OpenAI: Set up resource and configure AAD credentials
-- Run: `uvicorn backend.main:app --host 0.0.0.0 --port 8000`
-- [Quick Start Guide](docs/QUICKSTART.md)
-- [API Examples](docs/API_EXAMPLES.md)
-- [Architecture & Git Workflow](docs/GIT_WORKFLOW.md)
-- [Troubleshooting](docs/TROUBLESHOOTING.md)
-- [Roadmap](docs/ROADMAP.md)
+Built in collaboration with Claude AI (Anthropic)
 
-## 🧪 Testing
+## 📊 Status
 
-```bash
-pytest tests/                    # All tests
-python scripts/smoke_test.py     # Integration (requires running server)
-```
+**Production-Ready** | **Version:** 5.2.0 | **Last Updated:** November 2025
 
-## 📄 License
+---
 
-MIT License - See [THIRD_PARTY_LICENSES.md](docs/THIRD_PARTY_LICENSES.md) for dependencies.
+*Making AI accessible to all cognitive styles, one framework at a time.* 🧠✨
 
