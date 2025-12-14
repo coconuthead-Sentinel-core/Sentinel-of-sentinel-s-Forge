@@ -82,3 +82,32 @@ API_KEY: str = "secret"            # For api_key_guard
 2. **Mock DB is ON by default** - Real DB requires `_mock_db_mode = False` + credentials
 3. **Adapters need same interface** - New adapters must match `chat()`/`embeddings()` signatures
 4. **Evaluation pipeline** - `evaluation/` folder has test queries and response collection scripts
+
+## WebSocket Patterns
+
+- **Single route per endpoint** - avoid duplicates (e.g., only one `/ws/sync`)
+- **API key enforcement** - use `websocket_require_api_key()` for protected WS routes
+- **EventBus integration** - subscribe with bounded queues and overflow policies
+- **Real-time sync** - send initial snapshot then stream updates via EventBus
+
+## Testing Patterns
+
+- **Unit tests** - pure logic, no external deps (domain, eventbus, vectors)
+- **Integration tests** - require running server (`smoke_test.py`, WS tests)
+- **Mock mode** - set `MOCK_AI=true` for tests to avoid external API calls
+- **TestClient** - use FastAPI's TestClient for API endpoint testing
+
+## Deployment Patterns
+
+- **Container-first** - Dockerfile uses multi-stage build with python slim
+- **Azure App Service** - preferred for FastAPI + WebSockets + Cosmos DB
+- **CI/CD** - GitHub Actions with build/push/deploy workflow
+- **Secrets** - Azure Key Vault or App Service Configuration (never commit keys)
+
+## Code Quality Standards
+
+- **Type hints** - comprehensive typing throughout codebase
+- **Async/await** - all I/O operations are async (HTTP, DB, WebSockets)
+- **Error handling** - graceful fallbacks (mock DB, mock AI) for offline dev
+- **Logging** - structured logging with appropriate levels and context
+- **Dependency injection** - services receive adapters, not instantiate them

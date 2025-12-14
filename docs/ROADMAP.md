@@ -12,16 +12,16 @@
 - [x] **Configuration:** Environment-driven settings (`config.py`).
 - [x] **Simulation:** Mock AI Adapter for cost-free development.
 
-## 🔌 Phase 2: The Wiring (Integration) - CURRENT
-- [ ] **Chat Pipeline:** Connect API endpoints to the `ChatService`.
-- [ ] **Memory Service:** Implement vector embedding logic.
-- [ ] **API Hardening:** Rate limiting and error handling.
+## 🔌 Phase 2: The Wiring (Integration) - COMPLETED
+- [x] **Chat Pipeline:** Connect API endpoints to the `ChatService`.
+- [x] **Memory Service:** Implement vector embedding logic.
+- [x] **API Hardening:** Rate limiting and error handling.
 
-## 🚀 Phase 3: The Pilot (VR Studios Launch)
-- [ ] **Interface:** Connect the VR Studios frontend (Gradio/Web) to the Sentinel API.
-- [ ] **Persona Tuning:** Configure the "Sentinel" system prompt for VR Studios context.
-- [ ] **Production Keys:** Inject Azure OpenAI keys.
-- [ ] **Deployment:** Ship to Azure App Service.
+## 🚀 Phase 3: The Pilot (VR Studios Launch) - COMPLETED
+- [x] **Interface:** Connect the VR Studios frontend (Gradio/Web) to the Sentinel API.
+- [x] **Persona Tuning:** Configure the "Sentinel" system prompt for VR Studios context.
+- [x] **Production Keys:** Inject Azure OpenAI keys.
+- [x] **Deployment:** Ship to Azure App Service.
 
 ## 🔮 Phase 4: Future Expansions (Post-Pilot)
 - **Multi-Tenant Support:** Serve multiple clients (e.g., VR Studios + Medical App).

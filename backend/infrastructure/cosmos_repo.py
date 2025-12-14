@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 # Flag to track if we should use mock mode for the database
 # Set to True by default - enables offline development without Cosmos DB
-_mock_db_mode = True
+_mock_db_mode = False
 
 class CosmosDBRepository:
     """

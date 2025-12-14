@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 from typing import Any
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect  # type: ignore[reportMissingImports]
@@ -7,6 +8,8 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect  # type: ignore[re
 from .eventbus import bus
 from .security import websocket_require_api_key
 from .service import service
+
+logger = logging.getLogger(__name__)
 
 
 router = APIRouter()
@@ -31,20 +34,6 @@ class ConnectionManager:
                 pass
 
 manager = ConnectionManager()
-
-
-@router.websocket("/ws/sync")
-async def websocket_sync(websocket: WebSocket):
-    """Simple echo WebSocket for testing sync operations."""
-    await websocket.accept()
-    logger.info("WebSocket client connected to /ws/sync")
-    try:
-        while True:
-            data = await websocket.receive_text()
-            logger.info(f"WebSocket received: {data}")
-            await websocket.send_text(f"Echo: {data}")
-    except WebSocketDisconnect:
-        logger.info("WebSocket client disconnected from /ws/sync")
 
 
 @router.websocket("/ws/sync")
