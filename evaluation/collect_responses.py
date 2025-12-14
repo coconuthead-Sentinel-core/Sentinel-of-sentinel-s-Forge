@@ -1,10 +1,11 @@
 """
 Response collector for Sentinel Forge AI evaluation.
-Calls the /api/v1/ai/chat endpoint with test queries and saves responses.
+Calls the /api/ai/chat endpoint with test queries and saves responses.
 """
 import json
 import requests
 import time
+import os
 from pathlib import Path
 
 
@@ -14,37 +15,26 @@ def load_queries(queries_path: str) -> list[dict]:
         return json.load(f)
 
 
-def collect_response(base_url: str, query: str, context: str) -> dict:
-    """
-    Call the AI chat endpoint and collect response.
+def collect_response(base_url: str, query: str, context: str, api_key: str = None) -> dict:
+    """Call the AI chat endpoint and collect response."""
+    endpoint = f"{base_url}/api/ai/chat"
     
-    Args:
-        base_url: Base URL of the API (e.g., "http://localhost:8000")
-        query: The user query text
-        context: Additional context for the query
-    
-    Returns:
-        Response data including the AI's answer
-    """
-    endpoint = f"{base_url}/api/v1/ai/chat"
-    
+    headers = {"Content-Type": "application/json"}
+    if api_key:
+        headers["X-API-Key"] = api_key
+
+    # Sentinel Forge ChatRequest schema
     payload = {
         "messages": [
-            {
-                "role": "system",
-                "content": f"You are the Sentinel Forge AI assistant. Context: {context}"
-            },
-            {
-                "role": "user",
-                "content": query
-            }
+            {"role": "system", "content": f"Context: {context}"},
+            {"role": "user", "content": query}
         ],
-        "model": None,  # Uses default model
-        "temperature": 0.7
+        "temperature": 0.7,
+        "max_tokens": 500
     }
     
     try:
-        response = requests.post(endpoint, json=payload, timeout=30)
+        response = requests.post(endpoint, json=payload, headers=headers, timeout=30)
         response.raise_for_status()
         return {
             "success": True,
@@ -60,69 +50,64 @@ def collect_response(base_url: str, query: str, context: str) -> dict:
 
 
 def main():
-    """Main execution: load queries, collect responses, save results."""
-    
     # Configuration
-    base_url = "http://localhost:8000"
+    base_url = "http://127.0.0.1:8000"
     eval_dir = Path(__file__).parent
     queries_file = eval_dir / "test_queries.json"
     responses_file = eval_dir / "test_responses.json"
     
+    # Load API Key from env if available (for local testing)
+    api_key = os.getenv("API_KEY")
+
     print("🚀 Starting response collection for Sentinel Forge AI...")
-    print(f"📂 Loading queries from: {queries_file}")
     
-    # Load queries
+    if not queries_file.exists():
+        print(f"❌ Error: {queries_file} not found.")
+        return
+
     queries = load_queries(str(queries_file))
     print(f"✅ Loaded {len(queries)} test queries")
     
-    # Collect responses
     responses = []
-    print("\n📡 Collecting responses from AI chat endpoint...")
+    print("\n📡 Collecting responses from API...")
     
     for i, query_data in enumerate(queries, 1):
         query_id = query_data["id"]
         query_text = query_data["query"]
         context = query_data.get("context", "")
         
-        print(f"\n[{i}/{len(queries)}] Processing: {query_id}")
-        print(f"  Query: {query_text[:60]}...")
+        print(f"[{i}/{len(queries)}] {query_id}: {query_text[:50]}...")
         
-        result = collect_response(base_url, query_text, context)
+        result = collect_response(base_url, query_text, context, api_key)
         
         response_entry = {
             "query_id": query_id,
             "query": query_text,
             "context": context,
+            "expected_intent": query_data.get("expected_intent"),
             "timestamp": time.time(),
             "success": result["success"]
         }
         
         if result["success"]:
-            chat_response = result["response"]
-            # Extract the assistant's message content
-            response_entry["response"] = chat_response.get("content", "")
-            response_entry["model"] = chat_response.get("model", "unknown")
-            print(f"  ✅ Response collected ({len(response_entry['response'])} chars)")
+            # Extract content from ChatResponse schema
+            chat_resp = result["response"]
+            # Handle different response shapes if necessary
+            content = chat_resp.get("choices", [{}])[0].get("message", {}).get("content", "")
+            response_entry["response"] = content
+            print(f"   ✅ Got response ({len(content)} chars)")
         else:
             response_entry["error"] = result.get("error", "Unknown error")
-            print(f"  ❌ Failed: {response_entry['error']}")
+            print(f"   ❌ Failed: {response_entry['error']}")
         
         responses.append(response_entry)
-        
-        # Small delay to avoid overwhelming the API
-        time.sleep(0.5)
+        time.sleep(0.2) # Rate limit protection
     
-    # Save responses
     print(f"\n💾 Saving responses to: {responses_file}")
     with open(responses_file, 'w', encoding='utf-8') as f:
         json.dump(responses, f, indent=2, ensure_ascii=False)
     
-    # Summary
-    successful = sum(1 for r in responses if r["success"])
-    print(f"\n🎯 Collection complete!")
-    print(f"  ✅ Successful: {successful}/{len(responses)}")
-    print(f"  ❌ Failed: {len(responses) - successful}/{len(responses)}")
-    print(f"  📄 Saved to: {responses_file}")
+    print("🎯 Collection complete!")
 
 
 if __name__ == "__main__":

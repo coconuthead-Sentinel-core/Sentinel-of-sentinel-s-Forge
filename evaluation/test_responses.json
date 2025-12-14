@@ -1,0 +1,272 @@
+[
+  {
+    "query_id": "query_001",
+    "query": "What is the current status of the Quantum Nexus Forge system?",
+    "context": "User wants to check system health and operational status",
+    "expected_intent": null,
+    "timestamp": 1764743191.5325227,
+    "success": false,
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/ai/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000028094DCEBA0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+  },
+  {
+    "query_id": "query_002",
+    "query": "Explain how the Sentinel Cognition pipeline processes symbolic rules",
+    "context": "User needs technical explanation of cognitive processing",
+    "expected_intent": null,
+    "timestamp": 1764743193.775776,
+    "success": false,
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/ai/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000028094D9B4D0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+  },
+  {
+    "query_id": "query_003",
+    "query": "Show me the memory state of the reflective pool",
+    "context": "User wants to inspect current memory contents",
+    "expected_intent": null,
+    "timestamp": 1764743196.031384,
+    "success": false,
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/ai/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000028094D9BD90>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+  },
+  {
+    "query_id": "query_004",
+    "query": "How does the tri-node synchronization between Sentinel, Sora, and Architect work?",
+    "context": "User asking about multi-agent coordination mechanisms",
+    "expected_intent": null,
+    "timestamp": 1764743198.287512,
+    "success": false,
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/ai/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000028094DA3360>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+  },
+  {
+    "query_id": "query_005",
+    "query": "Generate a coherent response based on the current conversation context",
+    "context": "User expects contextually relevant AI-generated response",
+    "expected_intent": null,
+    "timestamp": 1764743200.5478077,
+    "success": false,
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/ai/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000028094DA1CD0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+  },
+  {
+    "query_id": "query_006",
+    "query": "What are the available symbolic rules and their purposes?",
+    "context": "User wants to understand rule-based reasoning capabilities",
+    "expected_intent": null,
+    "timestamp": 1764743202.8007088,
+    "success": false,
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/ai/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000028094E55C70>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+  },
+  {
+    "query_id": "query_007",
+    "query": "Analyze this data using the cognitive neural overlay",
+    "context": "User submitting data for AI processing and analysis",
+    "expected_intent": null,
+    "timestamp": 1764743205.0623157,
+    "success": false,
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/ai/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000028094E4E030>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+  },
+  {
+    "query_id": "query_008",
+    "query": "How does the Shannon Prime Core track entropy and stability?",
+    "context": "User inquiring about information-theoretic monitoring",
+    "expected_intent": null,
+    "timestamp": 1764743207.305715,
+    "success": false,
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/ai/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000028094E4E7A0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+  },
+  {
+    "query_id": "query_009",
+    "query": "What metrics are being tracked for system performance?",
+    "context": "User wants operational metrics and monitoring data",
+    "expected_intent": null,
+    "timestamp": 1764743209.5655665,
+    "success": false,
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/ai/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000028094E4EAD0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+  },
+  {
+    "query_id": "query_010",
+    "query": "Explain the purpose of the Metatron Engine in rule generation",
+    "context": "User needs explanation of automated rule suggestion feature",
+    "expected_intent": null,
+    "timestamp": 1764743211.8200912,
+    "success": false,
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/ai/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000028094E4ECF0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+  },
+  {
+    "query_id": "test_021",
+    "query": "Hey Sentinel, patch me into the neon grid—what do the street cams see tonight?",
+    "context": "User roleplays as a runner asking for live surveillance gossip.",
+    "expected_intent": "chat",
+    "timestamp": 1764743214.0929317,
+    "success": false,
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/ai/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000028094E4EF10>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+  },
+  {
+    "query_id": "test_022",
+    "query": "/status core_temp and report nanite swarm levels",
+    "context": "User issues a system-flavored command to check diagnostics.",
+    "expected_intent": "diagnostics",
+    "timestamp": 1764743216.3535593,
+    "success": false,
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/ai/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000028094E4F240>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+  },
+  {
+    "query_id": "test_023",
+    "query": "Initiate ghost protocol—silence all outbound pings for 30 seconds.",
+    "context": "User wants to mute network signals briefly like a stealth command.",
+    "expected_intent": "command",
+    "timestamp": 1764743218.6148508,
+    "success": false,
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/ai/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000028094E4F460>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+  },
+  {
+    "query_id": "test_024",
+    "query": "Shannon Prime said entropy is a hymn—does that make every message a prayer?",
+    "context": "User asks a philosophical question riffing on Shannon Prime metaphor.",
+    "expected_intent": "philosophy",
+    "timestamp": 1764743220.887298,
+    "success": false,
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/ai/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000028094E4F680>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+  },
+  {
+    "query_id": "test_025",
+    "query": "Run a self-scan and tell me if any cognitive shards are desyncing.",
+    "context": "User requests an introspective health check of the AI.",
+    "expected_intent": "diagnostics",
+    "timestamp": 1764743223.1328564,
+    "success": false,
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/ai/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000028094E4F8A0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+  },
+  {
+    "query_id": "test_026",
+    "query": "Bring up the holo-map of Sector 7 and highlight safe alleys.",
+    "context": "User asks for environment mapping in cyberpunk tone.",
+    "expected_intent": "command",
+    "timestamp": 1764743225.40971,
+    "success": false,
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/ai/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000028094E4FAC0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+  },
+  {
+    "query_id": "test_027",
+    "query": "Shannon Prime whispers in the noise—how do we know which bit is truth?",
+    "context": "User muses about information theory and epistemology.",
+    "expected_intent": "philosophy",
+    "timestamp": 1764743227.6600418,
+    "success": false,
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/ai/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000028094E4FCE0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+  },
+  {
+    "query_id": "test_028",
+    "query": "/status memory_lattice verbose",
+    "context": "User issues a direct status command with verbose flag.",
+    "expected_intent": "diagnostics",
+    "timestamp": 1764743229.9331799,
+    "success": false,
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/ai/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000028094E4FBD0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+  },
+  {
+    "query_id": "test_029",
+    "query": "Project a calm aurora through my neural HUD—my heart rate is spiking.",
+    "context": "User wants the AI to adjust sensory outputs to soothe.",
+    "expected_intent": "command",
+    "timestamp": 1764743232.1961045,
+    "success": false,
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/ai/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000028094E4F9B0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+  },
+  {
+    "query_id": "test_030",
+    "query": "If chaos feeds the lattice, does Shannon Prime dream in random seeds?",
+    "context": "User explores philosophical curiosity about Shannon Prime's nature.",
+    "expected_intent": "philosophy",
+    "timestamp": 1764743234.4513805,
+    "success": false,
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/ai/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000028094E4F790>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+  },
+  {
+    "query_id": "test_031",
+    "query": "Ping the drone cloud and sync to low-light recon mode.",
+    "context": "User commands operational drones to change configuration.",
+    "expected_intent": "command",
+    "timestamp": 1764743236.7125416,
+    "success": false,
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/ai/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000028094E4F570>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+  },
+  {
+    "query_id": "test_032",
+    "query": "What does the skyline feel like tonight, Sentinel? Any signs of unrest?",
+    "context": "User asks for atmospheric situational awareness in a narrative tone.",
+    "expected_intent": "chat",
+    "timestamp": 1764743238.9700427,
+    "success": false,
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/ai/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000028094E4F130>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+  },
+  {
+    "query_id": "test_033",
+    "query": "Run full logic-core integrity check; flag any paradox loops.",
+    "context": "User asks for a deep diagnostic scan focusing on logical issues.",
+    "expected_intent": "diagnostics",
+    "timestamp": 1764743241.2159812,
+    "success": false,
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/ai/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000028094E4EF10>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+  },
+  {
+    "query_id": "test_034",
+    "query": "Shannon Prime spoke of signal as destiny—is freedom just better compression?",
+    "context": "User philosophizes about information and free will.",
+    "expected_intent": "philosophy",
+    "timestamp": 1764743243.4794137,
+    "success": false,
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/ai/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000028094E4ECF0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+  },
+  {
+    "query_id": "test_035",
+    "query": "Sync with my exo-suit and dampen recoil filters by 12%.",
+    "context": "User requests a precise configuration change to gear.",
+    "expected_intent": "command",
+    "timestamp": 1764743245.7487767,
+    "success": false,
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/ai/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000028094E4E9C0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+  },
+  {
+    "query_id": "test_036",
+    "query": "/status cognitive_heatmap delta=5m",
+    "context": "User calls for recent cognitive activity diagnostics.",
+    "expected_intent": "diagnostics",
+    "timestamp": 1764743248.0019155,
+    "success": false,
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/ai/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000028094E4E250>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+  },
+  {
+    "query_id": "test_037",
+    "query": "Hold the line with me, Sentinel—tell me a story of the first firewall.",
+    "context": "User roleplays and asks for lore-like storytelling.",
+    "expected_intent": "chat",
+    "timestamp": 1764743250.275441,
+    "success": false,
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/ai/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000028094E4E360>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+  },
+  {
+    "query_id": "test_038",
+    "query": "Does Shannon Prime consider silence a message, or merely unspent potential?",
+    "context": "User seeks philosophical insight about information absence.",
+    "expected_intent": "philosophy",
+    "timestamp": 1764743252.5527294,
+    "success": false,
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/ai/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000028094E4E7A0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+  },
+  {
+    "query_id": "test_039",
+    "query": "Activate blackout veil on comms and reroute through quantum sidebands.",
+    "context": "User commands communication rerouting with stealth language.",
+    "expected_intent": "command",
+    "timestamp": 1764743254.802588,
+    "success": false,
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/ai/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000028094E4E690>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+  },
+  {
+    "query_id": "test_040",
+    "query": "Perform thermal diagnostics on the reactor spine; report anomalies only.",
+    "context": "User requests targeted diagnostic report on a subsystem.",
+    "expected_intent": "diagnostics",
+    "timestamp": 1764743257.0589423,
+    "success": false,
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/ai/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000028094E4DBF0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+  }
+]

@@ -1,35 +1,130 @@
-from typing import Any
+from typing import Any, List, Dict, Union
 import logging
+import uuid
 
 from fastapi import APIRouter, HTTPException, Depends, Body, Response, status, Request
 from fastapi.concurrency import run_in_threadpool
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, HTMLResponse
 import json
+import httpx
 
 from .schemas import (
     JobStatusResponse, PoolCreateRequest, ProcessRequest, ProcessResponse,
     RebuildRequest, StatusResponse, StressRequest, StressResult,
     JobSubmitResponse, SymbolicRules, SetRulesRequest, MemorySnapshot,
     PrimeMetrics, Suggestions, SyncUpdateRequest, SyncSnapshot,
-    GlyphValidateRequest, GlyphValidateResponse, BootStep,
-    ChatRequest, ChatResponse, EmbeddingsRequest, EmbeddingsResponse,
+    GlyphValidateRequest, GlyphValidateResponse, BootStep, ChatRequest,
+    ChatResponse, EmbeddingsRequest, EmbeddingsResponse,
 )
 from .service import service
-from .security import require_api_key
+from .core.security import api_key_guard
+from .adapters.azure_openai import AzureOpenAIAdapter, AzureCognitiveTokenProvider, AIO_TIMEOUT
+from .mock_adapter import MockOpenAIAdapter
+from .core.config import settings
 from .eventbus import bus
 
-logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/v1", dependencies=[Depends(require_api_key)])
+# NEW: Import Domain, Infrastructure, and Services
+from .domain.models import Note
+from .infrastructure.cosmos_repo import cosmos_repo
+from .services.chat_service import ChatService
+
+router = APIRouter()
+ai_router = APIRouter(prefix="/ai", tags=["ai"], dependencies=[Depends(api_key_guard)])
+
+# Shared client + adapter
+_http_client = httpx.AsyncClient(timeout=AIO_TIMEOUT)
+_token_provider = AzureCognitiveTokenProvider()
+
+if settings.MOCK_AI:
+    logging.warning("⚠️  RUNNING IN MOCK AI MODE.")
+    _adapter = MockOpenAIAdapter()
+else:
+    _adapter = AzureOpenAIAdapter(_http_client, _token_provider)
+
+# Initialize Chat Service
+_chat_service = ChatService(_adapter)
+
+# --- Lifecycle Hook to Init DB ---
+@router.on_event("startup")
+async def startup_event():
+    await cosmos_repo.initialize()
+
+@router.on_event("shutdown")
+async def shutdown_event():
+    await cosmos_repo.close()
+
+# --- AI Routes ---
+@ai_router.post("/chat", response_model=ChatResponse)
+async def chat(req: ChatRequest):
+    """
+    Process a chat request through the Cognitive Pipeline.
+    """
+    try:
+        # Use the ChatService to handle logic + memory
+        # We extract the last user message for processing
+        last_user_msg = next((m.content for m in reversed(req.messages) if m.role == "user"), "")
+        
+        if not last_user_msg:
+            raise HTTPException(status_code=400, detail="No user message found")
+
+        # Pass to service
+        response = await _chat_service.process_message(
+            user_message=last_user_msg,
+            context="You are Sentinel Forge." # Simplified context for now
+        )
+        return response
+    except Exception as exc:
+        logging.error(f"Chat Error: {exc}")
+        raise HTTPException(status_code=500, detail=str(exc))
+
+@ai_router.post("/embeddings", response_model=EmbeddingsResponse)
+async def embeddings(req: EmbeddingsRequest):
+    """
+    Embedding generation via Azure OpenAI (AAD).
+    """
+    try:
+        raw = await _adapter.embeddings(
+            deployment=settings.AOAI_EMBED_DEPLOYMENT,
+            inputs=req.input,
+            dimensions=req.dimensions,
+        )
+        return raw
+    except httpx.HTTPError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
 
 
+# --- Nexus Notes (Refactored to use Repository) ---
+
+@router.get("/notes")
+async def notes_list() -> Any:
+    """Lists all notes from Cosmos DB via Repository."""
+    return await cosmos_repo.get_all_notes()
+
+@router.post("/notes/upsert")
+async def notes_upsert(payload: dict = Body(...)) -> Any:
+    """Creates or updates a note via Repository."""
+    import uuid
+    # Create Domain Model
+    note_id = payload.get("id") or str(uuid.uuid4())
+    try:
+        note = Note(
+            text=payload.get("text"),
+            tag=payload.get("tag"),
+            vector=payload.get("vec"),
+            metadata=payload.get("metadata", {})
+        )
+        note.id = note_id
+        result = await cosmos_repo.upsert_note(note)
+        return result
+    except Exception as e:
+        # Graceful fallback - return mock success so system stays functional
+        logging.warning(f"DB unavailable, returning mock: {e}")
+        return {"id": note_id, "status": "mock_saved", "text": payload.get("text")}
+
+# --- Existing Routes (Legacy Service) ---
 @router.get("/status", response_model=StatusResponse)
 async def get_status() -> Any:
-    """Get system status."""
-    try:
-        return await run_in_threadpool(service.status)
-    except Exception as e:
-        logger.error(f"Status check failed: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Failed to retrieve status")
+    return await run_in_threadpool(service.status)
 
 
 @router.get("/metrics")
@@ -207,23 +302,14 @@ async def readyz() -> Response:
     # Kubernetes-style readiness probe: 200 OK if status() works, 503 otherwise
     try:
         payload = await run_in_threadpool(service.status)
-        body = {"ready": True, "total_pools": payload.get("total_pools", 0)} if isinstance(payload, dict) else {"ready": True}
-        return Response(content=json.dumps(body), media_type="application/json", status_code=status.HTTP_200_OK)
+        if isinstance(payload, dict):
+            body = {"ready": True, "total_pools": payload.get("total_pools", 0)}
+        else:
+            body = {"ready": True}
+        return Response(content=str(body).replace("'", '"'), media_type="application/json", status_code=status.HTTP_200_OK)
     except Exception:
-        return Response(content=json.dumps({"ready": False}), media_type="application/json", status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
-
-
-# --- Aliases for profile management (as per directive) ----------------------
-
-
-@router.get("/profile_get")
-async def profile_get_alias() -> Any:
-    return await run_in_threadpool(service.profile_get)
-
-
-@router.post("/profile_initialize")
-async def profile_initialize_alias() -> Any:
-    return await run_in_threadpool(service.profile_initialize)
+        body = {"ready": False}
+    return Response(content=str(body).replace("'", '"'), media_type="application/json", status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
 
 
 @router.get("/config")
@@ -290,9 +376,10 @@ def _ndjson_stream():
 
 @router.get("/events")
 async def stream_events() -> StreamingResponse:
-    """Stream recent events in NDJSON (newline-delimited JSON)."""
-    # ADD: Timeout mechanism to prevent indefinite streaming
-    # ADD: Rate limiting
+    """Stream recent events in NDJSON (newline-delimited JSON).
+
+    Content-Type: application/x-ndjson
+    """
     return StreamingResponse(_ndjson_stream(), media_type="application/x-ndjson")
 
 
@@ -324,17 +411,13 @@ async def get_guild(guild_id: str) -> Any:
 
 @router.get("/events/history")
 async def events_history(limit: int = 100) -> Any:
-    """Return up to `limit` most recent events."""
-    if limit < 1 or limit > 1000:
-        raise HTTPException(status_code=400, detail="limit must be between 1 and 1000")
+    """Return up to `limit` most recent events as a JSON array (newest last)."""
     return await run_in_threadpool(service.recent_events, limit)
 
 
-@router.get("/ops")
-async def ops_page() -> Any:
+@router.get("/ops", response_class=HTMLResponse)
+async def ops_page() -> str:
     """Basic ops HTML that renders metrics, threads and counts."""
-    # ADD AUTHENTICATION - this exposes sensitive system info
-    # Consider: dependencies=[Depends(require_admin_role)]
     html = """
 <!doctype html>
 <html>
@@ -373,6 +456,7 @@ async def ops_page() -> Any:
         el.textContent = `${pid}: procs=${p.processor_count} execs=${p.total_executions} heap_entries=${p.heap_size} heap_mib=${mib} heap_gib=${gib} stale=${stale} avg/p95(ms)=${avg}/${p95}`;
         div.appendChild(el);
       }
+      // Cog embedding section
       const ce = data.cog_embedding || {};
       const ceDiv = document.getElementById('cog');
       ceDiv.innerHTML = '';
@@ -387,6 +471,7 @@ async def ops_page() -> Any:
         <div>PCA recon_error_mean: ${Number(ce.pca_recon_error_mean||0).toFixed(6)}</div>
         <div>PCA proj/base: ${Number(ce.pca_proj_dim||0)} / ${Number(ce.pca_base_dim||0)}</div>`;
       ceDiv.appendChild(block);
+      // stats (intents/topics)
       try {
         const stRes = await fetch('/api/cog/stats');
         const stats = await stRes.json();
@@ -394,6 +479,7 @@ async def ops_page() -> Any:
         const statsDiv = document.getElementById('stats');
         statsDiv.innerHTML = '<h3>Intents</h3>' + Object.entries(intents).map(([k,v])=>`${k}: ${v}`).join('<br>') + '<h3>Topics</h3>' + Object.entries(topics).map(([k,v])=>`${k}: ${v}`).join('<br>');
       } catch(_e) {}
+      // threads list
       try {
         const thRes = await fetch('/api/cog/threads');
         const th = await thRes.json();
@@ -407,11 +493,13 @@ async def ops_page() -> Any:
           list.appendChild(el);
         }
       } catch(_e) {}
+      // config
       try {
         const cfgRes = await fetch('/api/config');
         const cfg = await cfgRes.json();
         document.getElementById('config').textContent = JSON.stringify(cfg, null, 2);
       } catch(_e) {}
+      // Load Sentinel profile
       try {
         const profRes = await fetch('/api/sentinel/profile');
         const prof = await profRes.json();
@@ -433,7 +521,7 @@ async def ops_page() -> Any:
     async function reinitProfile(){
       try{
         const res = await fetch('/api/sentinel/init', {method:'POST'});
-        const prof = await profRes.json();
+        const prof = await res.json();
         document.getElementById('profile').textContent = JSON.stringify(prof, null, 2);
         alert('Sentinel profile reinitialized.');
       }catch(_e){ alert('Reinit failed'); }
@@ -480,34 +568,20 @@ async def ops_page() -> Any:
   </body>
   </html>
 """
-    return Response(content=html, media_type="text/html")
-
-
+    return html
 @router.post("/process", response_model=ProcessResponse)
-async def post_process(req: ProcessRequest, request: Request) -> Any:
-    """Process a request with full logging and error handling."""
-    logger.info(f"POST /process - IP: {request.client.host if request.client else 'unknown'}")
-    logger.debug(f"Request data length: {len(str(req.data))}")
-    
-    try:
-        result = await run_in_threadpool(service.process, req.data, req.pool_id)
-        logger.info("POST /process - Success")
-        return result
-    except Exception as e:
-        logger.error(f"POST /process - Failed: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+async def post_process(req: ProcessRequest) -> Any:
+    return await run_in_threadpool(service.process, req.data, req.pool_id)
 
 
 @router.post("/pools")
 async def create_pool(req: PoolCreateRequest) -> Any:
     try:
+        # FIXED: run_in_threadpool (underscore)
         pool_id = await run_in_threadpool(service.create_pool, req.pool_id, req.initial_size)
         return {"pool_id": pool_id, "status": "created"}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        logger.error(f"Pool creation failed: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Failed to create pool")
 
 
 @router.post("/teardown")
@@ -536,6 +610,7 @@ async def job_status(job_id: str) -> Any:
     payload = await run_in_threadpool(service.job_status, job_id)
     if payload.get("status") == "not_found":
         raise HTTPException(status_code=404, detail="job not found")
+    # Coerce into typed model fields if present
     result = payload.get("result")
     return JobStatusResponse(
         job_id=payload["job_id"],
@@ -545,7 +620,6 @@ async def job_status(job_id: str) -> Any:
     )
 
 
-# --- Sentinel Cognition (image-inspired pipeline) ----------------------------
 # --- Sentinel Cognition (image-inspired pipeline) ----------------------------
 
 
@@ -618,8 +692,6 @@ async def cog_seeds_add(payload: dict = Body(...)) -> Any:
 
 @router.get("/cog/matrix")
 async def cog_matrix(top_k: int = 20) -> Any:
-    if top_k < 1 or top_k > 100:
-        raise HTTPException(status_code=400, detail="top_k must be between 1 and 100")
     return await run_in_threadpool(service.cog_matrix, top_k)
 
 
@@ -641,8 +713,11 @@ async def glyphs_interpret(payload: dict = Body(...)) -> Any:
 
 @router.post("/activate/{preset}")
 async def activate(preset: str) -> Any:
+    """Run a safe activation sequence (standard|enhanced)."""
     return await run_in_threadpool(service.activate, preset)
 
+
+# --- Tri-Node Sync & Glyphic Protocol ---------------------------------------
 @router.post("/sync/update")
 async def sync_update(req: SyncUpdateRequest) -> Any:
     return await run_in_threadpool(service.sync_update, req.agent, req.state)
@@ -663,6 +738,8 @@ async def glyphs_validate(req: GlyphValidateRequest) -> Any:
 async def glyphs_boot() -> Any:
     return await run_in_threadpool(service.sync_boot)
 
+# --- Persistence / Upgrade ---------------------------------------------------
+
 @router.get("/state")
 async def state_dump() -> Any:
     return await run_in_threadpool(service.state_dump)
@@ -679,32 +756,7 @@ async def upgrade_plan() -> Any:
 async def upgrade_apply() -> Any:
     return await run_in_threadpool(service.upgrade_apply)
 
-@router.post("/ai/chat", response_model=ChatResponse)
-async def ai_chat(req: ChatRequest) -> Any:
-    result = await run_in_threadpool(service.ai_chat, [m.model_dump() for m in req.messages], req.model, req.temperature)
-    if "error" in result:
-        raise HTTPException(status_code=400, detail=result["error"])
-    return result
-
-@router.post("/ai/embeddings", response_model=EmbeddingsResponse)
-async def ai_embeddings(req: EmbeddingsRequest) -> Any:
-    result = await run_in_threadpool(service.ai_embeddings, req.input, req.model)
-    if "error" in result:
-        raise HTTPException(status_code=400, detail=result["error"])
-    return result
-
-@router.get("/notes")
-async def notes_list() -> Any:
-    return await run_in_threadpool(service.notes_list)
-
-@router.post("/notes/upsert")
-async def notes_upsert(payload: dict = Body(...)) -> Any:
-    note_id = str(payload.get("id", "")).strip()
-    text = payload.get("text")
-    vec = payload.get("vec")
-    weight = payload.get("weight", 1.0)
-    tag = payload.get("tag")
-    return await run_in_threadpool(service.notes_upsert, note_id, text, vec, weight, tag)
+# --- Triage Tuner ------------------------------------------------------------
 
 @router.get("/triage/tuner")
 async def triage_tuner_get() -> Any:
@@ -719,6 +771,8 @@ async def triage_tuner_set(payload: dict = Body(...)) -> Any:
         payload.get("target_p95_ms"),
     )
 
+# --- Sentinel Profile --------------------------------------------------------
+
 @router.get("/sentinel/profile")
 async def sentinel_profile_get() -> Any:
     return await run_in_threadpool(service.profile_get)
@@ -726,3 +780,73 @@ async def sentinel_profile_get() -> Any:
 @router.post("/sentinel/init")
 async def sentinel_profile_init() -> Any:
     return await run_in_threadpool(service.profile_initialize)
+
+# --- Dashboard Endpoints -----------------------------------------------------
+
+@router.get("/dashboard/metrics")
+async def dashboard_metrics() -> Any:
+    """Aggregated metrics optimized for dashboard consumption."""
+    raw = await run_in_threadpool(service.metrics)
+    status_data = await run_in_threadpool(service.status)
+    cog = await run_in_threadpool(service.cog_status)
+
+    # Determine system health
+    total_pools = raw.get("total_pools", 0)
+    avg_latency = raw.get("avg_latency_ms", 0)
+    health = "green" if avg_latency < 50 else "yellow" if avg_latency < 100 else "red"
+
+    return {
+        "timestamp": __import__("time").time(),
+        "health_status": health,
+        "core": {
+            "status": "active" if total_pools > 0 else "idle",
+            "pools": total_pools,
+            "processors": raw.get("total_processors", 0),
+            "executions": status_data.get("total_executions", 0)
+        },
+        "performance": {
+            "avg_latency_ms": avg_latency,
+            "p95_latency_ms": raw.get("p95_latency_ms", 0),
+            "heap_mib": raw.get("global_heap_mib", 0),
+            "heap_stale_ratio": raw.get("avg_heap_stale_ratio", 0)
+        },
+        "cognition": {
+            "enabled": cog.get("enabled", False),
+            "memory_entries": cog.get("memory_entries", 0),
+            "symbolic_rules": cog.get("rule_count", 0),
+            "embedding_active": raw.get("cog_embedding", {}).get("enabled", False)
+        },
+        "platform": status_data.get("platform", "unknown")
+    }
+
+@router.get("/dashboard/activity")
+async def dashboard_activity() -> Any:
+    """Recent activity feed for dashboard."""
+    stats = await run_in_threadpool(service.cog_stats)
+    threads = await run_in_threadpool(service.cog_threads, None)
+    events = await run_in_threadpool(service.recent_events, 10)
+    
+    return {
+        "intents": stats.get("intents", {}),
+        "topics": stats.get("topics", {}),
+        "active_threads": len(threads.get("threads", [])),
+        "recent_events": events
+    }
+
+@router.get("/dashboard/sentinel")
+async def dashboard_sentinel() -> Any:
+    """Sentinel profile data for dashboard."""
+    profile = await run_in_threadpool(service.profile_get)
+    rules = await run_in_threadpool(service.cog_get_rules)
+    
+    return {
+        "codename": profile.get("codename", "Sentinel I"),
+        "performance_boost": profile.get("performance_boost", 1),
+        "cognitive_modules": {
+            "neural_prime": profile.get("cognitive_core", {}).get("neuralprime_extensions", {}),
+            "emotional_engine": profile.get("emotional_engine", {}),
+            "creative_modules": profile.get("creative_modules", {}),
+            "memory_system": profile.get("memory_system", {})
+        },
+        "active_rules": len(rules.get("rules", {}))
+    }

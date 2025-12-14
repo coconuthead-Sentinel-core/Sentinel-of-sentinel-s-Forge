@@ -1,11 +1,19 @@
 {
-  "python.testing.unittestArgs": [
-    "-v",
-    "-s",
-    ".",
-    "-p",
-    "*test.py"
-  ],
-  "python.testing.pytestEnabled": false,
-  "python.testing.unittestEnabled": true
+  "terminal.integrated.profiles.windows": {
+    "PowerShell (venv auto)": {
+      "source": "PowerShell",
+      "args": [
+        "-NoLogo",
+        "-NoExit",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "if (Test-Path .\\venv\\Scripts\\Activate.ps1) { . .\\venv\\Scripts\\Activate.ps1 } elseif (Test-Path .\\.venv\\Scripts\\Activate.ps1) { . .\\.venv\\Scripts\\Activate.ps1 }"
+      ]
+    }
+  },
+  "terminal.integrated.defaultProfile.windows": "PowerShell (venv auto)",
+  "terminal.integrated.shellIntegration.enabled": true,
+  "terminal.integrated.shellIntegration.decorationsEnabled": "both",
+  "terminal.integrated.commandDetection.enabled": true
 }

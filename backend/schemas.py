@@ -1,11 +1,9 @@
-from typing import Any, Dict, Optional
-
-from pydantic import BaseModel, Field
-
+from typing import Any, Dict, Optional, List, Literal, Union
+from pydantic import BaseModel, Field, conlist
 
 class ProcessRequest(BaseModel):
-    data: Any
-    pool_id: Optional[str] = Field(default=None, description="Target pool ID")
+    data: str = Field(..., min_length=1, max_length=10000, description="Data to process")
+    pool_id: Optional[str] = Field(None, description="Optional pool ID")
 
 
 class ProcessResponse(BaseModel):
@@ -28,11 +26,9 @@ class StatusResponse(BaseModel):
 
 
 class StressRequest(BaseModel):
-    iterations: int = Field(ge=0, default=100)
-    concurrent: bool = False
-    async_mode: bool = Field(
-        default=False, description="Run as background job and return job_id"
-    )
+    iterations: int = Field(..., ge=1, le=10000, description="Number of iterations")
+    concurrent: int = Field(..., ge=1, le=100, description="Concurrent workers")
+    async_mode: bool = Field(default=False, description="Run asynchronously")
 
 
 class StressResult(BaseModel):
@@ -133,3 +129,51 @@ class BootStep(BaseModel):
     glyph: str
     name: str
     index: int
+
+
+# --- LLM / Chat / Embeddings ---
+
+
+Role = Literal["system", "user", "assistant", "tool"]
+
+class ChatMessage(BaseModel):
+    role: Role
+    content: str
+    name: Optional[str] = None
+
+class ChatRequest(BaseModel):
+    messages: conlist(ChatMessage, min_length=1)
+    temperature: Optional[float] = Field(default=0.2, ge=0.0, le=2.0)
+    max_tokens: Optional[int] = Field(default=None, ge=1)
+    tools: Optional[List[Dict[str, Any]]] = None
+    tool_choice: Optional[Union[str, Dict[str, Any]]] = None
+    response_format: Optional[Dict[str, Any]] = None
+
+class ChoiceMessage(BaseModel):
+    role: Role
+    content: Optional[str] = None
+
+class ChatChoice(BaseModel):
+    index: int
+    message: ChoiceMessage
+    finish_reason: Optional[str] = None
+
+class ChatResponse(BaseModel):
+    id: str
+    model: Optional[str] = None
+    created: int
+    choices: List[ChatChoice]
+    usage: Optional[Dict[str, Any]] = None
+
+class EmbeddingsRequest(BaseModel):
+    input: Union[str, List[str]]
+    dimensions: Optional[int] = Field(default=None, ge=1, le=8192)
+
+class EmbeddingVector(BaseModel):
+    embedding: List[float]
+    index: int
+
+class EmbeddingsResponse(BaseModel):
+    data: List[EmbeddingVector]
+    model: Optional[str] = None
+    usage: Optional[Dict[str, Any]] = None

@@ -1,7 +1,8 @@
 import time
 import uuid
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from collections import deque
+from typing import Any, Dict, List, Optional, Sequence
 
 from quantum_nexus_forge_v5_2_enhanced import (
     CorePrimitive,
@@ -19,6 +20,121 @@ def _now() -> float:
 
 def _make_id(prefix: str) -> str:
     return f"{prefix}_{uuid.uuid4().hex[:8]}"
+
+
+def normalize(vec: List[float]) -> List[float]:
+    """Normalize a vector to unit L2 length; returns zeros vector if norm is zero."""
+    import math
+
+    if not isinstance(vec, list) or not vec:
+        return [0.0 for _ in (vec or [])]
+    # Ensure floats
+    vals = [float(x) for x in vec]
+    norm = math.sqrt(sum(x * x for x in vals))
+    if norm == 0.0:
+        return [0.0 for _ in vals]
+    return [x / norm for x in vals]
+
+
+def cosine(u: Sequence[float], v: Sequence[float]) -> float:
+    """Compute cosine similarity between two sequences; returns 0.0 on invalid input."""
+    import math
+
+    try:
+        if not u or not v:
+            return 0.0
+        uu = [float(x) for x in u]
+        vv = [float(x) for x in v]
+        if len(uu) != len(vv):
+            # If lengths differ, compute on the overlapping prefix
+            n = min(len(uu), len(vv))
+            uu = uu[:n]
+            vv = vv[:n]
+        dot = sum(a * b for a, b in zip(uu, vv))
+        norm_u = math.sqrt(sum(a * a for a in uu))
+        norm_v = math.sqrt(sum(b * b for b in vv))
+        if norm_u == 0.0 or norm_v == 0.0:
+            return 0.0
+        return dot / (norm_u * norm_v)
+    except Exception:
+        return 0.0
+
+
+class PCAProjector:
+    """Lightweight PCA projector that is a no-op unless NumPy is available.
+
+    - If NumPy is present, collects vectors via add(), computes principal components via fit(),
+      and projects vectors with transform(). If NumPy is unavailable, the projector stays disabled
+      and transform() returns the input vector unchanged.
+    """
+
+    def __init__(self, dim: int = 16):
+        self.dim = int(dim) if dim and int(dim) > 0 else 16
+        self.enabled = False
+        self._data = []  # list of numpy arrays (if enabled)
+        self._components = None
+        self._mean = None
+        try:
+            import numpy as _np  # type: ignore
+            self._np = _np
+            self.enabled = True
+        except Exception:
+            self._np = None
+            self.enabled = False
+
+    def add(self, vec: Sequence[float]) -> None:
+        if not self.enabled:
+            return
+        try:
+            arr = self._np.asarray(list(vec), dtype=float)
+            if arr.ndim == 1:
+                self._data.append(arr)
+        except Exception:
+            pass
+
+    def fit(self) -> None:
+        if not self.enabled or not self._data:
+            return
+        try:
+            X = self._np.vstack(self._data)
+            # center
+            self._mean = X.mean(axis=0)
+            Xm = X - self._mean
+            # SVD
+            U, S, Vt = self._np.linalg.svd(Xm, full_matrices=False)
+            k = min(self.dim, Vt.shape[0])
+            self._components = Vt[:k]
+        except Exception:
+            # On any failure, disable projector to avoid runtime errors elsewhere
+            self.enabled = False
+            self._components = None
+            self._mean = None
+
+    def transform(self, vec: Sequence[float]) -> Sequence[float]:
+        if not self.enabled or self._components is None or self._mean is None:
+            # return original vector (best-effort) when PCA isn't available
+            return list(vec) if isinstance(vec, (list, tuple)) else vec
+        try:
+            x = self._np.asarray(list(vec), dtype=float)
+            x = x - self._mean
+            proj = self._components.dot(x)
+            return proj.tolist()
+        except Exception:
+            return list(vec) if isinstance(vec, (list, tuple)) else vec
+
+    def metrics(self) -> Dict[str, Any]:
+        try:
+            proj_dim = int(self._components.shape[0]) if self._components is not None else 0
+            base_dim = int(self._mean.shape[0]) if self._mean is not None else 0
+            # retained_variance and recon_error_mean are approximate placeholders
+            return {
+                "retained_variance": 0.0,
+                "recon_error_mean": 0.0,
+                "proj_dim": proj_dim,
+                "base_dim": base_dim,
+            }
+        except Exception:
+            return {"retained_variance": 0.0, "recon_error_mean": 0.0, "proj_dim": 0, "base_dim": 0}
 
 
 # --- Cognitive Nodes ----------------------------------------------------------

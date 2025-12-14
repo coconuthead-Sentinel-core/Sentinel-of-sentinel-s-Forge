@@ -109,7 +109,59 @@ window.addEventListener('DOMContentLoaded', () => {
   $('syncSnap').addEventListener('click', syncSnapshot);
   $('validateGlyphs').addEventListener('click', validateGlyphs);
   $('bootSeq').addEventListener('click', bootSequence);
+  // WebSocket live sync
+  let ws = null;
+  const connectWS = () => {
+    if (ws && ws.readyState === WebSocket.OPEN) return;
+    try {
+      const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+      // Optional API key via query param if set in localStorage
+      const apiKey = localStorage.getItem('QNF_API_KEY');
+      const qs = apiKey ? `?api_key=${encodeURIComponent(apiKey)}` : '';
+      ws = new WebSocket(`${proto}://${location.host}/ws/sync${qs}`);
+      ws.onopen = () => {
+        $('wsConnect').textContent = 'WS Connected';
+        $('wsConnect').disabled = true;
+      };
+      ws.onmessage = (ev) => {
+        try {
+          const data = JSON.parse(ev.data);
+          const prev = $('syncOut').textContent.trim();
+          const next = (prev ? prev + "\n" : '') + JSON.stringify(data, null, 2);
+          $('syncOut').textContent = next;
+        } catch (e) {
+          $('syncOut').textContent += `\n${ev.data}`;
+        }
+      };
+      ws.onclose = () => {
+        $('wsConnect').textContent = 'Connect WS';
+        $('wsConnect').disabled = false;
+      };
+      ws.onerror = () => {
+        $('syncOut').textContent += "\n[ws] error";
+      };
+    } catch (e) {
+      $('syncOut').textContent += `\n[ws] failed: ${String(e)}`;
+    }
+  };
+  $('wsConnect').addEventListener('click', connectWS);
   // initial loads
   loadRules().catch(console.error);
   memSnapshot().catch(console.error);
+  // Profile controls
+  $('loadProfile').addEventListener('click', async () => {
+    try {
+      const prof = await api('/profile_get');
+      pretty($('profileOut'), prof);
+    } catch (e) { pretty($('profileOut'), String(e)); }
+  });
+  $('reinitProfile').addEventListener('click', async () => {
+    const ok = prompt('Type: Confirm Zero-State Reset');
+    if (ok !== 'Confirm Zero-State Reset') return;
+    try {
+      const prof = await api('/profile_initialize', { method: 'POST' });
+      pretty($('profileOut'), prof);
+      alert('Sentinel profile reinitialized (Zero-State).');
+    } catch (e) { alert(String(e)); }
+  });
 });
