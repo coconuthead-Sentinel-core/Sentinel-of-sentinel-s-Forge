@@ -46,7 +46,7 @@ class Note(Entity):
     model_config = ConfigDict(extra="ignore")  # REQUIRED: silently ignores DB fields
 ```
 - **Never** pass `partitionKey` to domain models - handled in `cosmos_repo.py`
-- Tests verify this: `test_note_strict_config()` in [tests/test_domain.py](tests/test_domain.py)
+- Tests verify this: `test_note_strict_config()` in [tests/test_domain.py](../tests/test_domain.py)
 
 ### Adding API Endpoints
 1. Choose router: `router` (public) or `ai_router` (auto-applies `api_key_guard` dependency)
