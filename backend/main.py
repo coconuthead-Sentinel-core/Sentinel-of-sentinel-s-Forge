@@ -9,10 +9,11 @@ from .adapters.azure_openai import AzureCognitiveTokenProvider
 from .infrastructure.cosmos_repo import CosmosDBRepository
 from .middleware import RequestSizeLimitMiddleware
 from .core.config import settings
+from .core.logging_config import setup_logging
 import uvicorn
 
-# Logging
-logging.basicConfig(level=getattr(logging, settings.LOG_LEVEL, logging.INFO))
+# Initialize structured logging (JSON in production, human-readable in dev)
+setup_logging()
 logger = logging.getLogger("sentinel-middleware")
 
 
