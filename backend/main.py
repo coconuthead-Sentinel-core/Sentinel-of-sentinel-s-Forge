@@ -6,6 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from .api import router as api_router, ai_router
 from .adapters.azure_openai import AzureCognitiveTokenProvider
 from .infrastructure.cosmos_repo import CosmosDBRepository
+from .ws_api import router as ws_router
+from .core.config import settings
 import uvicorn
 
 # Logging
@@ -18,15 +20,16 @@ async def lifespan(app: FastAPI):
     await CosmosDBRepository.initialize()
     logger.info("Cosmos DB Repository initialized.")
 
-    # Warm up token to fail-fast on bad identity/env.
-    provider = AzureCognitiveTokenProvider()
-    try:
-        await provider.get_token()
-        logger.info("AAD token warmup successful.")
-    except Exception as exc:
-        logger.warning("AAD warmup failed: %s", exc)
-    finally:
-        await provider.aclose()
+    # Warm up AAD token only when not in mock mode
+    if not settings.MOCK_AI:
+        provider = AzureCognitiveTokenProvider()
+        try:
+            await provider.get_token()
+            logger.info("AAD token warmup successful.")
+        except Exception as exc:
+            logger.warning("AAD warmup failed: %s", exc)
+        finally:
+            await provider.aclose()
     
     yield
     
@@ -50,6 +53,7 @@ app.add_middleware(
 # Include routers
 app.include_router(api_router, prefix="/api")
 app.include_router(ai_router, prefix="/api")
+app.include_router(ws_router)
 
 if __name__ == "__main__":
     uvicorn.run(

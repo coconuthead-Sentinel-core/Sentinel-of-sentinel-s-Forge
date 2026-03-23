@@ -33,12 +33,12 @@ ai_router = APIRouter(prefix="/ai", tags=["ai"], dependencies=[Depends(api_key_g
 
 # Shared client + adapter
 _http_client = httpx.AsyncClient(timeout=AIO_TIMEOUT)
-_token_provider = AzureCognitiveTokenProvider()
 
 if settings.MOCK_AI:
     logging.warning("⚠️  RUNNING IN MOCK AI MODE.")
     _adapter = MockOpenAIAdapter()
 else:
+    _token_provider = AzureCognitiveTokenProvider()
     _adapter = AzureOpenAIAdapter(_http_client, _token_provider)
 
 # Initialize Chat Service

@@ -10,6 +10,9 @@ def test_ws_sync_receives_published_events(monkeypatch):
     monkeypatch.delenv("QNF_API_KEY", raising=False)
     monkeypatch.setenv("QNF_REQUIRE_API_KEY", "0")
     with client.websocket_connect("/ws/sync") as ws:
+        # The server always sends an initial sync snapshot on connect; consume it first
+        snapshot = ws.receive_text()
+        assert "sync.snapshot" in snapshot
         # Publish an event and expect to receive it
         payload = {"type": "test.event", "data": {"hello": "world"}}
         bus.publish(payload)
