@@ -1,7 +1,11 @@
 import os
+import logging
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+logger = logging.getLogger(__name__)
+
 
 class Settings(BaseSettings):
     # --- Core Application ---
@@ -9,11 +13,19 @@ class Settings(BaseSettings):
     VERSION: str = "2.0.0"
     ENVIRONMENT: str = "development"  # development, production
     LOG_LEVEL: str = "INFO"
-    API_KEY: str = "secret"
+    API_KEY: str = ""  # Must be set via environment variable or .env file
+
+    # --- CORS ---
+    CORS_ORIGINS: str = ""  # Comma-separated allowed origins; empty = allow all in dev only
+
+    # --- Rate Limiting ---
+    RATE_LIMIT_ENABLED: bool = False
+    RATE_LIMIT_RPM: int = 600
+    RATE_LIMIT_BURST: int = 120
 
     # --- AI Provider ---
     AOAI_ENDPOINT: str = ""
-    AOAI_KEY: str = ""  # Mapped from API_KEY in .env if needed, or separate
+    AOAI_KEY: str = ""
     AOAI_CHAT_DEPLOYMENT: str = "gpt-4"
     AOAI_EMBED_DEPLOYMENT: str = "text-embedding-ada-002"
     AOAI_API_VERSION: str = "2024-08-01-preview"
@@ -29,9 +41,31 @@ class Settings(BaseSettings):
     RATE_LIMIT_QPS: float = 10.0
 
     model_config = SettingsConfigDict(
-        env_file=".env", 
+        env_file=".env",
         env_file_encoding="utf-8",
         extra="ignore"
     )
 
+    @property
+    def cors_origin_list(self) -> list[str]:
+        """Return parsed CORS origins list."""
+        if self.CORS_ORIGINS:
+            return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
+        if self.ENVIRONMENT == "production":
+            logger.warning("CORS_ORIGINS not set in production — defaulting to no origins allowed")
+            return []
+        return ["*"]  # Allow all in development
+
+    @property
+    def is_production(self) -> bool:
+        return self.ENVIRONMENT == "production"
+
+
 settings = Settings()
+
+# Warn at import time if running production without an API key
+if settings.is_production and not settings.API_KEY:
+    logger.warning(
+        "CRITICAL: No API_KEY configured in production. "
+        "Set the API_KEY environment variable before deploying."
+    )

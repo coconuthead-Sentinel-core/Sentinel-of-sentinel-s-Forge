@@ -26,3 +26,4 @@ class MemorySnapshot(Entity):
     summary: str
     active_nodes: int
     entropy_level: float
+    timestamp: Optional[datetime] = Field(default_factory=lambda: datetime.now(timezone.utc))

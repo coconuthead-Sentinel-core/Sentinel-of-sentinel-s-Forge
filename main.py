@@ -51,13 +51,14 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Add CORS
+# Add CORS — environment-aware
+cors_origins = settings.cors_origin_list
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=cors_origins,
+    allow_credentials=bool(settings.API_KEY),
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["*", "X-API-Key"],
 )
 
 # REST API routes under /api
