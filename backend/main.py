@@ -5,6 +5,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .api import router as api_router, ai_router
 from .ws_api import router as ws_router
+from .routes.auth_routes import auth_router
+from .routes.billing_routes import billing_router
 from .adapters.azure_openai import AzureCognitiveTokenProvider
 from .infrastructure.cosmos_repo import CosmosDBRepository
 from .middleware import RequestSizeLimitMiddleware
@@ -68,6 +70,8 @@ app.add_middleware(
 # Include routers
 app.include_router(api_router, prefix="/api")
 app.include_router(ai_router, prefix="/api")
+app.include_router(auth_router, prefix="/api")
+app.include_router(billing_router, prefix="/api")
 app.include_router(ws_router)
 
 if __name__ == "__main__":

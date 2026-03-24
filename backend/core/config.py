@@ -37,6 +37,19 @@ class Settings(BaseSettings):
     COSMOS_DATABASE_NAME: str = "SentinelForgeDB"
     COSMOS_CONTAINER_NAME: str = "Items"
 
+    # --- JWT Authentication ---
+    JWT_SECRET_KEY: str = ""  # REQUIRED in production. Generate with: openssl rand -hex 32
+    JWT_ALGORITHM: str = "HS256"
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+
+    # --- Stripe Billing ---
+    STRIPE_SECRET_KEY: str = ""
+    STRIPE_WEBHOOK_SECRET: str = ""
+    STRIPE_PRICE_ID_STARTER: str = ""
+    STRIPE_PRICE_ID_PRO: str = ""
+    STRIPE_PRICE_ID_ENTERPRISE: str = ""
+
     # --- Performance ---
     RATE_LIMIT_QPS: float = 10.0
 
