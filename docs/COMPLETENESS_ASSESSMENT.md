@@ -42,9 +42,9 @@
 
 ## Remaining Incompletes — One-Paragraph Summary, Description, Comment, and Closing Remarks
 
-**Summary (one paragraph):** The platform still needs production-grade foundations: migrate user identity from the in-memory store to Cosmos DB with backups, set non-empty JWT/API secrets and rotation policy, wire Stripe with live keys plus billing tests, add API integration and coverage enforcement, publish a system design and STRIDE threat model, turn on rate limiting/TLS/release pipeline, and stand up SLOs/SLIs with APM, alerting, runbooks, and DR restore drills.
+**Summary (one paragraph):** The platform still needs production-grade foundations: move user identity off the in-memory store to Cosmos DB with backups, set non-empty JWT/API secrets with rotation, wire Stripe live keys and billing tests, add API integration tests with coverage gates, publish a system design plus STRIDE threat model, enable rate limiting/TLS/release pipeline, and stand up SLOs/SLIs with APM, alerting, runbooks, and DR restore drills.
 
-**Description:** Core security, reliability, and billing controls are pending—persistent auth data, secret management, validated payments, end-to-end API tests with coverage, documented architecture/threat model, hardened deployment path (TLS, release pipeline, rate limiting), and operational readiness (SLOs, APM/alerting, runbooks, DR practice).
+**Description:** Core security, reliability, and billing controls remain open: persistent auth data and secret hygiene; validated payments with tests; HTTP-level API tests with enforced coverage; published architecture and threat model; hardened deployment path (TLS, release pipeline, rate limiting); and operational readiness via SLOs, APM/alerting, on-call/IR runbooks, and DR practice.
 
 **Comment:** These gaps block a “finished” verdict: without persistent identity and secret hygiene, access control is brittle; without live Stripe tests, revenue paths are unproven; without integration tests and coverage gates, regressions can slip; without architecture/threat docs, risks stay implicit; without hardened deploy/ops (TLS, release, SLOs, alerts, runbooks, DR), reliability and compliance remain unvalidated.
 
