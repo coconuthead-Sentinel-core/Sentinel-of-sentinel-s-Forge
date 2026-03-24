@@ -148,10 +148,37 @@ window.addEventListener('DOMContentLoaded', () => {
   // initial loads
   loadRules().catch(console.error);
   memSnapshot().catch(console.error);
-  // Profile controls
+  // Chat
+  $('chatSend').addEventListener('click', async () => {
+    const msg = $('chatInput').value.trim();
+    if (!msg) { alert('Please enter a message'); return; }
+    $('chatSend').disabled = true;
+    $('chatSend').textContent = 'Sending...';
+    try {
+      const apiKey = localStorage.getItem('QNF_API_KEY') || '';
+      const headers = { 'Content-Type': 'application/json' };
+      if (apiKey) headers['X-API-Key'] = apiKey;
+      const res = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ messages: [{ role: 'user', content: msg }] }),
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`${res.status}: ${text}`);
+      }
+      const data = await res.json();
+      pretty($('chatOut'), data);
+    } catch (e) { pretty($('chatOut'), String(e)); }
+    finally {
+      $('chatSend').disabled = false;
+      $('chatSend').textContent = 'POST /api/ai/chat';
+    }
+  });
+  // Profile controls (routes: /sentinel/profile and /sentinel/init)
   $('loadProfile').addEventListener('click', async () => {
     try {
-      const prof = await api('/profile_get');
+      const prof = await api('/sentinel/profile');
       pretty($('profileOut'), prof);
     } catch (e) { pretty($('profileOut'), String(e)); }
   });
@@ -159,7 +186,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const ok = prompt('Type: Confirm Zero-State Reset');
     if (ok !== 'Confirm Zero-State Reset') return;
     try {
-      const prof = await api('/profile_initialize', { method: 'POST' });
+      const prof = await api('/sentinel/init', { method: 'POST' });
       pretty($('profileOut'), prof);
       alert('Sentinel profile reinitialized (Zero-State).');
     } catch (e) { alert(String(e)); }

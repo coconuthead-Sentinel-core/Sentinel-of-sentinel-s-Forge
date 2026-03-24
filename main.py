@@ -25,6 +25,8 @@ else:
 
 from backend.api import router as api_router, ai_router
 from backend.ws_api import router as ws_router
+from backend.routes.auth_routes import auth_router
+from backend.routes.billing_routes import billing_router
 from backend.adapters.azure_openai import AzureCognitiveTokenProvider
 from backend.core.config import settings
 
@@ -51,18 +53,21 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Add CORS
+# Add CORS — environment-aware
+cors_origins = settings.cors_origin_list
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=cors_origins,
+    allow_credentials=bool(settings.API_KEY),
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["*", "X-API-Key"],
 )
 
 # REST API routes under /api
 app.include_router(api_router, prefix="/api")
-app.include_router(ai_router, prefix="/api") # New AI router
+app.include_router(ai_router, prefix="/api")
+app.include_router(auth_router, prefix="/api")
+app.include_router(billing_router, prefix="/api")
 
 # WebSocket routes (no prefix needed)
 app.include_router(ws_router)

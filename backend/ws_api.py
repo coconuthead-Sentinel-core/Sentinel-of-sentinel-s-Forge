@@ -1,9 +1,10 @@
 import asyncio
 import json
 import logging
+import time
 from typing import Any
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect  # type: ignore[reportMissingImports]
+from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect  # type: ignore[reportMissingImports]
 
 from .eventbus import bus
 from .security import websocket_require_api_key
@@ -30,8 +31,8 @@ class ConnectionManager:
         for connection in self.active_connections:
             try:
                 await connection.send_json(message)
-            except:
-                pass
+            except Exception as e:
+                logger.debug("Broadcast send failed: %s", e)
 
 manager = ConnectionManager()
 
@@ -39,7 +40,11 @@ manager = ConnectionManager()
 @router.websocket("/ws/sync")
 async def ws_sync(websocket: WebSocket) -> Any:
     # Enforce API key if configured
-    websocket_require_api_key(websocket)
+    try:
+        websocket_require_api_key(websocket)
+    except HTTPException:
+        await websocket.close(code=1008, reason="unauthorized")
+        return
     await websocket.accept()
     loop = asyncio.get_running_loop()
     # Use a bounded queue with 'latest' policy to keep UIs current under load
@@ -77,18 +82,18 @@ async def websocket_metrics(websocket: WebSocket):
                         "data": {
                             "metrics": metrics,
                             "status": status,
-                            "timestamp": __import__("time").time(),
+                            "timestamp": time.time(),
                         },
                     }
                 )
             except Exception as e:
-                print(f"Error sending metrics: {e}")
+                logger.warning("Error sending metrics: %s", e)
 
             await asyncio.sleep(2)
     except WebSocketDisconnect:
         manager.disconnect(websocket)
     except Exception as e:
-        print(f"WebSocket error: {e}")
+        logger.error("WebSocket metrics error: %s", e)
         manager.disconnect(websocket)
 
 
@@ -114,17 +119,17 @@ async def websocket_events(websocket: WebSocket):
                         {
                             "type": "new_events",
                             "data": new_events,
-                            "timestamp": __import__("time").time(),
+                            "timestamp": time.time(),
                         }
                     )
                     last_event_count = current_count
 
             except Exception as e:
-                print(f"Error sending events: {e}")
+                logger.warning("Error sending events: %s", e)
 
             await asyncio.sleep(1)
     except WebSocketDisconnect:
         manager.disconnect(websocket)
     except Exception as e:
-        print(f"WebSocket error: {e}")
+        logger.error("WebSocket events error: %s", e)
         manager.disconnect(websocket)

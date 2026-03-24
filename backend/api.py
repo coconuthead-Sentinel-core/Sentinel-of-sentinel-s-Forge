@@ -1,6 +1,8 @@
-from typing import Any, List, Dict, Union
+from typing import Any, List, Dict
 import logging
 import uuid
+
+logger = logging.getLogger(__name__)
 
 from fastapi import APIRouter, HTTPException, Depends, Body, Response, status, Request
 from fastapi.concurrency import run_in_threadpool
@@ -17,7 +19,7 @@ from .schemas import (
     ChatResponse, EmbeddingsRequest, EmbeddingsResponse,
 )
 from .service import service
-from .core.security import api_key_guard
+from .core.security import api_key_guard, admin_guard
 from .adapters.azure_openai import AzureOpenAIAdapter, AzureCognitiveTokenProvider, AIO_TIMEOUT
 from .mock_adapter import MockOpenAIAdapter
 from .core.config import settings
@@ -36,22 +38,13 @@ _http_client = httpx.AsyncClient(timeout=AIO_TIMEOUT)
 _token_provider = AzureCognitiveTokenProvider()
 
 if settings.MOCK_AI:
-    logging.warning("⚠️  RUNNING IN MOCK AI MODE.")
+    logger.warning("RUNNING IN MOCK AI MODE.")
     _adapter = MockOpenAIAdapter()
 else:
     _adapter = AzureOpenAIAdapter(_http_client, _token_provider)
 
 # Initialize Chat Service
 _chat_service = ChatService(_adapter)
-
-# --- Lifecycle Hook to Init DB ---
-@router.on_event("startup")
-async def startup_event():
-    await cosmos_repo.initialize()
-
-@router.on_event("shutdown")
-async def shutdown_event():
-    await cosmos_repo.close()
 
 # --- AI Routes ---
 @ai_router.post("/chat", response_model=ChatResponse)
@@ -74,7 +67,7 @@ async def chat(req: ChatRequest):
         )
         return response
     except Exception as exc:
-        logging.error(f"Chat Error: {exc}")
+        logger.error("Chat Error: %s", exc)
         raise HTTPException(status_code=500, detail=str(exc))
 
 @ai_router.post("/embeddings", response_model=EmbeddingsResponse)
@@ -101,25 +94,37 @@ async def notes_list() -> Any:
     return await cosmos_repo.get_all_notes()
 
 @router.post("/notes/upsert")
-async def notes_upsert(payload: dict = Body(...)) -> Any:
+async def notes_upsert(
+    payload: dict = Body(...),
+    _: None = Depends(api_key_guard),
+) -> Any:
     """Creates or updates a note via Repository."""
     import uuid
-    # Create Domain Model
+
+    text = payload.get("text")
+    tag = payload.get("tag")
+    if not text or not isinstance(text, str) or not text.strip():
+        raise HTTPException(status_code=400, detail="'text' is required and must be a non-empty string")
+    if not tag or not isinstance(tag, str) or not tag.strip():
+        raise HTTPException(status_code=400, detail="'tag' is required and must be a non-empty string")
+
     note_id = payload.get("id") or str(uuid.uuid4())
     try:
         note = Note(
-            text=payload.get("text"),
-            tag=payload.get("tag"),
+            text=text.strip(),
+            tag=tag.strip(),
             vector=payload.get("vec"),
-            metadata=payload.get("metadata", {})
+            metadata=payload.get("metadata", {}),
         )
         note.id = note_id
         result = await cosmos_repo.upsert_note(note)
         return result
     except Exception as e:
-        # Graceful fallback - return mock success so system stays functional
-        logging.warning(f"DB unavailable, returning mock: {e}")
-        return {"id": note_id, "status": "mock_saved", "text": payload.get("text")}
+        logger.error("Failed to upsert note %s: %s", note_id, e)
+        raise HTTPException(
+            status_code=503,
+            detail="Database unavailable — note was NOT saved. Please retry.",
+        )
 
 # --- Existing Routes (Legacy Service) ---
 @router.get("/status", response_model=StatusResponse)
@@ -353,13 +358,15 @@ async def get_version() -> Any:
 
 # --- Event log / stream (playtesting + instrumentation) ----------------------
 @router.post("/log_event")
-async def log_event(ev: dict = Body(...)) -> Any:
+async def log_event(ev: dict = Body(..., max_length=65536)) -> Any:
     """Append a JSON event to the server event queue.
 
     This lightweight endpoint allows clients/tests to push
     instrumentation or playtesting events that can be streamed
     via /api/events (SSE‑like).
     """
+    if not ev or not isinstance(ev, dict):
+        raise HTTPException(status_code=400, detail="Event must be a non-empty JSON object")
     await run_in_threadpool(service.add_event, ev)
     return {"status": "ok"}
 
@@ -585,13 +592,13 @@ async def create_pool(req: PoolCreateRequest) -> Any:
 
 
 @router.post("/teardown")
-async def teardown() -> Any:
+async def teardown(_: None = Depends(admin_guard)) -> Any:
     await run_in_threadpool(service.teardown)
     return {"status": "ok"}
 
 
 @router.post("/rebuild")
-async def rebuild(req: RebuildRequest) -> Any:
+async def rebuild(req: RebuildRequest, _: None = Depends(admin_guard)) -> Any:
     await run_in_threadpool(service.rebuild, req.default_pools, req.pool_size)
     return {"status": "ok"}
 
@@ -650,7 +657,7 @@ async def cog_memory_snapshot() -> Any:
 
 
 @router.delete("/cog/memory")
-async def cog_memory_clear() -> Any:
+async def cog_memory_clear(_: None = Depends(admin_guard)) -> Any:
     return await run_in_threadpool(service.cog_memory_clear)
 
 
@@ -685,8 +692,10 @@ async def cog_seeds_get() -> Any:
 
 
 @router.post("/cog/seeds")
-async def cog_seeds_add(payload: dict = Body(...)) -> Any:
-    items = payload.get("items") or []
+async def cog_seeds_add(payload: dict = Body(..., max_length=65536)) -> Any:
+    items = payload.get("items")
+    if not items or not isinstance(items, list):
+        raise HTTPException(status_code=400, detail="'items' must be a non-empty list")
     return await run_in_threadpool(service.seeds_add, items)
 
 
@@ -706,8 +715,12 @@ async def glyphs_pack(payload: dict = Body(...)) -> Any:
 
 
 @router.post("/glyphs/interpret")
-async def glyphs_interpret(payload: dict = Body(...)) -> Any:
-    seq = str(payload.get("sequence", ""))
+async def glyphs_interpret(payload: dict = Body(..., max_length=65536)) -> Any:
+    seq = str(payload.get("sequence", "")).strip()
+    if not seq:
+        raise HTTPException(status_code=400, detail="'sequence' is required")
+    if len(seq) > 10000:
+        raise HTTPException(status_code=400, detail="'sequence' exceeds max length (10000)")
     return await run_in_threadpool(service.glyphs_interpret, seq)
 
 
@@ -741,11 +754,11 @@ async def glyphs_boot() -> Any:
 # --- Persistence / Upgrade ---------------------------------------------------
 
 @router.get("/state")
-async def state_dump() -> Any:
+async def state_dump(_: None = Depends(admin_guard)) -> Any:
     return await run_in_threadpool(service.state_dump)
 
 @router.post("/state/save")
-async def state_save() -> Any:
+async def state_save(_: None = Depends(admin_guard)) -> Any:
     return await run_in_threadpool(service.state_save)
 
 @router.get("/upgrade/plan")
@@ -753,7 +766,7 @@ async def upgrade_plan() -> Any:
     return await run_in_threadpool(service.upgrade_plan)
 
 @router.post("/upgrade/apply")
-async def upgrade_apply() -> Any:
+async def upgrade_apply(_: None = Depends(admin_guard)) -> Any:
     return await run_in_threadpool(service.upgrade_apply)
 
 # --- Triage Tuner ------------------------------------------------------------
@@ -778,7 +791,7 @@ async def sentinel_profile_get() -> Any:
     return await run_in_threadpool(service.profile_get)
 
 @router.post("/sentinel/init")
-async def sentinel_profile_init() -> Any:
+async def sentinel_profile_init(_: None = Depends(admin_guard)) -> Any:
     return await run_in_threadpool(service.profile_initialize)
 
 # --- Dashboard Endpoints -----------------------------------------------------
