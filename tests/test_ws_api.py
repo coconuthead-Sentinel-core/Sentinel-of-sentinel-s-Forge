@@ -13,5 +13,9 @@ def test_ws_sync_receives_published_events(monkeypatch):
         # Publish an event and expect to receive it
         payload = {"type": "test.event", "data": {"hello": "world"}}
         bus.publish(payload)
+        # The server sends an initial sync.snapshot before streaming events
+        snapshot_msg = ws.receive_text()
+        assert "sync.snapshot" in snapshot_msg
+        # The next message should be the published event
         msg = ws.receive_text()
         assert "test.event" in msg

@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .api import router as api_router, ai_router
+from .ws_api import router as ws_router
 from .adapters.azure_openai import AzureCognitiveTokenProvider
 from .infrastructure.cosmos_repo import CosmosDBRepository
 import uvicorn
@@ -50,6 +51,7 @@ app.add_middleware(
 # Include routers
 app.include_router(api_router, prefix="/api")
 app.include_router(ai_router, prefix="/api")
+app.include_router(ws_router)
 
 if __name__ == "__main__":
     uvicorn.run(

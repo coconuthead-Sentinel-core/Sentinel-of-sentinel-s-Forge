@@ -23,6 +23,7 @@ class Note(Entity):
 
 class MemorySnapshot(Entity):
     """A snapshot of the system's cognitive state."""
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     summary: str
     active_nodes: int
     entropy_level: float

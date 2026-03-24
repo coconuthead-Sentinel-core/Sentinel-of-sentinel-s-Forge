@@ -44,15 +44,6 @@ else:
 # Initialize Chat Service
 _chat_service = ChatService(_adapter)
 
-# --- Lifecycle Hook to Init DB ---
-@router.on_event("startup")
-async def startup_event():
-    await cosmos_repo.initialize()
-
-@router.on_event("shutdown")
-async def shutdown_event():
-    await cosmos_repo.close()
-
 # --- AI Routes ---
 @ai_router.post("/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest):
