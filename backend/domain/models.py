@@ -23,6 +23,7 @@ class Note(Entity):
 
 class MemorySnapshot(Entity):
     """A snapshot of the system's cognitive state."""
+    timestamp: Optional[datetime] = None
     summary: str
     active_nodes: int
     entropy_level: float

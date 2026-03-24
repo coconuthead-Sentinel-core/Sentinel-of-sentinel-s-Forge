@@ -11,6 +11,7 @@ from typing import List, Dict, Any, Optional
 
 from backend.domain.models import Note
 from backend.infrastructure.cosmos_repo import cosmos_repo
+from backend.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +54,7 @@ class ChatService:
         try:
             # Call AI Adapter (Mock or Azure)
             response = await self.ai_adapter.chat(
-                deployment="gpt-4", # Config driven in real impl
+                deployment=settings.AOAI_CHAT_DEPLOYMENT,
                 messages=messages,
                 temperature=0.7
             )

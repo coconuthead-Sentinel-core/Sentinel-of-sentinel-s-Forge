@@ -30,7 +30,7 @@ class ConnectionManager:
         for connection in self.active_connections:
             try:
                 await connection.send_json(message)
-            except:
+            except Exception:
                 pass
 
 manager = ConnectionManager()
@@ -82,13 +82,13 @@ async def websocket_metrics(websocket: WebSocket):
                     }
                 )
             except Exception as e:
-                print(f"Error sending metrics: {e}")
+                logger.error(f"Error sending metrics: {e}")
 
             await asyncio.sleep(2)
     except WebSocketDisconnect:
         manager.disconnect(websocket)
     except Exception as e:
-        print(f"WebSocket error: {e}")
+        logger.error(f"WebSocket error: {e}")
         manager.disconnect(websocket)
 
 
@@ -120,11 +120,11 @@ async def websocket_events(websocket: WebSocket):
                     last_event_count = current_count
 
             except Exception as e:
-                print(f"Error sending events: {e}")
+                logger.error(f"Error sending events: {e}")
 
             await asyncio.sleep(1)
     except WebSocketDisconnect:
         manager.disconnect(websocket)
     except Exception as e:
-        print(f"WebSocket error: {e}")
+        logger.error(f"WebSocket error: {e}")
         manager.disconnect(websocket)
