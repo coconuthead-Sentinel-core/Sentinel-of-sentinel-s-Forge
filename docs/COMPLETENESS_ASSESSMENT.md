@@ -40,6 +40,18 @@
 
 ---
 
+## Remaining Incompletes — One-Paragraph Summary, Description, Comment, and Closing Remarks
+
+**Summary (one paragraph):** The platform still needs production-grade foundations: migrate user identity from the in-memory store to Cosmos DB with backups, set non-empty JWT/API secrets and rotation policy, wire Stripe with live keys plus billing tests, add API integration and coverage enforcement, publish a system design and STRIDE threat model, turn on rate limiting/TLS/release pipeline, and stand up SLOs/SLIs with APM, alerting, runbooks, and DR restore drills.
+
+**Description:** Core security, reliability, and billing controls are pending—persistent auth data, secret management, validated payments, end-to-end API tests with coverage, documented architecture/threat model, hardened deployment path (TLS, release pipeline, rate limiting), and operational readiness (SLOs, APM/alerting, runbooks, DR practice).
+
+**Comment:** These gaps block a “finished” verdict: without persistent identity and secret hygiene, access control is brittle; without live Stripe tests, revenue paths are unproven; without integration tests and coverage gates, regressions can slip; without architecture/threat docs, risks stay implicit; without hardened deploy/ops (TLS, release, SLOs, alerts, runbooks, DR), reliability and compliance remain unvalidated.
+
+**Closing remarks with actionable next steps:** 1) Move auth to Cosmos DB and enable secret rotation; 2) configure Stripe live keys and add billing integration tests; 3) add HTTP-level API tests with coverage gates; 4) publish architecture diagram + STRIDE threat model; 5) enable rate limiting, TLS certs, and an automated release pipeline; 6) define SLOs/SLIs, deploy APM + alerting, write on-call/IR + DR runbooks, and schedule restore drills.
+
+---
+
 ## Table of Contents
 
 - [Executive Readiness Summary (Microsoft SDL + Google SRE)](#executive-readiness-summary)
