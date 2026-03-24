@@ -27,10 +27,13 @@ Most AI tools ignore this entirely, creating accessibility barriers. This framew
 
 ## 🚀 Tech Stack
 
+- **Backend:** FastAPI + Uvicorn/Gunicorn, WebSockets
 - **Language:** Python 3.11+
-- **Architecture:** Object-oriented with dataclasses and type hints
-- **Key Features:** Three-zone memory system, symbolic processing, real-time performance monitoring
-- **Code Quality:** 1000+ lines, fully typed, production-ready
+- **LLM/AI:** OpenAI / Azure OpenAI adapters with mock fallback
+- **Data:** Azure Cosmos DB with automatic mock JSON fallback
+- **Frontend:** Vanilla JS + HTML (static pages in `/frontend`)
+- **Containerization:** Docker & docker-compose
+- **Testing:** Pytest + helper scripts in `/scripts`
 
 ## 📦 Quick Start
 ```bash
@@ -66,14 +69,39 @@ python quantum_nexus_forge_v5_2_enhanced.py
 - **Geometric Primitives:** Tetrahedron, Cube, Octahedron, Dodecahedron, Icosahedron
 
 ## 📁 Project Structure
+Top-level layout (key files only):
 ```
 Sentinel-of-sentinel-s-Forge/
-├── quantum_nexus_forge_v5_2_enhanced.py  # Main cognitive architecture
-├── demo.py                                # Demonstration script
-├── requirements.txt                       # Python dependencies
-├── __init__.py                            # Package initialization
-└── README.md                              # This file
+├── backend/                     # FastAPI service
+│   ├── api.py                   # REST routes (status, cognition, stress, glyphs)
+│   ├── ws_api.py                # WebSocket routes (/ws/sync, /ws/metrics)
+│   ├── main.py                  # FastAPI app factory
+│   ├── core/                    # Config & security (API key guards, settings)
+│   ├── domain/                  # Domain models (Note, MemorySnapshot, etc.)
+│   ├── services/                # ChatService, orchestration helpers
+│   ├── infrastructure/          # Cosmos DB repository with mock fallback
+│   └── adapters/                # Azure/OpenAI adapters (AAD token handling)
+├── frontend/                    # Simple JS/HTML demo UI
+├── scripts/                     # Dev utilities (load, smoke tests, eval runner)
+├── evaluation/                  # Benchmark harness & test data
+├── tests/                       # Pytest unit tests (event bus, domain, vectors)
+├── docs/                        # Additional docs (API, quickstart, roadmap)
+├── quantum_nexus_forge_v5_2_enhanced.py  # Core cognitive engine (standalone)
+├── sentinel_cognition.py / sentinel_sync.py / sentinel_profile.py
+│                               # Supporting cognition/state helpers
+├── vector_utils.py              # Shared vector math utilities
+├── Dockerfile / docker-compose.yml
+└── README.md                    # You are here
 ```
+
+### How the code is organized
+- **API layer (`backend/api.py`, `backend/ws_api.py`)** – Thin HTTP/WS routers that delegate to services and enforce API key guards.
+- **Service layer (`backend/services/`)** – Wraps the cognitive engine and LLM adapters; handles chat, embeddings, and coordination.
+- **Domain & infrastructure (`backend/domain/`, `backend/infrastructure/`)** – Clean domain entities (no DB fields) and Cosmos DB repository with automatic mock-mode fallback when Cosmos is unavailable.
+- **Adapters (`backend/adapters/`)** – Azure OpenAI adapter with AAD token acquisition plus mock adapter for offline dev.
+- **Frontend (`/frontend`)** – Static HTML/JS pages that call the API for quick manual testing/demos.
+- **Engine (`quantum_nexus_forge_v5_2_enhanced.py`)** – Standalone cognitive engine implementing the multi-zone memory and processing modes; can be run independently of the API.
+- **Operational scripts (`/scripts`, `/evaluation`)** – Helpers for seeding data, smoke testing, and running evaluation scenarios.
 
 ## 👤 Author
 
