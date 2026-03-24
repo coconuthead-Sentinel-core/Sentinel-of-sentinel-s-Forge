@@ -16,9 +16,10 @@
 
 ---
 
+<a id="executive-readiness-summary"></a>
 ## Executive Readiness Summary (Microsoft SDL + Google SRE)
 
-> **If an executive needs a single checklist to green‑light launch, complete the items
+> **If an executive needs a single checklist to green-light launch, complete the items
 > below. They translate the gap list into Microsoft SDL (secure-by-default) and Google
 > SRE/DevOps (reliable-by-default) controls.**
 
@@ -41,7 +42,7 @@
 
 ## Table of Contents
 
-- [Executive Readiness Summary (Microsoft SDL + Google SRE)](#executive-readiness-summary-microsoft-sdl--google-sre)
+- [Executive Readiness Summary (Microsoft SDL + Google SRE)](#executive-readiness-summary)
 1. [Aggregated Repository Inventory](#1-aggregated-repository-inventory)
 2. [Project Identity & Vision](#2-project-identity--vision)
 3. [Architecture & Codebase Profile](#3-architecture--codebase-profile)
