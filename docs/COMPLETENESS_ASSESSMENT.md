@@ -16,8 +16,32 @@
 
 ---
 
+## Executive Readiness Summary (Microsoft SDL + Google SRE)
+
+> **If an executive needs a single checklist to green‑light launch, complete the items
+> below. They translate the gap list into Microsoft SDL (secure-by-default) and Google
+> SRE/DevOps (reliable-by-default) controls.**
+
+**Must-fix before declaring “finished”:**
+- [ ] Set **non-empty `JWT_SECRET_KEY` and API key rotation policy** in all environments (SDL secure configuration).
+- [ ] Move users off the **in-memory user store to persistent Cosmos DB** with migration + backups (SDL supply chain/data protection).
+- [ ] Enable **Stripe live keys** and add happy-path + failure-path billing integration tests (SDL design/verification).
+- [ ] Publish **Operations Runbook + Incident Response** (paging, severity matrix, RACI) and **SLOs/SLIs** for latency, error rate, availability (SRE).
+- [ ] Stand up **APM + alerting** (e.g., Datadog/CloudWatch), wire health/metrics endpoints, and define dashboards (SRE).
+- [ ] Produce **System Design / Architecture Diagram** and **Threat Model** (STRIDE-style) with mitigations and owners (SDL design/threat modeling).
+- [ ] Add **API integration tests** across critical routes and enforce **coverage reporting** in CI (SDL verification).
+- [ ] Harden deployment: **release pipeline**, TLS certificates, and rate-limiting middleware enabled in code (SDL release & secure defaults).
+
+**Nice-to-have to hit parity with Google SRE “production-ready” bar:**
+- [ ] **Error budget policy** tied to SLOs and a **launch gate** requiring green CI, coverage ≥80%, and passing smoke/load tests.
+- [ ] **Runbook for DR/Backups** with RPO/RTO targets and periodic restore drills.
+- [ ] **Dependency and security scanning** (Dependabot + Bandit/OWASP ZAP) in CI.
+
+---
+
 ## Table of Contents
 
+- [Executive Readiness Summary (Microsoft SDL + Google SRE)](#executive-readiness-summary-microsoft-sdl--google-sre)
 1. [Aggregated Repository Inventory](#1-aggregated-repository-inventory)
 2. [Project Identity & Vision](#2-project-identity--vision)
 3. [Architecture & Codebase Profile](#3-architecture--codebase-profile)
