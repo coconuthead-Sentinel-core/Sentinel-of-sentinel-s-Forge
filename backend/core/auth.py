@@ -150,15 +150,7 @@ def update_user_subscription(user_id: str, tier: str, stripe_customer_id: str = 
 
 def _create_token(data: dict, expires_delta: timedelta) -> str:
     """Create a signed JWT."""
-    secret = settings.JWT_SECRET_KEY
-    if not secret:
-        if settings.is_production:
-            raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="Server misconfigured: JWT_SECRET_KEY not set",
-            )
-        secret = "dev-secret-do-not-use-in-production"
-
+    secret = _get_jwt_secret()
     to_encode = data.copy()
     to_encode["exp"] = datetime.now(timezone.utc) + expires_delta
     to_encode["iat"] = datetime.now(timezone.utc)
@@ -192,16 +184,28 @@ def create_token_pair(user: UserRecord) -> TokenResponse:
 
 # --- JWT Token Verification ---
 
+def _get_jwt_secret() -> str:
+    """Resolve the JWT secret, failing hard in production if unset."""
+    if settings.JWT_SECRET_KEY:
+        return settings.JWT_SECRET_KEY
+    if settings.is_production:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Server misconfigured: JWT_SECRET_KEY not set",
+        )
+    return "dev-secret-do-not-use-in-production"
+
+
 def decode_token(token: str) -> dict:
     """Decode and verify a JWT token."""
-    secret = settings.JWT_SECRET_KEY or "dev-secret-do-not-use-in-production"
+    secret = _get_jwt_secret()
     try:
         payload = jwt.decode(token, secret, algorithms=[settings.JWT_ALGORITHM])
         return payload
-    except JWTError as e:
+    except JWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid token: {e}",
+            detail="Invalid or expired token",
             headers={"WWW-Authenticate": "Bearer"},
         )
 

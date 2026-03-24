@@ -1,6 +1,8 @@
-from typing import Any, List, Dict, Union
+from typing import Any, List, Dict
 import logging
 import uuid
+
+logger = logging.getLogger(__name__)
 
 from fastapi import APIRouter, HTTPException, Depends, Body, Response, status, Request
 from fastapi.concurrency import run_in_threadpool
@@ -36,7 +38,7 @@ _http_client = httpx.AsyncClient(timeout=AIO_TIMEOUT)
 _token_provider = AzureCognitiveTokenProvider()
 
 if settings.MOCK_AI:
-    logging.warning("⚠️  RUNNING IN MOCK AI MODE.")
+    logger.warning("RUNNING IN MOCK AI MODE.")
     _adapter = MockOpenAIAdapter()
 else:
     _adapter = AzureOpenAIAdapter(_http_client, _token_provider)
@@ -65,7 +67,7 @@ async def chat(req: ChatRequest):
         )
         return response
     except Exception as exc:
-        logging.error(f"Chat Error: {exc}")
+        logger.error("Chat Error: %s", exc)
         raise HTTPException(status_code=500, detail=str(exc))
 
 @ai_router.post("/embeddings", response_model=EmbeddingsResponse)
@@ -118,7 +120,7 @@ async def notes_upsert(
         result = await cosmos_repo.upsert_note(note)
         return result
     except Exception as e:
-        logging.error(f"Failed to upsert note {note_id}: {e}")
+        logger.error("Failed to upsert note %s: %s", note_id, e)
         raise HTTPException(
             status_code=503,
             detail="Database unavailable — note was NOT saved. Please retry.",

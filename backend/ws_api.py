@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import time
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect  # type: ignore[reportMissingImports]
@@ -81,7 +82,7 @@ async def websocket_metrics(websocket: WebSocket):
                         "data": {
                             "metrics": metrics,
                             "status": status,
-                            "timestamp": __import__("time").time(),
+                            "timestamp": time.time(),
                         },
                     }
                 )
@@ -118,7 +119,7 @@ async def websocket_events(websocket: WebSocket):
                         {
                             "type": "new_events",
                             "data": new_events,
-                            "timestamp": __import__("time").time(),
+                            "timestamp": time.time(),
                         }
                     )
                     last_event_count = current_count
