@@ -14,7 +14,9 @@ venv/
 .idea/
 *.log
 node_modules/
+frontend-dist/
 *.sqlite3
+*.db
 
 # Environment variables
 .env

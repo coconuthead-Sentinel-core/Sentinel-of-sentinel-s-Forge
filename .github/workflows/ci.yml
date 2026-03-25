@@ -35,6 +35,29 @@ jobs:
         # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 
+  frontend-build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Node.js 22
+      uses: actions/setup-node@v4
+      with:
+        node-version: "22"
+
+    - name: Install dependencies
+      working-directory: frontend-app
+      run: npm ci
+
+    - name: TypeScript type check
+      working-directory: frontend-app
+      run: npx tsc -b
+
+    - name: Build production bundle
+      working-directory: frontend-app
+      run: npm run build
+
   security-gates:
     runs-on: ubuntu-latest
 

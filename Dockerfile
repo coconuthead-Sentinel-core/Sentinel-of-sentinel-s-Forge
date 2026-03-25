@@ -1,3 +1,12 @@
+## Stage 1: Build the React frontend
+FROM node:22-slim AS frontend-build
+WORKDIR /build
+COPY frontend-app/package.json frontend-app/package-lock.json ./
+RUN npm ci
+COPY frontend-app/ .
+RUN npm run build
+
+## Stage 2: Python application
 FROM python:3.11-slim
 
 # Faster, cleaner Python in containers
@@ -18,9 +27,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy source
 COPY . .
 
+# Copy built frontend from stage 1
+COPY --from=frontend-build /frontend-dist ./frontend-dist
+
+# Ensure data directory exists for SQLite
+RUN mkdir -p /app/data
+
 EXPOSE 8000
 ENV PORT=8000
 
 # Production ASGI server (Gunicorn + Uvicorn workers)
 CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "-w", "2", "-b", "0.0.0.0:8000", "main:app"]
-
