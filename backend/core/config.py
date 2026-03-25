@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     COSMOS_KEY: str = ""
     COSMOS_DATABASE_NAME: str = "SentinelForgeDB"
     COSMOS_CONTAINER_NAME: str = "Items"
+    COSMOS_USER_CONTAINER_NAME: str = "Users"
 
     # --- JWT Authentication ---
     JWT_SECRET_KEY: str = ""  # REQUIRED in production. Generate with: openssl rand -hex 32
@@ -75,6 +76,23 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+
+def validate_security_configuration() -> None:
+    """Fail fast when required security settings are missing in production."""
+    if not settings.is_production:
+        return
+
+    missing: list[str] = []
+    if not settings.API_KEY:
+        missing.append("API_KEY")
+    if not settings.JWT_SECRET_KEY:
+        missing.append("JWT_SECRET_KEY")
+
+    if missing:
+        raise RuntimeError(
+            "Production configuration missing required secrets: " + ", ".join(missing)
+        )
 
 # Warn at import time if running production without an API key
 if settings.is_production and not settings.API_KEY:

@@ -11,8 +11,16 @@ services:
       - RATE_LIMIT_BURST=120
       # REQUIRED: Set your API key
       - API_KEY=${API_KEY:?Set API_KEY in .env or environment}
+      # REQUIRED: Set a production JWT secret
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:?Set JWT_SECRET_KEY in .env or environment}
       # REQUIRED: Set allowed CORS origins
       - CORS_ORIGINS=${CORS_ORIGINS:-https://your-domain.com}
+      # REQUIRED: Configure Stripe billing runtime values
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:?Set STRIPE_SECRET_KEY in .env or environment}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET:?Set STRIPE_WEBHOOK_SECRET in .env or environment}
+      - STRIPE_PRICE_ID_STARTER=${STRIPE_PRICE_ID_STARTER:?Set STRIPE_PRICE_ID_STARTER in .env or environment}
+      - STRIPE_PRICE_ID_PRO=${STRIPE_PRICE_ID_PRO:?Set STRIPE_PRICE_ID_PRO in .env or environment}
+      - STRIPE_PRICE_ID_ENTERPRISE=${STRIPE_PRICE_ID_ENTERPRISE:?Set STRIPE_PRICE_ID_ENTERPRISE in .env or environment}
       # AI Provider (Azure OpenAI)
       - AOAI_ENDPOINT=${AOAI_ENDPOINT:-}
       - AOAI_KEY=${AOAI_KEY:-}

@@ -2,7 +2,7 @@
 JWT Authentication System for Sentinel Forge.
 
 Provides user registration, login, token refresh, and JWT middleware.
-Uses an in-memory user store for development; swap to Cosmos DB for production.
+Persists users via a repository backed by Cosmos DB with local fallback.
 """
 import logging
 import uuid
@@ -16,6 +16,7 @@ from pydantic import BaseModel, Field
 
 from .config import settings
 from .rbac import Role
+from ..infrastructure.user_repository import user_repository
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +66,7 @@ class UserProfile(BaseModel):
     subscription_tier: str = "free"
 
 
-# --- In-Memory User Store (replace with Cosmos DB repository in production) ---
+# --- User Record ---
 
 class UserRecord:
     """Internal user record."""
@@ -89,9 +90,22 @@ class UserRecord:
         self.stripe_customer_id = stripe_customer_id
 
 
-# In-memory store — swap for CosmosDBRepository in production
-_users: dict[str, UserRecord] = {}  # keyed by user_id
-_email_index: dict[str, str] = {}   # email -> user_id
+def _record_from_doc(doc: dict[str, Any]) -> UserRecord:
+    """Convert a repository document into a UserRecord object."""
+    role_value = str(doc.get("role", Role.USER.value))
+    role = Role(role_value) if role_value in {r.value for r in Role} else Role.USER
+    user = UserRecord(
+        user_id=str(doc["id"]),
+        email=str(doc["email"]),
+        hashed_password=str(doc["hashed_password"]),
+        display_name=str(doc.get("display_name", "")),
+        role=role,
+        subscription_tier=str(doc.get("subscription_tier", "free")),
+        stripe_customer_id=str(doc.get("stripe_customer_id", "")),
+    )
+    if doc.get("created_at"):
+        user.created_at = str(doc["created_at"])
+    return user
 
 
 # --- User CRUD ---
@@ -99,12 +113,6 @@ _email_index: dict[str, str] = {}   # email -> user_id
 def create_user(data: UserCreate) -> UserRecord:
     """Register a new user."""
     email_lower = data.email.lower().strip()
-    if email_lower in _email_index:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Email already registered",
-        )
-
     user_id = str(uuid.uuid4())
     hashed_pw = _hash_password(data.password)
     user = UserRecord(
@@ -113,8 +121,25 @@ def create_user(data: UserCreate) -> UserRecord:
         hashed_password=hashed_pw,
         display_name=data.display_name or email_lower.split("@")[0],
     )
-    _users[user_id] = user
-    _email_index[email_lower] = user_id
+    try:
+        user_repository.create_user(
+            {
+                "id": user.id,
+                "type": "user",
+                "email": user.email,
+                "hashed_password": user.hashed_password,
+                "display_name": user.display_name,
+                "role": user.role.value,
+                "created_at": user.created_at,
+                "subscription_tier": user.subscription_tier,
+                "stripe_customer_id": user.stripe_customer_id,
+            }
+        )
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Email already registered",
+        )
     logger.info("User registered: %s (id=%s)", email_lower, user_id)
     return user
 
@@ -122,27 +147,27 @@ def create_user(data: UserCreate) -> UserRecord:
 def authenticate_user(email: str, password: str) -> Optional[UserRecord]:
     """Verify credentials and return user if valid."""
     email_lower = email.lower().strip()
-    user_id = _email_index.get(email_lower)
-    if not user_id:
+    user_doc = user_repository.get_user_by_email(email_lower)
+    if not user_doc:
         return None
-    user = _users.get(user_id)
-    if not user or not _verify_password(password, user.hashed_password):
+    user = _record_from_doc(user_doc)
+    if not _verify_password(password, user.hashed_password):
         return None
     return user
 
 
 def get_user_by_id(user_id: str) -> Optional[UserRecord]:
     """Look up user by ID."""
-    return _users.get(user_id)
+    user_doc = user_repository.get_user_by_id(user_id)
+    if not user_doc:
+        return None
+    return _record_from_doc(user_doc)
 
 
 def update_user_subscription(user_id: str, tier: str, stripe_customer_id: str = "") -> None:
     """Update a user's subscription tier."""
-    user = _users.get(user_id)
-    if user:
-        user.subscription_tier = tier
-        if stripe_customer_id:
-            user.stripe_customer_id = stripe_customer_id
+    updated = user_repository.update_subscription(user_id, tier, stripe_customer_id)
+    if updated:
         logger.info("User %s subscription updated to %s", user_id, tier)
 
 

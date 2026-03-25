@@ -57,9 +57,29 @@ pytest -q
 ```
 
 ## Optional Environment
-- `QNF_API_KEY`: require an API key for REST/WS.
+- `API_KEY`: require an API key for REST/WS and production compose startup.
+- `JWT_SECRET_KEY`: required for production auth tokens.
+- `CORS_ORIGINS`: comma-separated HTTPS origins allowed by the API.
+- `STRIPE_SECRET_KEY`: Stripe account secret used to leave mock billing mode.
+- `STRIPE_WEBHOOK_SECRET`: Stripe webhook signing secret for `/api/billing/webhook`.
+- `STRIPE_PRICE_ID_STARTER`, `STRIPE_PRICE_ID_PRO`, `STRIPE_PRICE_ID_ENTERPRISE`: recurring Stripe Price IDs for the three plans.
 - `OPENAI_API_KEY`: enable AI endpoints in `backend/llm.py`.
 - `OPENAI_MODEL`, `OPENAI_BASE_URL`, `OPENAI_EMBEDDING_MODEL`: optional tuning.
+
+## Docker Compose Runtime
+The production `docker-compose.yml` now forwards billing secrets at container runtime instead of relying on a baked `.env` file inside the image. Export the variables in your shell or define them in a local compose `.env` file before running:
+
+```powershell
+$env:API_KEY="replace-me"
+$env:JWT_SECRET_KEY="replace-me"
+$env:CORS_ORIGINS="https://your-domain.com"
+$env:STRIPE_SECRET_KEY="sk_test_or_live_..."
+$env:STRIPE_WEBHOOK_SECRET="whsec_..."
+$env:STRIPE_PRICE_ID_STARTER="price_..."
+$env:STRIPE_PRICE_ID_PRO="price_..."
+$env:STRIPE_PRICE_ID_ENTERPRISE="price_..."
+docker compose up --build
+```
 
 ## ADHD-Friendly Ritual
 - One card at a time, 25 min timer.

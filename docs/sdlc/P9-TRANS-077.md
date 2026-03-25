@@ -6,6 +6,13 @@
 
 **Document Status: Completed — Filled from codebase review 2026-03-24**
 
+### AQA Reconciliation Addendum (2026-03-24)
+
+- Repository evidence confirms items 7-9 completion at code/config/test level.
+- Runtime execution checks requiring Docker/nginx/GitHub Actions are Pending External Verification in this sandbox.
+- Human sign-off fields remain Pending External Verification.
+- Proof ledger reference: `docs/sdlc/P9-PROOF-LEDGER-081.md`
+
 ---
 
 ## 1. Purpose, Scope, and Audience
@@ -112,7 +119,7 @@
 | Item | Details | Status |
 |------|---------|--------|
 | Cutover Window | TBD — coordinate with Azure provisioning | Planned |
-| Validation / Smoke Tests | scripts/smoke_test.py, scripts/preflight_check.py; health endpoints /healthz, /readyz | Planned |
+| Validation / Smoke Tests | scripts/smoke_test.py, scripts/preflight_check.py; docs/PARTNER_ENV_EXECUTION_CHECKLIST.md; health endpoints /healthz, /readyz | Planned |
 | Backout Plan | `docker-compose down` + redeploy previous image version; Cosmos DB point-in-time restore | Planned |
 
 ---
@@ -138,4 +145,4 @@
 
 | Name | Role | Signature | Date |
 |------|------|-----------|------|
-| Shannon Bryan Kelly | Founder / Product Owner | _Pending_ | _Pending_ |
+| Shannon Bryan Kelly | Founder / Product Owner | Pending External Verification | Pending External Verification |

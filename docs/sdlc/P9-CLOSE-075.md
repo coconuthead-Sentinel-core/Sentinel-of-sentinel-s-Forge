@@ -6,6 +6,14 @@
 
 **Status: COMPLETED — Filled from codebase review 2026-03-24**
 
+### AQA Reconciliation Addendum (2026-03-24)
+
+- Automated test baseline superseded: repository now validates at 47 passed.
+- Persistent user store is no longer open in repository state; user persistence is implemented via repository-backed storage.
+- Runtime checks requiring Docker/nginx/GitHub Actions execution remain Pending External Verification in this review environment because those binaries/services are unavailable.
+- Human approvals/signatures remain Pending External Verification until owner attestation is provided.
+- Proof ledger reference: `docs/sdlc/P9-PROOF-LEDGER-081.md`
+
 ---
 
 ## Document Control & Instructions
@@ -19,7 +27,7 @@
 | **Document Owner** | Claude Code (Engineering Review) |
 | **Document Version** | 1.0 |
 | **Confidentiality** | Internal |
-| **Primary Repository** | /home/user/Sentinel-of-sentinel-s-Forge (branch: claude/review-repo-readiness-uYYzN) |
+| **Primary Repository** | coconuthead-Sentinel-core/Sentinel-of-sentinel-s-Forge (branch: main) |
 
 ---
 
@@ -46,9 +54,9 @@
 
 | Field | Value |
 |-------|-------|
-| **In Scope** | FastAPI backend (76 routes), JWT auth, RBAC (4 tiers), Stripe billing (3 plans), Azure Cosmos DB, multi-provider AI adapters, WebSocket streaming, event bus, database migrations, Docker+nginx deployment, 40 tests, SDLC documentation |
-| **Out of Scope / Deferred** | Mobile app, multi-region deployment, model fine-tuning, formal pen test, SOC 2 certification, persistent user store (in-memory only) |
-| **Acceptance / Success Criteria** | 40/40 tests passing; 76 routes registered; clean startup (0 errors); all security systems operational; documentation complete |
+| **In Scope** | FastAPI backend (76 routes), JWT auth, RBAC (4 tiers), Stripe billing (3 plans), Azure Cosmos DB, multi-provider AI adapters, WebSocket streaming, event bus, database migrations, Docker+nginx deployment, 47 tests, SDLC documentation |
+| **Out of Scope / Deferred** | Mobile app, multi-region deployment, model fine-tuning, formal pen test, SOC 2 certification, formal on-call rotation |
+| **Acceptance / Success Criteria** | 47 tests passing; 76 routes registered; clean startup (0 errors); all security systems operational; documentation complete |
 
 ---
 
@@ -56,7 +64,7 @@
 
 | Objective | Target | Actual | Met? |
 |-----------|--------|--------|------|
-| Automated test suite | 40 tests passing | 40/40 passing | Yes |
+| Automated test suite | 47 tests passing | 47/47 passing | Yes |
 | Route registration | 76 routes | 76 routes | Yes |
 | Clean app startup | 0 errors | 0 errors | Yes |
 | JWT authentication | Signup/login/refresh/me | All 4 endpoints functional | Yes |
@@ -85,7 +93,7 @@
 | Frontend dashboard | Complete | Medium | HTML/JS; basic UI; route integration |
 | Legal pages | Complete | Medium | Terms + Privacy (templates; formal legal review needed) |
 | Documentation | Complete | High | 14 docs files + 13 SDLC documents |
-| Automated tests | Complete | High | 40/40 passing across 7 test files |
+| Automated tests | Complete | High | 47/47 passing across 8 test files |
 
 ---
 
@@ -125,7 +133,7 @@
 | R4 | Root main.py missing routers | Closed | Added auth_router and billing_router imports |
 | R5 | JWT error message leakage | Closed | Sanitized to "Invalid or expired token" |
 | R6 | Deprecated FastAPI lifecycle events | Closed | Removed; lifespan context manager handles it |
-| R7 | In-memory user store | Accepted | Known limitation; acceptable for pilot; plan persistent store in Phase 2 |
+| R7 | Runtime toolchain unavailable in AQA sandbox | Accepted | Docker/nginx/GitHub Actions execution checks classified as environment limitations |
 | R8 | No formal pen test | Transferred | Transferred to Phase 2 (pre-production) |
 
 ---
@@ -146,9 +154,9 @@
 
 | Field | Value |
 |-------|-------|
-| **Test Summary** | 40 tests across 7 files: unit (domain, vectors, auth, RBAC, migrations, eventbus) + integration (WebSocket). All passing as of 2026-03-24. pytest 9.0.2 on Python 3.11.14. |
+| **Test Summary** | 47 tests across 8 files, including billing verification. All passing as of 2026-03-24. |
 | **Defects at Close** | 0 open defects. All identified issues fixed in audit commits. |
-| **Acceptance Evidence Location** | Git log (commits e0ab4ab through ace0954); pytest output (40/40 passed in 4.61s) |
+| **Acceptance Evidence Location** | Git repository state on main branch; pytest output (47 passed) |
 
 ---
 
@@ -191,7 +199,7 @@
 |---------------|--------|----------|----------------------|
 | Monthly Recurring Revenue | $12,840/mo | $0 | Shannon; monthly post-launch |
 | Platform API adoption | 100+ API calls/day | 0 | Shannon; weekly post-launch |
-| Test pass rate maintained | 100% | 100% (40/40) | Engineering; per commit |
+| Test pass rate maintained | 100% | 100% (47/47) | Engineering; per commit |
 
 ---
 
@@ -201,9 +209,9 @@
 |----------|--------|----------|
 | Requirements / scope baseline | Complete | docs/sdlc/P1-CHARTER-001.md, P1-SOW-004.md |
 | Design / architecture | Complete | backend/ directory structure, docs/API.md |
-| Test plans/results | Complete | tests/ (40 tests), .github/workflows/ci.yml |
+| Test plans/results | Complete | tests/ (47 tests across 8 files), .github/workflows/ci.yml |
 | Operations runbooks / SOPs | Complete | docs/TROUBLESHOOTING.md, docs/QUICKSTART.md |
-| Release notes / deployment records | Complete | Git log (18 commits), docker-compose.yml |
+| Release notes / deployment records | Complete | Git history on main branch, docker-compose.yml, .github/workflows/release.yml |
 
 ---
 
@@ -215,7 +223,7 @@
 | Azure OpenAI provisioning | Shannon | Deploy model; configure AOAI_ENDPOINT/KEY env vars |
 | Stripe account activation | Shannon | Activate live keys; configure STRIPE_* env vars |
 | Domain + TLS certificate | Shannon | Register domain; obtain cert (Let's Encrypt recommended) |
-| Persistent user store | Engineering (Phase 2) | Replace in-memory dict with Cosmos DB user collection |
+| Runtime validation in target environment | Operations | Execute docker compose config/up, nginx -t, and live workflow run in tool-capable environment |
 | Formal penetration testing | Security vendor | Engage vendor before scaling to paid users |
 | Formal legal review | Legal counsel | Review Terms/Privacy before public launch |
 
@@ -225,7 +233,7 @@
 
 | Closure Item | Complete? | Evidence / Notes |
 |-------------|----------|-----------------|
-| All deliverables accepted by sponsor | Yes | 40/40 tests, 76 routes, clean startup |
+| All deliverables accepted by sponsor | Pending External Verification | Sponsor sign-off remains pending despite repository completion evidence |
 | Operations handover completed | Yes | Docs complete; monitoring endpoints available |
 | Security/privacy/compliance requirements met | Partial | Code-level done; formal audit pending |
 | All project artifacts archived and accessible | Yes | Git repository with all code and docs |
@@ -254,4 +262,4 @@
 
 | Name | Role | Signature | Date |
 |------|------|-----------|------|
-| Shannon Bryan Kelly | Founder / Product Owner | _Pending_ | _Pending_ |
+| Shannon Bryan Kelly | Founder / Product Owner | Pending External Verification | Pending External Verification |

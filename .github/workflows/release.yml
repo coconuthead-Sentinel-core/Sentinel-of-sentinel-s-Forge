@@ -1,23 +1,184 @@
 name: Release
+
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Optional container tag override (defaults to the GitHub release tag or short SHA)
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  packages: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  build:
+  test:
+    name: Test Suite
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      # Add steps here to build your project
-      # ...
-      
-      # Example: Upload release assets automatically
-      # - name: Upload Release Asset
-      #   uses: actions/upload-release-asset@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     upload_url: ${{ github.event.release.upload_url }}
-      #     asset_path: ./my-artifact.zip
-      #     asset_name: my-artifact.zip
-      #     asset_content_type: application/zip
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run tests
+        env:
+          MOCK_AI: "true"
+        run: pytest tests/ -q
+
+  security-gates:
+    name: Security Gates
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies and scanners
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pip-audit bandit
+
+      - name: Dependency vulnerability gate (pip-audit)
+        run: |
+          pip-audit
+
+      - name: Static security gate (bandit)
+        run: |
+          bandit -r backend -ll
+
+      - name: Secret scanning gate (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Container filesystem gate (trivy)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: '1'
+
+  build-and-publish:
+    name: Build And Publish Container
+    runs-on: ubuntu-latest
+    needs:
+      - test
+      - security-gates
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Resolve registry destination
+        id: image
+        shell: bash
+        run: |
+          registry="ghcr.io"
+          image="${GITHUB_REPOSITORY,,}"
+          echo "registry=$registry" >> "$GITHUB_OUTPUT"
+          echo "image=$image" >> "$GITHUB_OUTPUT"
+          echo "full=${registry}/${image}" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve release tag
+        id: version
+        shell: bash
+        env:
+          INPUT_RELEASE_TAG: ${{ github.event.inputs.release_tag }}
+        run: |
+          if [ -n "$INPUT_RELEASE_TAG" ]; then
+            version="$INPUT_RELEASE_TAG"
+          elif [ "${GITHUB_EVENT_NAME}" = "release" ]; then
+            version="${{ github.event.release.tag_name }}"
+          else
+            version="sha-${GITHUB_SHA::7}"
+          fi
+          echo "value=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Build tag matrix
+        id: tags
+        shell: bash
+        run: |
+          image="${{ steps.image.outputs.full }}"
+          version="${{ steps.version.outputs.value }}"
+          sha_tag="sha-${GITHUB_SHA::7}"
+          {
+            echo "value<<EOF"
+            echo "${image}:${version}"
+            echo "${image}:${sha_tag}"
+            if [ "${GITHUB_EVENT_NAME}" = "release" ]; then
+              echo "${image}:latest"
+            fi
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Login to GitHub Container Registry
+        if: steps.image.outputs.registry == 'ghcr.io'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push release image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.tags.outputs.value }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Create release manifest
+        shell: bash
+        run: |
+          cat <<EOF > release-manifest.txt
+          image=${{ steps.image.outputs.full }}:${{ steps.version.outputs.value }}
+          git_sha=${GITHUB_SHA}
+          event_name=${GITHUB_EVENT_NAME}
+          runtime_secrets=API_KEY,JWT_SECRET_KEY,CORS_ORIGINS,STRIPE_SECRET_KEY,STRIPE_WEBHOOK_SECRET,STRIPE_PRICE_ID_STARTER,STRIPE_PRICE_ID_PRO,STRIPE_PRICE_ID_ENTERPRISE,AOAI_ENDPOINT,AOAI_KEY,COSMOS_ENDPOINT,COSMOS_KEY
+          generated_at=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          EOF
+
+      - name: Upload release manifest artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-manifest
+          path: release-manifest.txt
+
+      - name: Attach release manifest to GitHub release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-manifest.txt

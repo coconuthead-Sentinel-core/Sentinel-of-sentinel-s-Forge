@@ -10,19 +10,17 @@ from backend.core.auth import (
     create_token_pair,
     decode_token,
     get_user_by_id,
-    _users,
-    _email_index,
+    update_user_subscription,
 )
+from backend.infrastructure.user_repository import user_repository
 
 
 @pytest.fixture(autouse=True)
 def clean_users():
     """Clear user store between tests."""
-    _users.clear()
-    _email_index.clear()
+    user_repository.clear_local_cache()
     yield
-    _users.clear()
-    _email_index.clear()
+    user_repository.clear_local_cache()
 
 
 def test_create_user():
@@ -32,7 +30,9 @@ def test_create_user():
     assert user.email == "test@example.com"
     assert user.display_name == "Tester"
     assert user.hashed_password != "securepass123"  # Must be hashed
-    assert user.id in _users
+    stored = get_user_by_id(user.id)
+    assert stored is not None
+    assert stored.email == "test@example.com"
 
 
 def test_create_duplicate_email_fails():
@@ -111,3 +111,15 @@ def test_get_user_by_id():
     assert found is not None
     assert found.email == "lookup@example.com"
     assert get_user_by_id("nonexistent-id") is None
+
+
+def test_update_user_subscription_persists():
+    """Subscription updates should persist through repository storage."""
+    data = UserCreate(email="billing@example.com", password="password123")
+    user = create_user(data)
+    update_user_subscription(user.id, "pro", "cus_123")
+
+    stored = get_user_by_id(user.id)
+    assert stored is not None
+    assert stored.subscription_tier == "pro"
+    assert stored.stripe_customer_id == "cus_123"

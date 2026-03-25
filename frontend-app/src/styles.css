@@ -1,0 +1,222 @@
+:root {
+  color-scheme: light;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #eef2f7;
+  color: #1f2937;
+}
+
+.app-shell {
+  min-height: 100vh;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #d5dce8;
+  background: #ffffff;
+}
+
+.topbar h1 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.topbar nav {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.topbar a {
+  text-decoration: none;
+  color: #0f4aa1;
+  font-weight: 600;
+}
+
+.link-button {
+  border: 0;
+  background: transparent;
+  color: #0f4aa1;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.session-banner {
+  max-width: 960px;
+  margin: 1rem auto 0;
+  padding: 0 1rem;
+  color: #334155;
+  font-size: 0.95rem;
+}
+
+main {
+  max-width: 960px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.panel {
+  background: #ffffff;
+  border: 1px solid #d5dce8;
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.panel h2 {
+  margin: 0 0 0.5rem;
+}
+
+.panel p {
+  margin: 0;
+}
+
+.auth-panel {
+  max-width: 520px;
+}
+
+.auth-form {
+  display: grid;
+  gap: 0.9rem;
+  margin: 1rem 0;
+}
+
+.auth-form label {
+  display: grid;
+  gap: 0.35rem;
+  color: #334155;
+  font-weight: 600;
+}
+
+.auth-form input {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.65rem 0.75rem;
+  font-size: 1rem;
+}
+
+.auth-form button {
+  border: 0;
+  border-radius: 8px;
+  background: #0f4aa1;
+  color: #ffffff;
+  font-weight: 700;
+  padding: 0.7rem 1rem;
+  cursor: pointer;
+}
+
+.auth-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error-msg {
+  margin: 0;
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+.kv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.kv-grid > div {
+  border: 1px solid #d5dce8;
+  border-radius: 8px;
+  padding: 0.7rem;
+  background: #f8fafc;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.kv-label {
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.code-block {
+  margin: 0.5rem 0 0;
+  border: 1px solid #d5dce8;
+  border-radius: 8px;
+  background: #f8fafc;
+  padding: 0.75rem;
+  font-size: 0.85rem;
+  overflow-x: auto;
+}
+
+.plan-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.8rem;
+  margin: 1rem 0;
+}
+
+.plan-card {
+  border: 1px solid #d5dce8;
+  border-radius: 10px;
+  padding: 0.9rem;
+  background: #f8fafc;
+}
+
+.plan-card h4 {
+  margin: 0 0 0.3rem;
+}
+
+.plan-card p {
+  margin: 0.35rem 0;
+}
+
+.plan-card ul {
+  margin: 0.5rem 0 0.8rem;
+  padding-left: 1.1rem;
+}
+
+.plan-price {
+  font-weight: 700;
+}
+
+.plan-card button,
+.secondary-btn {
+  border: 0;
+  border-radius: 8px;
+  background: #0f4aa1;
+  color: #ffffff;
+  font-weight: 700;
+  padding: 0.55rem 0.85rem;
+  cursor: pointer;
+}
+
+.secondary-btn {
+  background: #334155;
+}
+
+.onboarding-list {
+  margin: 0.75rem 0 1rem;
+  padding-left: 1.1rem;
+}
+
+.onboarding-list li {
+  margin-bottom: 0.4rem;
+}
+
+@media (max-width: 720px) {
+  .topbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

@@ -6,6 +6,13 @@
 
 **Status: COMPLETED — Filled from codebase review 2026-03-24**
 
+### AQA Reconciliation Addendum (2026-03-24)
+
+- Test baseline superseded by current repository state: 47 passed.
+- Persistent user storage is implemented in repository and should not be treated as a remaining development blocker.
+- Docker/nginx runtime execution validation remains Pending External Verification in this environment.
+- Proof ledger reference: `docs/sdlc/P9-PROOF-LEDGER-081.md`
+
 ---
 
 ### 1.1 Purpose and Scope
@@ -156,7 +163,9 @@ This maintenance plan defines the operational maintenance strategy for Sentinel 
 | Application Configuration | Git repository (all config in code/env vars) | 0 (code in Git) | 1 hour (redeploy) | Per commit |
 | User Data (in-memory) | **NOT backed up** — known limitation; persists only during container lifetime | N/A (volatile) | N/A | N/A |
 
-*Critical note: In-memory user store is the highest-priority maintenance item. Plan migration to Cosmos DB user collection.*
+*Critical note: Runtime environment validation (Docker/nginx execution) is now the highest-priority maintenance closeout item in AQA-limited environments.*
+
+*Clarification: production user persistence is repository-backed through Cosmos DB when configured; the in-memory fallback applies to local development mode only.*
 
 ---
 
@@ -231,4 +240,4 @@ This maintenance plan defines the operational maintenance strategy for Sentinel 
 
 | Name | Role | Signature | Date |
 |------|------|-----------|------|
-| Shannon Bryan Kelly | Founder / Maintenance Lead | _Pending_ | _Pending_ |
+| Shannon Bryan Kelly | Founder / Maintenance Lead | Pending External Verification | Pending External Verification |

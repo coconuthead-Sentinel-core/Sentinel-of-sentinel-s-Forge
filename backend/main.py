@@ -9,8 +9,9 @@ from .routes.auth_routes import auth_router
 from .routes.billing_routes import billing_router
 from .adapters.azure_openai import AzureCognitiveTokenProvider
 from .infrastructure.cosmos_repo import CosmosDBRepository
+from .infrastructure.user_repository import user_repository
 from .middleware import RequestSizeLimitMiddleware
-from .core.config import settings
+from .core.config import settings, validate_security_configuration
 from .core.logging_config import setup_logging
 import uvicorn
 
@@ -21,16 +22,15 @@ logger = logging.getLogger("sentinel-middleware")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Warn loudly if production has no API key
-    if settings.is_production and not settings.API_KEY:
-        logger.error(
-            "FATAL: Running in production without API_KEY set. "
-            "Set the API_KEY environment variable."
-        )
+    # Fail fast on missing production secrets (API key + JWT secret).
+    validate_security_configuration()
 
     # Initialize Cosmos DB Repository (will use Mock DB mode if unavailable)
     await CosmosDBRepository.initialize()
     logger.info("Cosmos DB Repository initialized.")
+
+    user_repository.initialize()
+    logger.info("User repository initialized.")
 
     # Warm up token to fail-fast on bad identity/env.
     provider = AzureCognitiveTokenProvider()
@@ -45,6 +45,7 @@ async def lifespan(app: FastAPI):
     yield
 
     # Cleanup on shutdown
+    user_repository.close()
     await CosmosDBRepository.close()
     logger.info("Shutdown complete.")
 

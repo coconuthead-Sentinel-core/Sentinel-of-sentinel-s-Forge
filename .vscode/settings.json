@@ -8,12 +8,20 @@
         "-ExecutionPolicy",
         "Bypass",
         "-Command",
-        "if (Test-Path .\\venv\\Scripts\\Activate.ps1) { . .\\venv\\Scripts\\Activate.ps1 } elseif (Test-Path .\\.venv\\Scripts\\Activate.ps1) { . .\\.venv\\Scripts\\Activate.ps1 }"
+        "$venvActivate = '.\\.venv\\Scripts\\Activate.ps1'; $legacyActivate = '.\\venv\\Scripts\\Activate.ps1'; $venvPy = '.\\.venv\\Scripts\\python.exe'; if (Test-Path $legacyActivate) { . $legacyActivate } elseif (Test-Path $venvActivate) { . $venvActivate } elseif (Test-Path $venvPy) { $env:Path = (Resolve-Path '.\\.venv\\Scripts').Path + ';' + $env:Path; Write-Host '[venv] Added .venv\\Scripts to PATH' -ForegroundColor Green }"
       ]
     }
   },
   "terminal.integrated.defaultProfile.windows": "PowerShell (venv auto)",
   "terminal.integrated.shellIntegration.enabled": true,
   "terminal.integrated.shellIntegration.decorationsEnabled": "both",
-  "terminal.integrated.commandDetection.enabled": true
+  "terminal.integrated.commandDetection.enabled": true,
+  "markdownlint.configFile": ".markdownlint.json",
+  "markdownlint.ignore": [
+    "docs/sdlc/**",
+    "docs/PARTNER_ENV_EXECUTION_CHECKLIST.md",
+    "docs/VR_STUDIOS_*.md",
+    "docs/INTERDEPARTMENTAL_COMPLETION_MEMO.md",
+    "docs/FINAL_ACCEPTANCE_READINESS.md"
+  ]
 }
