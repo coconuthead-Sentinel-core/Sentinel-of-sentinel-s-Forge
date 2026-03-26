@@ -10,6 +10,15 @@ from quantum_nexus_forge_v5_2_enhanced import (
     UniversalInterface,
 )
 
+# --- SQA C++ Engine (optional) -----------------------------------------------
+_sqa_bridge = None
+try:
+    from sqa_bridge import SQAEngine, is_active as _sqa_is_active
+    if _sqa_is_active():
+        _sqa_bridge = SQAEngine()
+except ImportError:
+    pass
+
 
 # --- Utility -----------------------------------------------------------------
 
@@ -654,8 +663,20 @@ class SentinelProcessor(GraphNode):
 
     def execute(self, atom: QuantumAtom) -> QuantumAtom:
         self._execs += 1
-        a1 = self.cno.execute(atom)
-        a2 = self.sym.execute(a1)
+
+        # When the C++ SQA engine is active, run the CNO stage through C++
+        # and inject its results into the atom metadata before continuing
+        # the Python pipeline from the symbolic stage onward.
+        if _sqa_bridge is not None and _sqa_bridge.active:
+            sqa_result = _sqa_bridge.process(str(atom.data))
+            atom.metadata["sqa_cno"] = sqa_result
+            atom.metadata["sqa_engine"] = sqa_result.get("engine", "unknown")
+            # Skip the Python CNO — start from symbolic with enriched atom
+            a2 = self.sym.execute(atom)
+        else:
+            a1 = self.cno.execute(atom)
+            a2 = self.sym.execute(a1)
+
         a3 = self.intent.execute(a2)
         a4 = self.refl.execute(a3)
         a5 = self.topic.execute(a4)
@@ -674,7 +695,7 @@ class SentinelProcessor(GraphNode):
         )
         final.metadata = dict(a12.metadata)
         final.metadata["pipeline"] = [
-            self.cno.id,
+            "sqa_cpp_cno" if (_sqa_bridge is not None and _sqa_bridge.active) else self.cno.id,
             self.sym.id,
             self.intent.id,
             self.refl.id,

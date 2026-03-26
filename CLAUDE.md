@@ -76,13 +76,50 @@ The system is a multi-layer cognitive orchestration platform:
 **Agents**: Sentinel (quantum-symbolic nexus), Sora (emotional bridge), Architect (organic architect)
 **Implementation**: `SentinelPrimeSync` in `sentinel_sync.py`
 
+## SQA v8.0 C++ Integration
+
+The SQA (Sentient Quantum Architecture) v8.0 C++ engine is integrated as an optional high-performance
+backend for the Python pipeline. When built and activated, it replaces the Python CNO stage with
+compiled C++ and provides graph-based memory (A1FS) and parallel task orchestration (NNS).
+
+### Subsystems
+
+- **CNO (Cognitive Neural Overlay)** — `sqa/src/cno/`: SymbolicProcessor, AppraisalEngine, AttentionModule, CreativityEngine
+- **A1FS (A1 Filing System)** — `sqa/src/a1fs/`: KnowledgeVault (graph memory), ConsolidationEngine (decay/archive)
+- **NNS (Nexus Node Stack)** — `sqa/src/nns/`: ProcessingNode, FeedbackController, parallel execution with retry
+
+### Build
+
+```bash
+cd sqa && mkdir -p build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+cmake --build . -j$(nproc)
+# Run C++ tests
+./sqa_tests
+```
+
+### Activation
+
+Set `SQA_ENGINE_ACTIVE=1` to route the CNO stage through C++. Without this, the Python fallback is used.
+The integration point is `sentinel_cognition.py:SentinelProcessor.execute()`.
+
+### Key Files
+
+- `sqa/CMakeLists.txt` — Build system (C++20, nlohmann_json, spdlog, pybind11, GTest)
+- `sqa/bindings/sqa_module.cpp` — pybind11 Python bindings (`import sqa_engine`)
+- `sqa_bridge.py` — Python bridge layer with fallback (CNOBridge, A1FSBridge, NNSBridge, SQAEngine)
+- `sqa/config/sqa_default.json` — Default configuration
+- `tests/test_sqa_bridge.py` — Python integration tests (20 tests)
+- `sqa/tests/test_*.cpp` — C++ GoogleTest suite (33 tests)
+
 ## Tech Stack & Preferences
 
 - **Backend**: Python 3.x, FastAPI, uvicorn
+- **C++ Engine**: C++20, CMake, pybind11, nlohmann/json, spdlog, GoogleTest
 - **Frontend**: TypeScript, React, Vite
 - **Infrastructure**: Docker Compose, nginx (TLS), Azure OpenAI
 - **Auth**: JWT (python-jose), bcrypt
-- **Testing**: pytest
+- **Testing**: pytest (Python), GoogleTest (C++)
 - **Config**: Environment variables via `backend/core/config.py` Settings model
 - **Storage**: JSONStore for lightweight persistence (`backend/storage.py`)
 
