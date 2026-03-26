@@ -20,6 +20,9 @@ frontend-app/vite.config.js
 frontend-app/vite.config.d.ts
 *.sqlite3
 *.db
+*.db-shm
+*.db-wal
+*.db-journal
 
 # Environment variables
 .env
