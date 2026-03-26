@@ -1,9 +1,13 @@
 import { Link, Navigate, Route, Routes } from "react-router-dom";
 import { useAuth } from "./auth/AuthContext";
 import BillingPage from "./pages/BillingPage";
+import ChatPage from "./pages/ChatPage";
+import CognitionPage from "./pages/CognitionPage";
 import DashboardPage from "./pages/DashboardPage";
+import InsightsPage from "./pages/InsightsPage";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
+import NotesPage from "./pages/NotesPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import SettingsPage from "./pages/SettingsPage";
 import SignupPage from "./pages/SignupPage";
@@ -39,6 +43,10 @@ export default function App() {
           {isAuthenticated ? (
             <>
               <Link to="/dashboard">Dashboard</Link>
+              <Link to="/chat">Chat</Link>
+              <Link to="/cognition">Process</Link>
+              <Link to="/notes">Notes</Link>
+              <Link to="/insights">Insights</Link>
               <Link to="/billing">Billing</Link>
               <Link to="/settings">Settings</Link>
               <button type="button" onClick={logout} className="link-button">
@@ -77,6 +85,38 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/chat"
+            element={
+              <ProtectedRoute>
+                <ChatPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/cognition"
+            element={
+              <ProtectedRoute>
+                <CognitionPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/notes"
+            element={
+              <ProtectedRoute>
+                <NotesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/insights"
+            element={
+              <ProtectedRoute>
+                <InsightsPage />
               </ProtectedRoute>
             }
           />

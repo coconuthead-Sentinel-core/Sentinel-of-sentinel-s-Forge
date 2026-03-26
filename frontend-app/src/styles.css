@@ -528,3 +528,394 @@ main {
     padding: 2.5rem 1rem;
   }
 }
+
+/* ================================================================
+   Product Pages
+   ================================================================ */
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.mono {
+  font-family: "Cascadia Code", "Fira Code", monospace;
+  font-size: 0.85em;
+}
+
+/* ---- Chat ---- */
+
+.chat-panel {
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-messages {
+  min-height: 300px;
+  max-height: 500px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+  margin: 1rem 0;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.chat-empty {
+  color: var(--text-muted);
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.chat-bubble {
+  max-width: 80%;
+  padding: 0.6rem 0.9rem;
+  border-radius: 12px;
+  line-height: 1.5;
+}
+
+.chat-user {
+  align-self: flex-end;
+  background: var(--brand);
+  color: #fff;
+}
+
+.chat-assistant {
+  align-self: flex-start;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.chat-role {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.2rem;
+  opacity: 0.7;
+}
+
+.chat-content {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.chat-typing {
+  opacity: 0.6;
+  font-style: italic;
+}
+
+.chat-input-bar {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.chat-input-bar input {
+  flex: 1;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.65rem 0.75rem;
+  font-size: 1rem;
+}
+
+.chat-input-bar button {
+  border: 0;
+  border-radius: 8px;
+  background: var(--brand);
+  color: #fff;
+  font-weight: 700;
+  padding: 0.65rem 1.25rem;
+  cursor: pointer;
+}
+
+.chat-input-bar button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---- Cognition ---- */
+
+.cog-form {
+  margin: 1rem 0;
+}
+
+.cog-form textarea {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.75rem;
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.cog-form-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.cog-form-actions button {
+  border: 0;
+  border-radius: 8px;
+  background: var(--brand);
+  color: #fff;
+  font-weight: 700;
+  padding: 0.6rem 1.25rem;
+  cursor: pointer;
+}
+
+.cog-form-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cog-result {
+  margin-top: 1.5rem;
+}
+
+/* ---- Notes ---- */
+
+.note-form {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.note-form label {
+  display: grid;
+  gap: 0.3rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.note-form input,
+.note-form textarea {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+.note-form textarea {
+  resize: vertical;
+}
+
+.note-form button {
+  justify-self: start;
+  border: 0;
+  border-radius: 8px;
+  background: var(--brand);
+  color: #fff;
+  font-weight: 700;
+  padding: 0.55rem 1rem;
+  cursor: pointer;
+}
+
+.note-form button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.note-filters {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin: 1rem 0 0.75rem;
+}
+
+.note-filters button {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  padding: 0.3rem 0.75rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: var(--text-secondary);
+}
+
+.note-filters .filter-active {
+  background: var(--brand);
+  color: #fff;
+  border-color: var(--brand);
+}
+
+.notes-list {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+}
+
+.note-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.75rem;
+  background: #f8fafc;
+}
+
+.note-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.4rem;
+}
+
+.note-tag {
+  background: #e0e7ff;
+  color: var(--brand);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+}
+
+.note-id {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.note-text {
+  margin: 0;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+/* ---- Dashboard ---- */
+
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+  margin: 1.25rem 0;
+}
+
+.action-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.action-card:hover {
+  border-color: var(--brand);
+  box-shadow: 0 2px 8px rgba(15, 74, 161, 0.1);
+}
+
+.action-card strong {
+  color: var(--brand);
+}
+
+.action-card span {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.health-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  vertical-align: middle;
+  margin-left: 0.3rem;
+}
+
+.topic-tags {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.topic-tag {
+  background: #e0e7ff;
+  color: var(--brand);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+}
+
+/* ---- Insights ---- */
+
+.insight-preview ul {
+  margin: 0.5rem 0;
+  padding-left: 1.1rem;
+}
+
+.insight-preview li {
+  margin-bottom: 0.3rem;
+  color: var(--text-secondary);
+}
+
+.rules-grid {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+}
+
+.rule-card {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #f8fafc;
+  align-items: baseline;
+}
+
+.rule-key {
+  font-weight: 700;
+  color: var(--brand);
+  white-space: nowrap;
+}
+
+.rule-value {
+  color: var(--text-secondary);
+}
+
+.threads-list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+}
+
+.thread-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.thread-topic {
+  font-weight: 600;
+}
+
+.thread-count {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.suggestions-list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+}
