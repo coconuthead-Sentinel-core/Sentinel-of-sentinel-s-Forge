@@ -39,24 +39,51 @@ const tiers = [
 
 const features = [
   {
-    title: "Cognitive AI Processing",
+    title: "AI Conversation Mode",
     description:
-      "Process information through diverse cognitive patterns — analytical, creative, critical, and more — powered by advanced AI orchestration.",
+      "Talk naturally with an AI that remembers context across sessions. Ask questions, brainstorm ideas, and get structured guidance — all through conversation.",
   },
   {
-    title: "Real-Time API",
+    title: "Cognitive Processing Engine",
     description:
-      "Enterprise-grade REST and WebSocket APIs with sub-second response times. Integrate AI-powered analysis into any application or workflow.",
+      "Process text through symbolic reasoning, memory lattice, and thread-based analysis. Turn unstructured information into organized, actionable knowledge.",
   },
   {
-    title: "Secure by Design",
+    title: "Knowledge Notes & Memory",
     description:
-      "TLS encryption, JWT authentication, role-based access control, and API key management. Your data stays yours.",
+      "Capture ideas, tag knowledge, and build your personal memory lattice. The system learns your patterns and surfaces relevant connections automatically.",
   },
   {
-    title: "Flexible Subscriptions",
+    title: "Built for How You Think",
     description:
-      "Start small and scale as you grow. Transparent pricing with no hidden fees. Upgrade, downgrade, or cancel anytime via the billing portal.",
+      "Designed for neurodivergent professionals. Two distinct modes — conversation and work — with ADHD-friendly UX, minimal cognitive load, and interruption tolerance.",
+  },
+];
+
+const useCases = [
+  {
+    title: "Neurodivergent Professionals",
+    description: "Structured cognitive support with mode switching, external memory, and pattern recognition that adapts to how you work.",
+  },
+  {
+    title: "Healthcare & CNA Workers",
+    description: "Manage patient notes, track procedures, and handle high-pressure task management with AI-assisted organization.",
+  },
+  {
+    title: "Solo Entrepreneurs",
+    description: "Offload cognitive overhead to AI. Brainstorm, plan, track ideas, and process information without hiring a team.",
+  },
+  {
+    title: "Students & Researchers",
+    description: "Study aid with memory lattice, symbolic reasoning for complex topics, and AI tutoring through conversation mode.",
+  },
+  {
+    title: "Automotive & Trades",
+    description: "Quick reference lookup, procedure notes, and diagnostic reasoning — hands-free conversation mode for the shop floor.",
+  },
+  {
+    title: "Elder Care Providers",
+    description: "Simplified interface with routine support, medication tracking notes, and structured daily task management.",
   },
 ];
 
@@ -67,9 +94,9 @@ export default function LandingPage() {
       <section className="hero">
         <h1>Sentinel Forge</h1>
         <p className="hero-tagline">
-          Enterprise-grade cognitive AI orchestration platform.
+          Your AI-powered cognitive companion.
           <br />
-          Process, analyze, and transform information at scale.
+          Think clearer. Work smarter. Remember everything.
         </p>
         <div className="hero-actions">
           <Link to="/signup" className="btn btn-primary">
@@ -94,8 +121,21 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Use Cases */}
+      <section className="section section-alt" id="use-cases">
+        <h2 className="section-title">Who It's For</h2>
+        <div className="feature-grid">
+          {useCases.map((uc) => (
+            <div key={uc.title} className="feature-card">
+              <h3>{uc.title}</h3>
+              <p>{uc.description}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* Pricing */}
-      <section className="section section-alt" id="pricing">
+      <section className="section" id="pricing">
         <h2 className="section-title">Simple, Transparent Pricing</h2>
         <div className="pricing-grid">
           {tiers.map((tier) => (

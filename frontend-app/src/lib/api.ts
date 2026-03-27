@@ -281,6 +281,52 @@ export async function upsertNote(payload: {
   });
 }
 
+// --- Glyphs ---
+
+export type GlyphAliases = Record<string, string>;
+
+export type GlyphValidateResult = {
+  valid: boolean;
+  errors: string[];
+  normalized: string;
+};
+
+export type BootStep = {
+  step: number;
+  glyph: string;
+  label: string;
+  status: string;
+};
+
+export async function glyphGetAliases(): Promise<GlyphAliases> {
+  return request<GlyphAliases>("/api/glyphs/aliases", { method: "GET" });
+}
+
+export async function glyphPack(payload: Record<string, unknown>): Promise<unknown> {
+  return request<unknown>("/api/glyphs/pack", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function glyphInterpret(sequence: string): Promise<unknown> {
+  return request<unknown>("/api/glyphs/interpret", {
+    method: "POST",
+    body: JSON.stringify({ sequence }),
+  });
+}
+
+export async function glyphValidate(sequence: string): Promise<GlyphValidateResult> {
+  return request<GlyphValidateResult>("/api/glyphs/validate", {
+    method: "POST",
+    body: JSON.stringify({ sequence }),
+  });
+}
+
+export async function glyphBoot(): Promise<BootStep[]> {
+  return request<BootStep[]>("/api/glyphs/boot", { method: "GET" });
+}
+
 // --- Dashboard ---
 
 export async function getDashboardMetrics(): Promise<DashboardMetrics> {
