@@ -78,8 +78,23 @@ class Settings(BaseSettings):
 settings = Settings()
 
 
+_WEAK_JWT_SECRETS = frozenset({
+    "",
+    "dev-secret-do-not-use-in-production",
+    "secret",
+    "changeme",
+    "your-secret-key",
+})
+
+
 def validate_security_configuration() -> None:
-    """Fail fast when required security settings are missing in production."""
+    """Fail fast when required security settings are missing in production.
+
+    Checks:
+      - API_KEY must be set
+      - JWT_SECRET_KEY must be set and not a known weak/default value
+      - JWT_SECRET_KEY must be at least 32 characters
+    """
     if not settings.is_production:
         return
 
@@ -92,6 +107,19 @@ def validate_security_configuration() -> None:
     if missing:
         raise RuntimeError(
             "Production configuration missing required secrets: " + ", ".join(missing)
+            + ". Set them via environment variables or .env file."
+        )
+
+    if settings.JWT_SECRET_KEY.lower().strip() in _WEAK_JWT_SECRETS:
+        raise RuntimeError(
+            "JWT_SECRET_KEY is set to a known weak/default value. "
+            "Generate a strong secret with: openssl rand -hex 32"
+        )
+
+    if len(settings.JWT_SECRET_KEY) < 32:
+        raise RuntimeError(
+            "JWT_SECRET_KEY must be at least 32 characters. "
+            "Generate a strong secret with: openssl rand -hex 32"
         )
 
 # Warn at import time if running production without an API key

@@ -27,6 +27,8 @@ services:
       # Cosmos DB
       - COSMOS_ENDPOINT=${COSMOS_ENDPOINT:-}
       - COSMOS_KEY=${COSMOS_KEY:-}
+    volumes:
+      - user-data:/app/data
     expose:
       - "8000"
     healthcheck:
@@ -45,8 +47,13 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./frontend-dist:/usr/share/nginx/html/spa:ro
+      - ./frontend/legal:/usr/share/nginx/html/legal:ro
       - ./frontend:/usr/share/nginx/html/frontend:ro
     depends_on:
       app:
         condition: service_healthy
     restart: unless-stopped
+
+volumes:
+  user-data:
