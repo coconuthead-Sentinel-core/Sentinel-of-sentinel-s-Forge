@@ -51,24 +51,38 @@ _chat_service = ChatService(_adapter)
 async def chat(req: ChatRequest):
     """
     Process a chat request through the Cognitive Pipeline.
+    Supports cognitive lens selection via the `profile` field:
+      adhd | autism | dyslexia | neurotypical (default)
     """
     try:
-        # Use the ChatService to handle logic + memory
-        # We extract the last user message for processing
         last_user_msg = next((m.content for m in reversed(req.messages) if m.role == "user"), "")
-        
         if not last_user_msg:
             raise HTTPException(status_code=400, detail="No user message found")
 
-        # Pass to service
+        # Build history from all prior messages (exclude the last user message)
+        history = [
+            {"role": m.role, "content": m.content}
+            for m in req.messages[:-1]
+            if m.role in ("user", "assistant") and m.content
+        ]
+
         response = await _chat_service.process_message(
             user_message=last_user_msg,
-            context="You are Sentinel Forge." # Simplified context for now
+            profile=req.profile,
+            history=history or None,
         )
         return response
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
     except Exception as exc:
         logger.error("Chat Error: %s", exc)
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+@ai_router.get("/profiles")
+async def list_profiles():
+    """Return all available cognitive lens profiles."""
+    return {"profiles": _chat_service.available_profiles()}
 
 @ai_router.post("/embeddings", response_model=EmbeddingsResponse)
 async def embeddings(req: EmbeddingsRequest):
@@ -702,6 +716,27 @@ async def cog_seeds_add(payload: dict = Body(..., max_length=65536)) -> Any:
 @router.get("/cog/matrix")
 async def cog_matrix(top_k: int = 20) -> Any:
     return await run_in_threadpool(service.cog_matrix, top_k)
+
+
+@router.post("/glyph/process")
+async def glyph_process(payload: dict = Body(...)) -> Any:
+    """
+    Run text through the Glyph Processor.
+    Returns matched glyphs, dominant glyph, active tags, and match positions.
+    Body: { "text": "your input text" }
+    """
+    from .services.glyph_processor import glyph_processor
+    text = payload.get("text", "")
+    if not text or not isinstance(text, str):
+        raise HTTPException(status_code=400, detail="'text' field is required")
+    return glyph_processor.process(text)
+
+
+@router.get("/glyph/shapes")
+async def glyph_shapes() -> Any:
+    """Return all loaded glyph shape definitions."""
+    from .services.glyph_processor import glyph_processor
+    return {"shapes": glyph_processor.shapes()}
 
 
 @router.get("/glyphs/aliases")

@@ -90,12 +90,26 @@
     </div>
 
     <div class="card">
-      <h2>Chat (OpenAI)</h2>
-      <p style="opacity:.8;">Set OPENAI_API_KEY in your environment before running the server.</p>
-      <label for="chatInput">Message</label>
-      <input id="chatInput" type="text" placeholder="Ask something..." />
+      <h2>Chat — Cognitive AI</h2>
+      <p style="opacity:.8;">Powered by Sentinel Forge. Set your Azure OpenAI credentials in <code>.env</code>, or run with <code>MOCK_AI=true</code> for local testing.</p>
+      <div class="row" style="margin-bottom:.5rem;">
+        <div>
+          <label for="chatInput">Message</label>
+          <input id="chatInput" type="text" placeholder="Ask something..." />
+        </div>
+        <div>
+          <label for="chatProfile">Cognitive Lens</label>
+          <select id="chatProfile" style="width:100%; padding:0.5rem; border-radius:6px; border:1px solid #2a3a4f; background:#081120; color:#e6edf3;">
+            <option value="">Neurotypical (default)</option>
+            <option value="adhd">ADHD — Burst Mode</option>
+            <option value="autism">Autism — Precision Mode</option>
+            <option value="dyslexia">Dyslexia — Spatial Mode</option>
+          </select>
+        </div>
+      </div>
       <div style="margin-top:.5rem;">
         <button id="chatSend">POST /api/ai/chat</button>
+        <button id="loadProfiles" style="margin-left:.5rem; background:#1a4a2b;">GET /api/ai/profiles</button>
       </div>
       <pre id="chatOut"></pre>
     </div>

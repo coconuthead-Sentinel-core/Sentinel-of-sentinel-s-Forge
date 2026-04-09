@@ -35,11 +35,15 @@ def main():
     print("=" * 60)
 
     # 1. Start the API Server in the background
-    print("\n[1/3] Starting API Server...")
+    # Force MOCK_AI=true so the evaluation runs without requiring Azure credentials.
+    print("\n[1/3] Starting API Server (MOCK_AI=true)...")
+    server_env = os.environ.copy()
+    server_env["MOCK_AI"] = "true"
     server_process = subprocess.Popen(
         [sys.executable, "-m", "uvicorn", "main:app", "--port", "8000"],
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
+        stderr=subprocess.PIPE,
+        env=server_env,
     )
     
     # Wait for port 8000 to be ready

@@ -158,23 +158,49 @@ window.addEventListener('DOMContentLoaded', () => {
       const apiKey = localStorage.getItem('QNF_API_KEY') || '';
       const headers = { 'Content-Type': 'application/json' };
       if (apiKey) headers['X-API-Key'] = apiKey;
+      const profile = $('chatProfile') ? $('chatProfile').value || null : null;
+      const body = {
+        messages: [{ role: 'user', content: msg }],
+        ...(profile && { profile }),
+      };
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
         headers,
-        body: JSON.stringify({ messages: [{ role: 'user', content: msg }] }),
+        body: JSON.stringify(body),
       });
       if (!res.ok) {
         const text = await res.text();
         throw new Error(`${res.status}: ${text}`);
       }
       const data = await res.json();
-      pretty($('chatOut'), data);
+      // Show lens that was applied if present
+      const lens = data.lens_metadata;
+      if (lens) {
+        const content = data.choices?.[0]?.message?.content || '';
+        $('chatOut').textContent = `[Lens: ${lens.label}]\n\n${content}`;
+      } else {
+        pretty($('chatOut'), data);
+      }
     } catch (e) { pretty($('chatOut'), String(e)); }
     finally {
       $('chatSend').disabled = false;
       $('chatSend').textContent = 'POST /api/ai/chat';
     }
   });
+
+  // Load available cognitive profiles
+  if ($('loadProfiles')) {
+    $('loadProfiles').addEventListener('click', async () => {
+      try {
+        const apiKey = localStorage.getItem('QNF_API_KEY') || '';
+        const headers = { 'Content-Type': 'application/json' };
+        if (apiKey) headers['X-API-Key'] = apiKey;
+        const res = await fetch('/api/ai/profiles', { headers });
+        const data = await res.json();
+        pretty($('chatOut'), data);
+      } catch (e) { pretty($('chatOut'), String(e)); }
+    });
+  }
   // Profile controls (routes: /sentinel/profile and /sentinel/init)
   $('loadProfile').addEventListener('click', async () => {
     try {

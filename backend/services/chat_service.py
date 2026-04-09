@@ -1,82 +1,63 @@
-﻿"""Chat service skeleton for handling chat interactions.
-
-Persists user prompts as Notes via the Cosmos repository and delegates
-response generation to the configured adapter (mock or Azure OpenAI).
 """
-
+Chat Service
+Thin coordination layer that delegates to CognitiveOrchestrator.
+Kept separate to preserve the public interface used by api.py.
+"""
 from __future__ import annotations
 
 import logging
-from typing import List, Dict, Any, Optional
-
-from backend.domain.models import Note
-from backend.infrastructure.cosmos_repo import cosmos_repo
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
-try:  # Prefer Azure adapter if available/configured
-    from backend.adapters.azure_openai import AzureOpenAIAdapter  # type: ignore
-except Exception:  # pragma: no cover - optional dependency
-    AzureOpenAIAdapter = None  # type: ignore
-
-try:
-    from backend.mock_adapter import MockOpenAIAdapter  # type: ignore
-except Exception:  # pragma: no cover - optional dependency
-    MockOpenAIAdapter = None  # type: ignore
 
 class ChatService:
     """
-    Orchestrates the Cognitive Chat Pipeline:
-    1. Input Analysis
-    2. Context Retrieval (Memory)
-    3. AI Processing (Generation)
-    4. Memory Consolidation (Storage)
+    Orchestrates the Cognitive Chat Pipeline via CognitiveOrchestrator.
+
+    Pipeline:
+        1. Input validation
+        2. Lens selection (profile parameter)
+        3. AI generation + post-processing  (inside CognitiveOrchestrator)
+        4. Memory consolidation             (inside CognitiveOrchestrator)
+        5. Return structured response
     """
-    
-    def __init__(self, ai_adapter):
-        self.ai_adapter = ai_adapter
 
-    async def process_message(self, user_message: str, context: str = "") -> Dict[str, Any]:
-        """
-        Process a user message through the Sentinel pipeline.
-        """
-        # 1. Log Input (Short-term memory)
-        # In a real system, we might save the user prompt immediately.
-        
-        # 2. AI Generation
-        # Construct messages payload
-        messages = [
-            {"role": "system", "content": context or "You are Sentinel Forge."},
-            {"role": "user", "content": user_message}
-        ]
-        
-        try:
-            # Call AI Adapter (Mock or Azure)
-            response = await self.ai_adapter.chat(
-                deployment="gpt-4", # Config driven in real impl
-                messages=messages,
-                temperature=0.7
-            )
-            
-            # Extract content safely
-            choices = response.get("choices", [])
-            if choices:
-                ai_text = choices[0].get("message", {}).get("content", "")
-            else:
-                ai_text = ""
-            
-            # 3. Memory Consolidation (Save interaction)
-            # We save the interaction as a Note in the Lattice
-            if ai_text:
-                note = Note(
-                    text=f"User: {user_message}\nSentinel: {ai_text}",
-                    tag="chat-history",
-                    metadata={"type": "conversation"}
-                )
-                await cosmos_repo.upsert_note(note)
-                
-            return response
+    def __init__(self, ai_adapter) -> None:
+        from backend.services.cognitive_orchestrator import CognitiveOrchestrator
+        self._orchestrator = CognitiveOrchestrator(ai_adapter)
 
-        except Exception as e:
-            logger.error(f"Chat Pipeline Error: {e}")
-            raise
+    async def process_message(
+        self,
+        user_message: str,
+        *,
+        profile: Optional[str] = None,
+        history: Optional[List[Dict[str, str]]] = None,
+        context: str = "",  # kept for backward compat — ignored when orchestrator active
+    ) -> Dict[str, Any]:
+        """
+        Process a user message through the full Sentinel cognitive pipeline.
+
+        Args:
+            user_message: The user's latest message text.
+            profile: Cognitive lens profile. One of: adhd, autism, dyslexia, neurotypical.
+            history: Prior conversation turns [{"role": "user"|"assistant", "content": "..."}].
+            context: Legacy param — kept for API compatibility, not used.
+
+        Returns:
+            Azure OpenAI-compatible response dict, augmented with lens_metadata and latency_ms.
+        """
+        if not user_message or not user_message.strip():
+            raise ValueError("user_message must be a non-empty string")
+
+        return await self._orchestrator.process(
+            user_message.strip(),
+            profile=profile,
+            history=history,
+        )
+
+    @staticmethod
+    def available_profiles() -> List[Dict[str, Any]]:
+        """Return metadata for all registered cognitive lens profiles."""
+        from backend.services.cognitive_orchestrator import CognitiveOrchestrator
+        return CognitiveOrchestrator.available_profiles()

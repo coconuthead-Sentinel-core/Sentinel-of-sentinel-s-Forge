@@ -148,6 +148,8 @@ class ChatRequest(BaseModel):
     tools: Optional[List[Dict[str, Any]]] = None
     tool_choice: Optional[Union[str, Dict[str, Any]]] = None
     response_format: Optional[Dict[str, Any]] = None
+    # Cognitive lens profile: adhd | autism | dyslexia | neurotypical
+    profile: Optional[str] = Field(default=None, description="Cognitive lens profile to apply")
 
 class ChoiceMessage(BaseModel):
     role: Role

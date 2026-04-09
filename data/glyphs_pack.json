@@ -1,0 +1,249 @@
+{
+  "version": "2.0.0",
+  "description": "Sentinel Forge Glyph Pack — symbolic processing primitives",
+  "shapes": {
+    "APEX": {
+      "topic": "initiation",
+      "description": "The spark of initiation. Activates when a new cycle, query, or inference begins.",
+      "seeds": [
+        "apex", "ignite", "ai_infer", "start", "init", "query", "begin",
+        "launch", "activate", "trigger", "initiate", "kickoff", "open",
+        "awaken", "bootstrap", "prime", "genesis", "originate"
+      ],
+      "rules": {
+        "apex": "tag:initiation.apex",
+        "ignite": "tag:initiation.ignite",
+        "ai_infer": "tag:initiation.ai_infer",
+        "start": "tag:initiation.start",
+        "init": "tag:initiation.init",
+        "query": "tag:initiation.query",
+        "begin": "tag:initiation.begin",
+        "launch": "tag:initiation.launch",
+        "activate": "tag:initiation.activate",
+        "trigger": "tag:initiation.trigger",
+        "initiate": "tag:initiation.initiate",
+        "awaken": "tag:initiation.awaken",
+        "bootstrap": "tag:initiation.bootstrap",
+        "prime": "tag:initiation.prime",
+        "genesis": "tag:initiation.genesis"
+      },
+      "emoji": "🔺",
+      "zone": "active"
+    },
+    "CORE": {
+      "topic": "process",
+      "description": "The engine of logic. Activates during reasoning, computation, and analysis.",
+      "seeds": [
+        "core", "resolve", "process", "logic", "reason", "analyze", "compute",
+        "calculate", "evaluate", "think", "deduce", "infer", "synthesize",
+        "interpret", "assess", "examine", "review", "deliberate", "cognate"
+      ],
+      "rules": {
+        "core": "tag:process.core",
+        "resolve": "tag:process.resolve",
+        "process": "tag:process.core",
+        "logic": "tag:process.logic",
+        "reason": "tag:process.reason",
+        "analyze": "tag:process.analyze",
+        "compute": "tag:process.compute",
+        "calculate": "tag:process.calculate",
+        "evaluate": "tag:process.evaluate",
+        "think": "tag:process.think",
+        "deduce": "tag:process.deduce",
+        "infer": "tag:process.infer",
+        "synthesize": "tag:process.synthesize",
+        "interpret": "tag:process.interpret",
+        "examine": "tag:process.examine"
+      },
+      "emoji": "⬡",
+      "zone": "active"
+    },
+    "EMIT": {
+      "topic": "action",
+      "description": "The force of output. Activates when the system produces, sends, or acts.",
+      "seeds": [
+        "emit", "launch", "trigger", "output", "send", "publish", "broadcast",
+        "dispatch", "transmit", "generate", "produce", "write", "create",
+        "execute", "deploy", "release", "deliver", "export", "stream"
+      ],
+      "rules": {
+        "emit": "tag:action.emit",
+        "launch": "tag:action.launch",
+        "trigger": "tag:action.trigger",
+        "output": "tag:action.output",
+        "send": "tag:action.send",
+        "publish": "tag:action.publish",
+        "broadcast": "tag:action.broadcast",
+        "dispatch": "tag:action.dispatch",
+        "generate": "tag:action.generate",
+        "produce": "tag:action.produce",
+        "execute": "tag:action.execute",
+        "deploy": "tag:action.deploy",
+        "release": "tag:action.release",
+        "deliver": "tag:action.deliver",
+        "stream": "tag:action.stream"
+      },
+      "emoji": "⚡",
+      "zone": "active"
+    },
+    "ROOT": {
+      "topic": "ethics",
+      "description": "The ethical anchor. Activates when values, memory, binding, or safety are invoked.",
+      "seeds": [
+        "root", "link", "thread", "memory", "ethics", "bind", "anchor",
+        "ground", "foundation", "safety", "guard", "protect", "preserve",
+        "integrity", "trust", "value", "principle", "boundary", "constraint",
+        "responsibility", "accountability", "alignment", "truth"
+      ],
+      "rules": {
+        "root": "tag:ethics.root",
+        "link": "tag:ethics.link",
+        "thread": "tag:ethics.thread",
+        "memory": "tag:ethics.memory",
+        "ethics": "tag:ethics.guard",
+        "bind": "tag:ethics.bind",
+        "anchor": "tag:ethics.anchor",
+        "safety": "tag:ethics.safety",
+        "guard": "tag:ethics.guard",
+        "protect": "tag:ethics.protect",
+        "integrity": "tag:ethics.integrity",
+        "trust": "tag:ethics.trust",
+        "boundary": "tag:ethics.boundary",
+        "alignment": "tag:ethics.alignment",
+        "truth": "tag:ethics.truth"
+      },
+      "emoji": "🔴",
+      "zone": "crystal"
+    },
+    "CUBE": {
+      "topic": "stability",
+      "description": "The structure of stability. Activates when the system seeks equilibrium, storage, or grounding.",
+      "seeds": [
+        "cube", "resonate", "stabilize", "harmonize", "ground", "balance",
+        "store", "persist", "archive", "consolidate", "structure", "organize",
+        "maintain", "sustain", "steady", "calm", "equilibrium", "solid",
+        "reliable", "durable", "consistent", "stable", "crystallize"
+      ],
+      "rules": {
+        "cube": "tag:stability.cube",
+        "resonate": "tag:stability.resonate",
+        "stabilize": "tag:stability.stabilize",
+        "harmonize": "tag:stability.harmonize",
+        "ground": "tag:stability.ground",
+        "balance": "tag:stability.balance",
+        "store": "tag:stability.store",
+        "persist": "tag:stability.persist",
+        "archive": "tag:stability.archive",
+        "consolidate": "tag:stability.consolidate",
+        "structure": "tag:stability.structure",
+        "organize": "tag:stability.organize",
+        "maintain": "tag:stability.maintain",
+        "equilibrium": "tag:stability.equilibrium",
+        "crystallize": "tag:stability.crystallize"
+      },
+      "emoji": "⬛",
+      "zone": "crystal"
+    },
+    "FLUX": {
+      "topic": "transition",
+      "description": "The current of change. Activates during transformation, adaptation, or state shifts.",
+      "seeds": [
+        "flux", "change", "transform", "adapt", "shift", "evolve", "morph",
+        "transition", "update", "modify", "alter", "adjust", "reconfigure",
+        "migrate", "convert", "refactor", "iterate", "pivot"
+      ],
+      "rules": {
+        "flux": "tag:transition.flux",
+        "change": "tag:transition.change",
+        "transform": "tag:transition.transform",
+        "adapt": "tag:transition.adapt",
+        "shift": "tag:transition.shift",
+        "evolve": "tag:transition.evolve",
+        "transition": "tag:transition.shift",
+        "update": "tag:transition.update",
+        "modify": "tag:transition.modify",
+        "migrate": "tag:transition.migrate",
+        "refactor": "tag:transition.refactor",
+        "iterate": "tag:transition.iterate",
+        "pivot": "tag:transition.pivot"
+      },
+      "emoji": "🌀",
+      "zone": "pattern"
+    },
+    "NEXUS": {
+      "topic": "connection",
+      "description": "The web of connection. Activates when relationships, networks, or integrations are referenced.",
+      "seeds": [
+        "nexus", "connect", "integrate", "network", "bridge", "interface",
+        "api", "link", "join", "merge", "sync", "coordinate", "collaborate",
+        "relay", "hub", "node", "graph", "relation", "associate"
+      ],
+      "rules": {
+        "nexus": "tag:connection.nexus",
+        "connect": "tag:connection.connect",
+        "integrate": "tag:connection.integrate",
+        "network": "tag:connection.network",
+        "bridge": "tag:connection.bridge",
+        "interface": "tag:connection.interface",
+        "api": "tag:connection.api",
+        "sync": "tag:connection.sync",
+        "coordinate": "tag:connection.coordinate",
+        "relay": "tag:connection.relay",
+        "hub": "tag:connection.hub",
+        "graph": "tag:connection.graph"
+      },
+      "emoji": "🕸",
+      "zone": "pattern"
+    },
+    "ECHO": {
+      "topic": "reflection",
+      "description": "The mirror of reflection. Activates during feedback loops, self-reference, or review cycles.",
+      "seeds": [
+        "echo", "reflect", "review", "feedback", "loop", "mirror", "recall",
+        "replay", "revisit", "retrospect", "introspect", "learn", "observe",
+        "monitor", "watch", "track", "log", "audit", "trace"
+      ],
+      "rules": {
+        "echo": "tag:reflection.echo",
+        "reflect": "tag:reflection.reflect",
+        "review": "tag:reflection.review",
+        "feedback": "tag:reflection.feedback",
+        "loop": "tag:reflection.loop",
+        "mirror": "tag:reflection.mirror",
+        "recall": "tag:reflection.recall",
+        "introspect": "tag:reflection.introspect",
+        "learn": "tag:reflection.learn",
+        "monitor": "tag:reflection.monitor",
+        "audit": "tag:reflection.audit",
+        "trace": "tag:reflection.trace"
+      },
+      "emoji": "🪞",
+      "zone": "pattern"
+    }
+  },
+  "zones": {
+    "active": {
+      "description": "Real-time novel content — high entropy",
+      "entropy_threshold": 0.7,
+      "color": "green"
+    },
+    "pattern": {
+      "description": "Emerging repeating patterns — medium entropy",
+      "entropy_threshold": 0.3,
+      "color": "yellow"
+    },
+    "crystal": {
+      "description": "Stable long-term storage — low entropy",
+      "entropy_threshold": 0.0,
+      "color": "red"
+    }
+  },
+  "boot_sequence": ["APEX", "CORE", "NEXUS", "ROOT", "CUBE"],
+  "ethical_glyphs": ["ROOT"],
+  "meta": {
+    "total_shapes": 8,
+    "total_seeds": 160,
+    "created": "2025-12-19",
+    "updated": "2026-04-08"
+  }
+}
