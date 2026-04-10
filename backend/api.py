@@ -32,6 +32,7 @@ from .services.chat_service import ChatService
 from .services.eventmind.engine import EventMindEngine
 from .services.onset.protocol import OnsetProtocol
 from .services.voidlogic import VoidLogicEngine
+from .services.quantum_nexus import EnhancedQuantumNexusForge
 
 router = APIRouter()
 ai_router = APIRouter(prefix="/ai", tags=["ai"], dependencies=[Depends(api_key_guard)])
@@ -51,6 +52,7 @@ _chat_service   = ChatService(_adapter)
 _eventmind      = EventMindEngine(_adapter)
 _onset          = OnsetProtocol(_adapter)
 _voidlogic      = VoidLogicEngine()
+_quantum_forge  = EnhancedQuantumNexusForge()
 
 # --- AI Routes ---
 @ai_router.post("/chat", response_model=ChatResponse)
@@ -242,6 +244,97 @@ async def voidlogic_topology():
         return await run_in_threadpool(_voidlogic.full_topology)
     except Exception as exc:
         logger.error("VoidLogic topology error: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+# --- Quantum Nexus Forge Routes ---
+
+@ai_router.post("/quantum/process")
+async def quantum_process(payload: dict = Body(...)):
+    """
+    Run a full Quantum Nexus Forge cognitive processing cycle.
+
+    Applies:
+      • 3D Platonic solid geometry + resonance + entropy scoring
+      • Symbol stream interpretation (emoji → cognitive ops)
+      • All 5 neurodivergent lenses in parallel:
+          autism_precision, adhd_dynamic, dyslexia_restructure,
+          dyscalculia_logic, neurotypical_baseline
+      • Memory zone classification (Active / Emergence / Crystallized)
+      • Real-time performance tracking
+
+    Body: {
+        "content":         "text or any input",
+        "symbol_sequence": "💠🔺🔶⭕"   (optional),
+        "primitive_type":  "cube"        (optional: tetrahedron|cube|octahedron|
+                                          dodecahedron|icosahedron|metatrons_cube)
+    }
+    """
+    from .services.quantum_nexus.cognitive_node import CognitivePrimitiveType
+    content  = payload.get("content", "")
+    symbols  = payload.get("symbol_sequence", "💠🔺🔶⭕🔷")
+    ptype_str = payload.get("primitive_type", "cube")
+
+    try:
+        ptype = CognitivePrimitiveType(ptype_str)
+    except ValueError:
+        ptype = CognitivePrimitiveType.CUBE
+
+    if not content:
+        raise HTTPException(status_code=400, detail="'content' field is required")
+    try:
+        return await run_in_threadpool(_quantum_forge.process, content, symbols, ptype)
+    except Exception as exc:
+        logger.error("Quantum forge process error: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@ai_router.get("/quantum/report")
+async def quantum_report():
+    """
+    Return the Quantum Nexus Forge system health report.
+    Includes node counts, zone distributions, total resonance,
+    average entropy, and performance metrics.
+    """
+    try:
+        return await run_in_threadpool(_quantum_forge.system_report)
+    except Exception as exc:
+        logger.error("Quantum forge report error: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@ai_router.post("/quantum/symbols")
+async def quantum_symbols(payload: dict = Body(...)):
+    """
+    Interpret an emoji/symbol sequence as a cognitive processing chain.
+    No node creation, no lens analysis — pure symbol → operation mapping.
+
+    Body: {
+        "symbol_sequence": "💠🔺🔶⭕🔷",
+        "intent":          "optional intent keyword for suggestion"
+    }
+    """
+    sequence = payload.get("symbol_sequence")
+    intent   = payload.get("intent")
+    if intent and not sequence:
+        return await run_in_threadpool(_quantum_forge.suggest_symbols, intent)
+    if not sequence:
+        raise HTTPException(status_code=400, detail="'symbol_sequence' or 'intent' is required")
+    try:
+        return await run_in_threadpool(_quantum_forge.interpret_symbols, sequence)
+    except Exception as exc:
+        logger.error("Quantum symbols error: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@ai_router.get("/quantum/performance")
+async def quantum_performance():
+    """Return real-time Quantum Nexus Forge performance metrics."""
+    from .services.quantum_nexus.performance_monitor import perf_monitor
+    try:
+        return await run_in_threadpool(perf_monitor.metrics)
+    except Exception as exc:
+        logger.error("Quantum performance error: %s", exc)
         raise HTTPException(status_code=500, detail=str(exc))
 
 

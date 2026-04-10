@@ -7,6 +7,7 @@ Supported lens profiles:
   - adhd          ADHD Burst Mode
   - autism        Autism Precision Mode
   - dyslexia      Dyslexia Spatial Mode
+  - dyscalculia   Dyscalculia Alternative Logic Mode
   - neurotypical  Baseline (default)
 """
 from __future__ import annotations
@@ -18,15 +19,16 @@ from typing import Any, Dict, List, Optional
 from backend.core.config import settings
 from backend.domain.models import Note
 from backend.infrastructure.cosmos_repo import cosmos_repo
-from backend.services import adhd_lens, autism_lens, dyslexia_lens, neurotypical_lens
+from backend.services import adhd_lens, autism_lens, dyslexia_lens, neurotypical_lens, dyscalculia_lens
 
 logger = logging.getLogger(__name__)
 
 # Lens registry: profile name → lens module
 _LENS_REGISTRY = {
-    "adhd": adhd_lens,
-    "autism": autism_lens,
-    "dyslexia": dyslexia_lens,
+    "adhd":         adhd_lens,
+    "autism":       autism_lens,
+    "dyslexia":     dyslexia_lens,
+    "dyscalculia":  dyscalculia_lens,
     "neurotypical": neurotypical_lens,
 }
 
