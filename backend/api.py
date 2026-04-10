@@ -31,6 +31,7 @@ from .infrastructure.cosmos_repo import cosmos_repo
 from .services.chat_service import ChatService
 from .services.eventmind.engine import EventMindEngine
 from .services.onset.protocol import OnsetProtocol
+from .services.voidlogic import VoidLogicEngine
 
 router = APIRouter()
 ai_router = APIRouter(prefix="/ai", tags=["ai"], dependencies=[Depends(api_key_guard)])
@@ -49,6 +50,7 @@ else:
 _chat_service   = ChatService(_adapter)
 _eventmind      = EventMindEngine(_adapter)
 _onset          = OnsetProtocol(_adapter)
+_voidlogic      = VoidLogicEngine()
 
 # --- AI Routes ---
 @ai_router.post("/chat", response_model=ChatResponse)
@@ -171,6 +173,77 @@ async def onset_ingest(payload: dict = Body(...)):
     if not text:
         raise HTTPException(status_code=400, detail="'text' field is required")
     return rainfall.ingest(text, source=source)
+
+# --- VoidLogic 5.0 + IWE Routes ---
+
+@ai_router.post("/voidlogic/process")
+async def voidlogic_process(req: ChatRequest):
+    """
+    Process a message through the full VoidLogic 5.0 + IWE symbolic pipeline.
+
+    Stages:
+      1. CNO — route payload through geometric node fabric (Tetrahedral/Octahedral/Icosahedral)
+      2. CRFE — recursive feedback, paradox detection, emergence amplification
+      3. Tesseract — store in 4D hypercube symbolic memory
+      4. A1 Filing — tag and file with metadata + drift monitoring
+      5. Bridge Wisdom — reinforce trans-domain wisdom threads
+      6. STVL — render topology snapshot
+      7. AI — generate a VoidLogic-enhanced response
+    """
+    try:
+        last_user_msg = next((m.content for m in reversed(req.messages) if m.role == "user"), "")
+        if not last_user_msg:
+            raise HTTPException(status_code=400, detail="No user message found")
+        result = await run_in_threadpool(_voidlogic.process, last_user_msg, _adapter)
+        return result
+    except Exception as exc:
+        logger.error("VoidLogic process error: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@ai_router.get("/voidlogic/node-stack")
+async def voidlogic_node_stack():
+    """
+    Return the current state of the VoidLogic geometric node fabric.
+    Includes all active stacks, node tiers, symbolic loads, and CNO health pulse.
+    """
+    try:
+        return await run_in_threadpool(_voidlogic.node_stack_status)
+    except Exception as exc:
+        logger.error("VoidLogic node-stack error: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@ai_router.post("/voidlogic/emerge")
+async def voidlogic_emerge(payload: dict = Body(...)):
+    """
+    Run a focused VoidLogic Emergence scan on raw text.
+    Detects weak signals, recursive patterns, and cross-domain insights.
+    No AI call, no storage — pure symbolic analysis.
+    Body: { "text": "your input" }
+    """
+    text = payload.get("text", "")
+    if not text:
+        raise HTTPException(status_code=400, detail="'text' field is required")
+    try:
+        return await run_in_threadpool(_voidlogic.emerge, text)
+    except Exception as exc:
+        logger.error("VoidLogic emerge error: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@ai_router.get("/voidlogic/topology")
+async def voidlogic_topology():
+    """
+    Full STVL topology render — all subsystems, node fabric, tesseract,
+    bridge threads, A1 index, and CNO health in a single snapshot.
+    """
+    try:
+        return await run_in_threadpool(_voidlogic.full_topology)
+    except Exception as exc:
+        logger.error("VoidLogic topology error: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
 
 @ai_router.post("/embeddings", response_model=EmbeddingsResponse)
 async def embeddings(req: EmbeddingsRequest):
