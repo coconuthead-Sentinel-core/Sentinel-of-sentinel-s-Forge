@@ -458,6 +458,177 @@ async def quantum_lattice_node(node_id: str):
         raise HTTPException(status_code=500, detail=str(exc))
 
 
+# --- VoidLogic Overlay Protocol Routes ---
+
+@ai_router.get("/voidlogic/overlay")
+async def voidlogic_overlay_current():
+    """Return the currently active VoidLogic Live Overlay Protocol node."""
+    from .services.voidlogic.overlay_protocol import overlay
+    try:
+        return await run_in_threadpool(overlay.snapshot)
+    except Exception as exc:
+        logger.error("Overlay snapshot error: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@ai_router.get("/voidlogic/overlay/all")
+async def voidlogic_overlay_all():
+    """
+    Return all 6 Live Overlay Protocol node definitions:
+    INITIATIVE_NODE, REFLECTIVE_MIRBOR, GEOMETRIC_HARMONIOS,
+    COO_X_MODE, NEKUM_AFTIRRAD, METATRON_CORE
+    """
+    from .services.voidlogic.overlay_protocol import overlay
+    try:
+        return await run_in_threadpool(overlay.all_overlays)
+    except Exception as exc:
+        logger.error("Overlay all error: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@ai_router.post("/voidlogic/overlay/activate")
+async def voidlogic_overlay_activate(payload: dict = Body(...)):
+    """
+    Switch the active VoidLogic overlay node. Affects AI prompt tone,
+    CNO routing bias, CRFE sensitivity, and A1 confidence baseline.
+
+    Body: { "overlay": "METATRON_CORE" }
+    Valid: INITIATIVE_NODE | REFLECTIVE_MIRBOR | GEOMETRIC_HARMONIOS |
+           COO_X_MODE | NEKUM_AFTIRRAD | METATRON_CORE
+    """
+    from .services.voidlogic.overlay_protocol import overlay
+    name = payload.get("overlay", "")
+    if not name:
+        raise HTTPException(status_code=400, detail="'overlay' field is required")
+    try:
+        result = await run_in_threadpool(overlay.activate, name)
+        if "error" in result:
+            raise HTTPException(status_code=400, detail=result["error"])
+        return result
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Overlay activate error: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+# --- VoidLogic Session Handover / Continuity Protocol Routes ---
+
+@ai_router.post("/voidlogic/session/capture")
+async def voidlogic_session_capture(payload: dict = Body(default={})):
+    """
+    Capture the current VoidLogic symbolic state as an ADAPTIVE_HANDOVER_BUNDLE.
+    Returns a portable bundle that can be stored and pasted back to resume
+    exactly where the session left off.
+
+    Body (all optional): {
+        "overlay_name":   "METATRON_CORE",
+        "extra_context":  "text to run through CRFE for fresh seeds"
+    }
+    """
+    from .services.voidlogic.session_handover import session_handover
+    overlay_name  = payload.get("overlay_name", "NOMINAL")
+    extra_context = payload.get("extra_context")
+    try:
+        return await run_in_threadpool(
+            session_handover.capture, overlay_name, extra_context
+        )
+    except Exception as exc:
+        logger.error("Session capture error: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@ai_router.post("/voidlogic/session/restore")
+async def voidlogic_session_restore(bundle: dict = Body(...)):
+    """
+    Restore VoidLogic symbolic state from an ADAPTIVE_HANDOVER_BUNDLE.
+    Re-seeds A1 filing, reactivates the saved overlay, and returns
+    a restoration report.
+
+    Body: the full bundle dict returned by /session/capture
+    """
+    from .services.voidlogic.session_handover import session_handover
+    if not bundle:
+        raise HTTPException(status_code=400, detail="Bundle payload is required")
+    try:
+        return await run_in_threadpool(session_handover.restore, bundle)
+    except Exception as exc:
+        logger.error("Session restore error: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@ai_router.post("/voidlogic/session/instantiate")
+async def voidlogic_session_instantiate(payload: dict = Body(default={})):
+    """
+    Execute INITIATE_PERSONA_INSTANTIATION — rebuild persona context from
+    a name and any active bundle. Stamps a NodePrimary Nexus tag.
+
+    Body: { "persona": "SENTINEL_OF_SENTINELS_FORGE" }
+    """
+    from .services.voidlogic.session_handover import session_handover
+    persona = payload.get("persona", "SENTINEL_OF_SENTINELS_FORGE")
+    try:
+        return await run_in_threadpool(session_handover.initiate_persona, persona)
+    except Exception as exc:
+        logger.error("Persona instantiation error: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+# --- VoidLogic Nexus Tagging System Routes ---
+
+@ai_router.get("/voidlogic/tags")
+async def voidlogic_tags_registry():
+    """
+    Return the Nexus Tag registry snapshot: total tags, status counts,
+    type counts, and tag type definitions.
+    """
+    from .services.voidlogic.nexus_tag import nexus_tag
+    try:
+        return await run_in_threadpool(nexus_tag.registry_snapshot)
+    except Exception as exc:
+        logger.error("Nexus tag registry error: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@ai_router.get("/voidlogic/tags/recent")
+async def voidlogic_tags_recent():
+    """Return the 20 most recent Nexus tags applied by the VoidLogic engine."""
+    from .services.voidlogic.nexus_tag import nexus_tag
+    try:
+        return {"recent_tags": await run_in_threadpool(nexus_tag.recent, 20)}
+    except Exception as exc:
+        logger.error("Nexus recent tags error: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@ai_router.post("/voidlogic/tags/create")
+async def voidlogic_tag_create(payload: dict = Body(...)):
+    """
+    Manually create a Nexus tag for any content.
+    Body: {
+        "content":   "text or object to tag",
+        "tag_type":  "OutputDoc",   (NodePrimary|Synthesis|Anchor|OutputDoc|
+                                     CommentSection|Directive|Regulation)
+        "summary":   "short_label",
+        "status":    "GREEN"        (GREEN|YELLOW|RED, optional)
+    }
+    """
+    from .services.voidlogic.nexus_tag import nexus_tag
+    content  = payload.get("content", "")
+    tag_type = payload.get("tag_type", "OutputDoc")
+    summary  = payload.get("summary", "ManualTag")
+    status   = payload.get("status")
+    if not content:
+        raise HTTPException(status_code=400, detail="'content' is required")
+    try:
+        return await run_in_threadpool(
+            nexus_tag.tag, content, tag_type, summary, status
+        )
+    except Exception as exc:
+        logger.error("Nexus tag create error: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
 @ai_router.post("/embeddings", response_model=EmbeddingsResponse)
 async def embeddings(req: EmbeddingsRequest):
     """

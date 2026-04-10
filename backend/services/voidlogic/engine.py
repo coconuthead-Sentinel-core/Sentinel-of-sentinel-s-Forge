@@ -18,12 +18,15 @@ import time
 import re
 from typing import Dict, Any, List, Optional
 
-from .cno            import cno
-from .crfe           import crfe
+from .cno              import cno
+from .crfe             import crfe
 from .tesseract_storage import tesseract
-from .a1_filing      import a1
-from .bridge_wisdom  import bwt
-from .stvl           import stvl
+from .a1_filing        import a1
+from .bridge_wisdom    import bwt
+from .stvl             import stvl
+from .nexus_tag        import nexus_tag
+from .overlay_protocol import overlay
+from .session_handover import session_handover
 
 
 _VOIDLOGIC_SYSTEM_PROMPT = """
@@ -98,8 +101,14 @@ class VoidLogicEngine:
         complexity = _estimate_complexity(text)
         domain     = _detect_domain(text)
 
-        # 1. Route through CNO (node fabric)
-        cno_result = cno.route_payload(text, complexity=complexity)
+        # 0. Apply active overlay bias to complexity routing
+        overlay_bias = overlay.get_complexity_bias()
+        # Blend raw complexity with overlay bias (60/40) so the overlay
+        # nudges routing without completely overriding content complexity
+        biased_complexity = round(complexity * 0.6 + overlay_bias * 0.4, 4)
+
+        # 1. Route through CNO (node fabric) using overlay-biased complexity
+        cno_result = cno.route_payload(text, complexity=biased_complexity)
 
         # 2. CRFE — recursive feedback + paradox + emergence
         crfe_result = crfe.process(text)
@@ -127,12 +136,15 @@ class VoidLogicEngine:
         tag = dominant_tag[0] if isinstance(dominant_tag, list) else dominant_tag
         # Clean tag to a simple string
         tag = re.sub(r'[^a-zA-Z0-9_\-]', '', str(tag))[:40] or domain
-        confidence = round(
+        # Use overlay's A1 confidence baseline as a floor
+        overlay_confidence = overlay.get_a1_confidence()
+        base_confidence = round(
             (crfe_result["rsml"]["score"] * 0.4) +
             (crfe_result["emergence"]["score"] * 0.3) +
             (complexity * 0.3),
             4,
         )
+        confidence = round(max(base_confidence, overlay_confidence * 0.5), 4)
         filing_result = a1.file(
             content    = text,
             tag        = tag,
@@ -169,22 +181,29 @@ class VoidLogicEngine:
 
         latency_ms = round((time.time() - t0) * 1000, 1)
 
-        return {
+        result = {
             "ai_response": ai_response,
             "voidlogic_report": {
-                "session":        self._session_count,
-                "complexity":     complexity,
-                "domain":         domain,
-                "cno":            cno_result,
-                "crfe":           crfe_result,
-                "tesseract":      store_result,
-                "a1_filing":      filing_result,
-                "bridge":         bwt_result,
-                "system_health":  crfe_result["system_health"],
+                "session":          self._session_count,
+                "complexity":       complexity,
+                "biased_complexity": biased_complexity,
+                "domain":           domain,
+                "cno":              cno_result,
+                "crfe":             crfe_result,
+                "tesseract":        store_result,
+                "a1_filing":        filing_result,
+                "bridge":           bwt_result,
+                "system_health":    crfe_result["system_health"],
+                "active_overlay":   overlay.current()["overlay"],
             },
             "topology_snapshot": topology,
             "latency_ms":        latency_ms,
         }
+
+        # 8. Nexus Tag — auto-tag the full result
+        nexus_tag.auto_tag(result)
+
+        return result
 
     def emerge(self, text: str) -> Dict[str, Any]:
         """
@@ -224,6 +243,10 @@ class VoidLogicEngine:
     def _build_system_prompt(self, crfe_result: Dict[str, Any]) -> str:
         health = crfe_result["system_health"]
         lines  = [_VOIDLOGIC_SYSTEM_PROMPT, ""]
+
+        # Prepend active overlay modifier — always present
+        lines.append(overlay.get_system_prompt_modifier())
+        lines.append("")
 
         if health == "CRITICAL":
             lines.append(
