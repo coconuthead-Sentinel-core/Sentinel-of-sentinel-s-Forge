@@ -29,6 +29,8 @@ from .eventbus import bus
 from .domain.models import Note
 from .infrastructure.cosmos_repo import cosmos_repo
 from .services.chat_service import ChatService
+from .services.eventmind.engine import EventMindEngine
+from .services.onset.protocol import OnsetProtocol
 
 router = APIRouter()
 ai_router = APIRouter(prefix="/ai", tags=["ai"], dependencies=[Depends(api_key_guard)])
@@ -43,8 +45,10 @@ if settings.MOCK_AI:
 else:
     _adapter = AzureOpenAIAdapter(_http_client, _token_provider)
 
-# Initialize Chat Service
-_chat_service = ChatService(_adapter)
+# Initialize Services
+_chat_service   = ChatService(_adapter)
+_eventmind      = EventMindEngine(_adapter)
+_onset          = OnsetProtocol(_adapter)
 
 # --- AI Routes ---
 @ai_router.post("/chat", response_model=ChatResponse)
@@ -83,6 +87,90 @@ async def chat(req: ChatRequest):
 async def list_profiles():
     """Return all available cognitive lens profiles."""
     return {"profiles": _chat_service.available_profiles()}
+
+
+# --- EventMind Routes ---
+
+@ai_router.post("/eventmind/chat")
+async def eventmind_chat(req: ChatRequest):
+    """
+    Process a message through the full EventMind pipeline.
+    Applies Core Pulse, Triangulation Telescope, Fulcrum Lens,
+    Core Sensor, and Return Vector before generating a response.
+    """
+    try:
+        last_user_msg = next((m.content for m in reversed(req.messages) if m.role == "user"), "")
+        if not last_user_msg:
+            raise HTTPException(status_code=400, detail="No user message found")
+        history = [
+            {"role": m.role, "content": m.content}
+            for m in req.messages[:-1]
+            if m.role in ("user", "assistant") and m.content
+        ]
+        return await _eventmind.process(last_user_msg, history=history or None)
+    except Exception as exc:
+        logger.error("EventMind chat error: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@ai_router.post("/eventmind/analyze")
+async def eventmind_analyze(payload: dict = Body(...)):
+    """
+    Run EventMind signal analysis WITHOUT calling the AI.
+    Returns Core Pulse, Triangulation, Fulcrum Lens, Core Sensor,
+    and Return Vector scores for any input text.
+    Body: { "text": "your input" }
+    """
+    text = payload.get("text", "")
+    if not text:
+        raise HTTPException(status_code=400, detail="'text' field is required")
+    from .services.eventmind.engine import EventMindEngine
+    return EventMindEngine.analyze_only(text)
+
+
+# --- Onset Protocol Routes ---
+
+@ai_router.post("/onset/activate")
+async def onset_activate(req: ChatRequest):
+    """
+    Activate the full Onset Protocol processing sequence.
+    Runs Snowflake decomposition, Rainfall ingestion, Mist diffusion,
+    Spiderweb networking, and Spherical Memory before AI generation.
+    """
+    try:
+        last_user_msg = next((m.content for m in reversed(req.messages) if m.role == "user"), "")
+        if not last_user_msg:
+            raise HTTPException(status_code=400, detail="No user message found")
+        history = [
+            {"role": m.role, "content": m.content}
+            for m in req.messages[:-1]
+            if m.role in ("user", "assistant") and m.content
+        ]
+        return await _onset.activate(last_user_msg, history=history or None)
+    except Exception as exc:
+        logger.error("Onset Protocol error: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@ai_router.get("/onset/status")
+async def onset_status():
+    """Return current status of all Onset Protocol subsystems."""
+    from .services.onset.protocol import OnsetProtocol
+    return OnsetProtocol.system_status()
+
+
+@ai_router.post("/onset/ingest")
+async def onset_ingest(payload: dict = Body(...)):
+    """
+    Ingest raw text directly into the Onset Rainfall stream.
+    Body: { "text": "...", "source": "optional_label" }
+    """
+    from .services.onset.rainfall import rainfall
+    text = payload.get("text", "")
+    source = payload.get("source", "direct_ingest")
+    if not text:
+        raise HTTPException(status_code=400, detail="'text' field is required")
+    return rainfall.ingest(text, source=source)
 
 @ai_router.post("/embeddings", response_model=EmbeddingsResponse)
 async def embeddings(req: EmbeddingsRequest):
