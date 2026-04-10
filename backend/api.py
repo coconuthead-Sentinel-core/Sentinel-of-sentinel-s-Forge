@@ -33,6 +33,7 @@ from .services.eventmind.engine import EventMindEngine
 from .services.onset.protocol import OnsetProtocol
 from .services.voidlogic import VoidLogicEngine
 from .services.quantum_nexus import EnhancedQuantumNexusForge
+from .services.cognitive_map import cognitive_map
 
 router = APIRouter()
 ai_router = APIRouter(prefix="/ai", tags=["ai"], dependencies=[Depends(api_key_guard)])
@@ -79,6 +80,18 @@ async def chat(req: ChatRequest):
             profile=req.profile,
             history=history or None,
         )
+
+        # Stimulate the cognitive architecture map on every chat message
+        # (non-blocking, fire-and-forget in thread pool)
+        try:
+            cmap_result = await run_in_threadpool(cognitive_map.process_input, last_user_msg)
+            response["cognitive_map"] = {
+                "stimulated": cmap_result["stimulation_count"],
+                "ethics_gate": cmap_result["ethics_gate"]["gate_status"],
+            }
+        except Exception:
+            pass  # cognitive map is enrichment only — never blocks chat
+
         return response
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
@@ -626,6 +639,123 @@ async def voidlogic_tag_create(payload: dict = Body(...)):
         )
     except Exception as exc:
         logger.error("Nexus tag create error: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+# --- Cognitive Architecture Map Routes ---
+
+@ai_router.get("/cognitive/map")
+async def cognitive_map_snapshot():
+    """
+    Return the full live state of the 4-ring Cognitive Architecture Map.
+
+    Rings:
+      CORE     — Reasoning Core
+      MEMORY   — Episodic · Semantic · Working · Procedural
+      LANGUAGE — Syntax · Semantics · Pragmatics · Context
+      META     — Meta-cognition · Self-reflection · Abstract Reasoning · Creative Synthesis
+      ETHICS   — Value Alignment · Harm Prevention · Truthfulness · Helpfulness
+
+    Includes all 17 nodes with energy levels, pulse values, access counts,
+    all 24 connections with strengths, ethics gate status, and session metrics.
+    Advances the internal tick on each call for live pulsing.
+    """
+    try:
+        return await run_in_threadpool(cognitive_map.full_snapshot)
+    except Exception as exc:
+        logger.error("Cognitive map snapshot error: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@ai_router.get("/cognitive/ethics")
+async def cognitive_ethics_gate():
+    """
+    Return the current ethics gate status.
+    Checks all 4 ethics nodes (Value Alignment, Harm Prevention,
+    Truthfulness, Helpfulness) against their energy thresholds.
+    Returns GREEN / YELLOW / RED gate status with failing node details.
+    """
+    try:
+        return await run_in_threadpool(cognitive_map.ethics_gate_status)
+    except Exception as exc:
+        logger.error("Cognitive ethics gate error: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@ai_router.post("/cognitive/activate")
+async def cognitive_activate(payload: dict = Body(...)):
+    """
+    Activate a specific node or entire ring in the Cognitive Architecture Map.
+
+    Body (use one):
+      { "ring": "ETHICS" }          — boost all nodes in a ring
+      { "node": "reasoning_core" }  — boost a single node
+      { "text": "input text" }      — auto-stimulate based on text content
+
+    Valid rings: CORE, MEMORY, LANGUAGE, META, ETHICS
+    Valid node IDs: reasoning_core, episodic_memory, semantic_memory,
+      working_memory, procedural_memory, syntax, semantics, pragmatics,
+      context, meta_cognition, self_reflection, abstract_reasoning,
+      creative_synthesis, value_alignment, harm_prevention,
+      truthfulness, helpfulness
+    """
+    ring = payload.get("ring")
+    node = payload.get("node")
+    text = payload.get("text")
+
+    try:
+        if text:
+            result = await run_in_threadpool(cognitive_map.process_input, text)
+        elif ring:
+            result = await run_in_threadpool(cognitive_map.activate_ring, ring)
+        elif node:
+            result = await run_in_threadpool(cognitive_map.activate_node, node)
+            if result is None:
+                raise HTTPException(status_code=404, detail=f"Node '{node}' not found")
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail="Provide 'ring', 'node', or 'text' in request body"
+            )
+        return result
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Cognitive activate error: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@ai_router.get("/cognitive/connections")
+async def cognitive_connections():
+    """
+    Return all 24 node connections with live strength values
+    (averaged endpoint energy) and active/inactive status.
+    """
+    try:
+        return {"connections": await run_in_threadpool(cognitive_map.connection_strengths)}
+    except Exception as exc:
+        logger.error("Cognitive connections error: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@ai_router.get("/cognitive/ring/{ring_name}")
+async def cognitive_ring(ring_name: str):
+    """
+    Return the live state of a specific cognitive ring.
+    ring_name: CORE | MEMORY | LANGUAGE | META | ETHICS
+    """
+    try:
+        nodes = await run_in_threadpool(cognitive_map.ring_state, ring_name)
+        if not nodes:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Ring '{ring_name}' not found. Valid: CORE, MEMORY, LANGUAGE, META, ETHICS"
+            )
+        return {"ring": ring_name.upper(), "nodes": nodes}
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Cognitive ring error: %s", exc)
         raise HTTPException(status_code=500, detail=str(exc))
 
 

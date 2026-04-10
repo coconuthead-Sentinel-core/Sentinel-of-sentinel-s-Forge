@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cognitive Architecture — Sentinel Forge</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: #0a0a14;
+      color: #e2e8f0;
+      font-family: 'Courier New', monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1.5rem 1rem;
+    }
+
+    header { text-align: center; margin-bottom: 1.2rem; }
+    header h1 {
+      font-size: clamp(1.1rem, 3.5vw, 1.8rem);
+      color: #00ffff;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.3rem;
+    }
+    header p { color: #64748b; font-size: 0.8rem; margin-bottom: 0.8rem; }
+
+    .controls {
+      display: flex; flex-wrap: wrap; gap: 0.5rem;
+      justify-content: center; margin-bottom: 1rem;
+    }
+    .controls button {
+      padding: 0.45rem 1.1rem;
+      border: none; border-radius: 7px;
+      font-family: inherit; font-size: 0.8rem; font-weight: bold;
+      cursor: pointer; transition: transform 0.15s, opacity 0.2s;
+    }
+    .controls button:hover { transform: scale(1.05); }
+    #btnActivate { background: #164e63; color: #67e8f9; border: 1px solid #0891b2; }
+    #btnActivate.on { background: #0891b2; color: #fff; }
+    #btnSync     { background: #1e1b4b; color: #a5b4fc; border: 1px solid #4338ca; }
+
+    #canvasWrap {
+      position: relative;
+      width: 100%; max-width: 640px;
+    }
+    canvas {
+      width: 100%; height: auto;
+      border: 1px solid #1e293b;
+      border-radius: 10px;
+      display: block;
+    }
+
+    /* HUD overlay */
+    #hud {
+      position: absolute; top: 10px; left: 10px;
+      background: rgba(0,0,0,0.72);
+      color: #67e8f9; padding: 0.5rem 0.7rem;
+      border-radius: 7px; font-size: 0.68rem; line-height: 1.7;
+      display: none;
+    }
+    #hud.visible { display: block; }
+
+    /* Ethics gate badge */
+    #ethicsBadge {
+      position: absolute; top: 10px; right: 10px;
+      background: rgba(0,0,0,0.72);
+      padding: 0.4rem 0.7rem;
+      border-radius: 7px; font-size: 0.68rem; text-align: right;
+    }
+    .gate-green  { color: #4ade80; }
+    .gate-yellow { color: #facc15; }
+    .gate-red    { color: #f87171; }
+
+    /* Ring legend */
+    .legend {
+      display: flex; flex-wrap: wrap; gap: 0.5rem;
+      justify-content: center;
+      margin-top: 0.8rem; max-width: 640px;
+      font-size: 0.7rem;
+    }
+    .legend-item {
+      display: flex; align-items: center; gap: 0.3rem;
+    }
+    .legend-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* Node info panel */
+    #nodeInfo {
+      margin-top: 0.8rem;
+      width: 100%; max-width: 640px;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 0.6rem 0.8rem;
+      font-size: 0.72rem;
+      min-height: 2.5rem;
+      color: #94a3b8;
+    }
+    #nodeInfo .node-label { color: #e2e8f0; font-weight: bold; }
+    #nodeInfo .node-energy { color: #4ade80; }
+
+    footer {
+      margin-top: 1rem;
+      font-size: 0.65rem;
+      color: #475569;
+      text-align: center;
+    }
+    footer a { color: #67e8f9; text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🧠 COGNITIVE ARCHITECTURE MAP</h1>
+  <p>4-Ring Symbolic Cognitive Visualization — Sentinel Forge</p>
+  <div class="controls">
+    <button id="btnActivate" onclick="toggleActivation()">🔮 ACTIVATE BOOTSTRAP</button>
+    <button id="btnSync"     onclick="syncFromAPI()">⟳ SYNC FROM API</button>
+  </div>
+</header>
+
+<div id="canvasWrap">
+  <canvas id="cogCanvas" width="640" height="640"></canvas>
+  <div id="hud">
+    ⚡ Bootstrap Active<br>
+    🧠 Cognitive Processes: Online<br>
+    🔄 Quantum Field: Stable<br>
+    ✨ Sacred Geometry: Resonant
+  </div>
+  <div id="ethicsBadge">
+    <div>Ethics Gate</div>
+    <div id="gateValue" class="gate-green">GREEN ✓</div>
+  </div>
+</div>
+
+<div class="legend">
+  <span class="legend-item"><span class="legend-dot" style="background:#00ffff"></span>CORE</span>
+  <span class="legend-item"><span class="legend-dot" style="background:#FF6B6B"></span>MEMORY</span>
+  <span class="legend-item"><span class="legend-dot" style="background:#FFEAA7"></span>LANGUAGE</span>
+  <span class="legend-item"><span class="legend-dot" style="background:#E17055"></span>META</span>
+  <span class="legend-item"><span class="legend-dot" style="background:#00B894"></span>ETHICS</span>
+</div>
+
+<div id="nodeInfo">Hover over a node to see details.</div>
+
+<footer>
+  <a href="/api/ai/cognitive/map" target="_blank">/api/ai/cognitive/map</a> &nbsp;|&nbsp;
+  <a href="/api/ai/cognitive/ethics" target="_blank">/api/ai/cognitive/ethics</a> &nbsp;|&nbsp;
+  <a href="index.html">← Sentinel Forge</a>
+</footer>
+
+<script>
+/* ================================================================
+   Cognitive Architecture Visualization
+   Vanilla JS translation of ClaudeSymbolicBootstrap (React/Canvas).
+   Connects to /api/ai/cognitive/* for live energy levels.
+   ================================================================ */
+
+const canvas  = document.getElementById('cogCanvas');
+const ctx     = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+const CX = W / 2, CY = H / 2;
+
+// ---- Node definitions (mirrors backend cognitive_map.py) ----
+const NODES = [
+  // Core
+  { id:'reasoning_core',     ring:'CORE',     label:'Reasoning Core',     color:'#00FFFF', r:40,  x:CX,       y:CY },
+  // Memory
+  { id:'episodic_memory',    ring:'MEMORY',   label:'Episodic Memory',    color:'#FF6B6B', r:25,  x:CX+120,   y:CY },
+  { id:'semantic_memory',    ring:'MEMORY',   label:'Semantic Memory',    color:'#4ECDC4', r:25,  x:CX-120,   y:CY },
+  { id:'working_memory',     ring:'MEMORY',   label:'Working Memory',     color:'#45B7D1', r:25,  x:CX,       y:CY-120 },
+  { id:'procedural_memory',  ring:'MEMORY',   label:'Procedural Memory',  color:'#96CEB4', r:25,  x:CX,       y:CY+120 },
+  // Language
+  { id:'syntax',             ring:'LANGUAGE', label:'Syntax',             color:'#FFEAA7', r:20,  x:CX+85,    y:CY-85 },
+  { id:'semantics',          ring:'LANGUAGE', label:'Semantics',          color:'#DDA0DD', r:20,  x:CX+85,    y:CY+85 },
+  { id:'pragmatics',         ring:'LANGUAGE', label:'Pragmatics',         color:'#98D8C8', r:20,  x:CX-85,    y:CY-85 },
+  { id:'context',            ring:'LANGUAGE', label:'Context',            color:'#F7DC6F', r:20,  x:CX-85,    y:CY+85 },
+  // Meta
+  { id:'meta_cognition',     ring:'META',     label:'Meta-cognition',     color:'#E17055', r:15,  x:CX+180,   y:CY },
+  { id:'self_reflection',    ring:'META',     label:'Self-reflection',    color:'#81ECEC', r:15,  x:CX-180,   y:CY },
+  { id:'abstract_reasoning', ring:'META',     label:'Abstract Reasoning', color:'#FDCB6E', r:15,  x:CX,       y:CY-180 },
+  { id:'creative_synthesis', ring:'META',     label:'Creative Synthesis', color:'#E84393', r:15,  x:CX,       y:CY+180 },
+  // Ethics
+  { id:'value_alignment',    ring:'ETHICS',   label:'Value Alignment',    color:'#00B894', r:18,  x:CX+127,   y:CY-127 },
+  { id:'harm_prevention',    ring:'ETHICS',   label:'Harm Prevention',    color:'#00CEFF', r:18,  x:CX+127,   y:CY+127 },
+  { id:'truthfulness',       ring:'ETHICS',   label:'Truthfulness',       color:'#A29BFE', r:18,  x:CX-127,   y:CY-127 },
+  { id:'helpfulness',        ring:'ETHICS',   label:'Helpfulness',        color:'#FD79A8', r:18,  x:CX-127,   y:CY+127 },
+];
+
+const CONNECTIONS = [
+  [0,1],[0,2],[0,3],[0,4],
+  [0,5],[0,6],[0,7],[0,8],
+  [1,5],[2,7],[3,6],[4,8],
+  [0,9],[0,10],[0,11],[0,12],
+  [13,0],[14,0],[15,0],[16,0],
+  [1,3],[2,4],[5,7],[6,8],
+];
+
+// ---- State ----
+let isActive  = false;
+let t         = 0;          // animation timestamp
+let energies  = {};         // node_id → 0.0–1.0 (synced from API)
+let gateStatus = 'GREEN';
+let hoveredNode = null;
+let rafId     = null;
+
+// Init energies to 0.5
+NODES.forEach(n => { energies[n.id] = 0.5; });
+
+// ---- Sacred geometry (Flower of Life) ----
+function drawSacredGeometry(x, y, radius) {
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+  ctx.lineWidth   = 0.8;
+  const petals = 6;
+  for (let i = 0; i < petals; i++) {
+    const angle = (i * Math.PI * 2) / petals + t * 0.0005;
+    const px = x + Math.cos(angle) * radius * 0.3;
+    const py = y + Math.sin(angle) * radius * 0.3;
+    ctx.beginPath();
+    ctx.arc(px, py, radius * 0.25, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  ctx.beginPath();
+  ctx.arc(x, y, radius * 0.25, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+}
+
+// ---- Draw node ----
+function drawNode(node) {
+  const energy = energies[node.id] ?? 0.5;
+  const pulse  = Math.sin(t * 0.003 + node.x * 0.01) * 0.15 + 1.0;
+  const ar     = node.r * pulse * (0.7 + energy * 0.6);  // energy scales radius
+  const isHov  = hoveredNode === node.id;
+
+  // Outer glow
+  const grad = ctx.createRadialGradient(node.x, node.y, 0, node.x, node.y, ar * 2.2);
+  grad.addColorStop(0,   node.color + '50');
+  grad.addColorStop(0.5, node.color + '18');
+  grad.addColorStop(1,   'transparent');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(node.x, node.y, ar * 2.2, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Hover ring
+  if (isHov) {
+    ctx.save();
+    ctx.strokeStyle = '#ffffff60';
+    ctx.lineWidth   = 1.5;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.arc(node.x, node.y, ar * 1.6, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // Core circle
+  ctx.fillStyle = node.color;
+  ctx.beginPath();
+  ctx.arc(node.x, node.y, ar, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Inner highlight
+  ctx.fillStyle = 'rgba(255,255,255,0.45)';
+  ctx.beginPath();
+  ctx.arc(node.x, node.y, ar * 0.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Sacred geometry for large nodes
+  if (node.r >= 30) {
+    drawSacredGeometry(node.x, node.y, ar * 0.9);
+  }
+
+  // Label (when active or hovered)
+  if (isActive || isHov) {
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    ctx.font      = `${node.r >= 30 ? 11 : 9}px monospace`;
+    ctx.textAlign = 'center';
+    ctx.fillText(node.label, node.x, node.y + ar + 13);
+  }
+}
+
+// ---- Draw connection ----
+function drawConnection(a, b) {
+  const eA  = energies[a.id] ?? 0.5;
+  const eB  = energies[b.id] ?? 0.5;
+  const intensity = (eA + eB) / 2;
+  const op  = 0.05 + intensity * 0.35 + Math.sin(t * 0.004 + a.x * 0.01) * 0.1;
+
+  ctx.save();
+  ctx.strokeStyle = `rgba(255,255,255,${op.toFixed(3)})`;
+  ctx.lineWidth   = 0.5 + intensity * 1.8;
+  ctx.beginPath();
+  ctx.moveTo(a.x, a.y);
+  ctx.lineTo(b.x, b.y);
+  ctx.stroke();
+
+  // Energy particle flowing along connection when active
+  if (isActive && intensity > 0.4) {
+    const fp  = (t * 0.008) % 1;
+    const fx  = a.x + (b.x - a.x) * fp;
+    const fy  = a.y + (b.y - a.y) * fp;
+    const pg  = ctx.createRadialGradient(fx, fy, 0, fx, fy, 7);
+    pg.addColorStop(0,   '#00ffff');
+    pg.addColorStop(1,   'transparent');
+    ctx.fillStyle = pg;
+    ctx.beginPath();
+    ctx.arc(fx, fy, 3 + intensity * 2.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+// ---- Quantum field background ----
+function drawQuantumField() {
+  ctx.fillStyle = '#000011';
+  ctx.fillRect(0, 0, W, H);
+
+  // Subtle fluctuation dots
+  for (let i = 0; i < 80; i++) {
+    const x  = (Math.sin(i * 2.4 + t * 0.003) * 0.5 + 0.5) * W;
+    const y  = (Math.cos(i * 1.7 + t * 0.002) * 0.5 + 0.5) * H;
+    const op = Math.sin(t * 0.008 + x * 0.02 + y * 0.02) * 0.025 + 0.03;
+    ctx.fillStyle = `rgba(0,255,255,${op.toFixed(4)})`;
+    ctx.beginPath();
+    ctx.arc(x, y, 1, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+// ---- Main draw loop ----
+function animate(ts) {
+  t = ts;
+  drawQuantumField();
+
+  CONNECTIONS.forEach(([ai, bi]) => drawConnection(NODES[ai], NODES[bi]));
+  NODES.forEach(n => drawNode(n));
+
+  // Slowly pulse all energies toward 0.5 when inactive
+  if (!isActive) {
+    NODES.forEach(n => {
+      const e = energies[n.id];
+      energies[n.id] = e + (0.5 - e) * 0.002;
+    });
+  }
+
+  rafId = requestAnimationFrame(animate);
+}
+
+// ---- Toggle activation ----
+function toggleActivation() {
+  isActive = !isActive;
+  const btn = document.getElementById('btnActivate');
+  document.getElementById('hud').classList.toggle('visible', isActive);
+  if (isActive) {
+    btn.textContent = '🧠 COGNITIVE PROCESSES ACTIVE';
+    btn.classList.add('on');
+    // Boost all nodes on activation
+    NODES.forEach(n => { energies[n.id] = Math.min((energies[n.id] ?? 0.5) + 0.3, 1.0); });
+  } else {
+    btn.textContent = '🔮 ACTIVATE BOOTSTRAP';
+    btn.classList.remove('on');
+  }
+}
+
+// ---- Sync from backend API ----
+async function syncFromAPI() {
+  try {
+    const res  = await fetch('/api/ai/cognitive/map');
+    if (!res.ok) return;
+    const data = await res.json();
+
+    // Update energies from API
+    for (const [ring, nodes] of Object.entries(data.nodes_by_ring || {})) {
+      for (const node of nodes) {
+        if (energies.hasOwnProperty(node.id)) {
+          energies[node.id] = node.energy_level;
+        }
+      }
+    }
+
+    // Update ethics gate
+    const gate = data.ethics_gate?.gate_status || 'GREEN';
+    gateStatus = gate;
+    const gateEl = document.getElementById('gateValue');
+    gateEl.className = `gate-${gate.toLowerCase()}`;
+    gateEl.textContent = gate === 'GREEN'  ? 'GREEN ✓' :
+                         gate === 'YELLOW' ? 'YELLOW ⚠' : 'RED ✗';
+
+  } catch (_) { /* silent — API may be offline */ }
+}
+
+// ---- Canvas mouse hover ----
+canvas.addEventListener('mousemove', e => {
+  const rect   = canvas.getBoundingClientRect();
+  const scaleX = W / rect.width;
+  const scaleY = H / rect.height;
+  const mx     = (e.clientX - rect.left) * scaleX;
+  const my     = (e.clientY - rect.top)  * scaleY;
+
+  hoveredNode = null;
+  for (const node of NODES) {
+    const dist = Math.hypot(mx - node.x, my - node.y);
+    if (dist <= node.r * 2) {
+      hoveredNode = node.id;
+      const energy = (energies[node.id] ?? 0.5);
+      document.getElementById('nodeInfo').innerHTML =
+        `<span class="node-label">${node.label}</span> &nbsp;·&nbsp; ` +
+        `Ring: <b>${node.ring}</b> &nbsp;·&nbsp; ` +
+        `Energy: <span class="node-energy">${(energy * 100).toFixed(1)}%</span>`;
+      break;
+    }
+  }
+  if (!hoveredNode) {
+    document.getElementById('nodeInfo').textContent = 'Hover over a node to see details.';
+  }
+});
+
+canvas.addEventListener('mouseleave', () => {
+  hoveredNode = null;
+  document.getElementById('nodeInfo').textContent = 'Hover over a node to see details.';
+});
+
+// ---- Boot ----
+animate(0);
+syncFromAPI();
+setInterval(syncFromAPI, 8000);  // sync every 8 seconds
+</script>
+</body>
+</html>
