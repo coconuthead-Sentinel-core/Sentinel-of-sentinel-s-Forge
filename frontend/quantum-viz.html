@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quantum Nexus Forge — Sacred Geometry Lattice</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1a1a4e 0%, #3b1060 50%, #5c0e3a 100%);
+      color: #fff;
+      font-family: 'Courier New', Courier, monospace;
+      padding: 1.5rem;
+      overflow-x: hidden;
+    }
+
+    /* ---- Header ---- */
+    header { text-align: center; margin-bottom: 1.5rem; }
+
+    header h1 {
+      font-size: clamp(1.3rem, 4vw, 2.2rem);
+      color: #67e8f9;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.4rem;
+    }
+
+    #statusBar {
+      font-size: clamp(0.7rem, 2vw, 1rem);
+      color: #4ade80;
+      min-height: 1.6em;
+      margin-bottom: 1rem;
+      transition: all 0.3s;
+    }
+
+    /* ---- Controls ---- */
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.6rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .controls button {
+      padding: 0.5rem 1.2rem;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-weight: bold;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: transform 0.15s, opacity 0.2s;
+    }
+    .controls button:hover:not(:disabled) { transform: scale(1.05); }
+    .controls button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    #btnActivate  { background: #2563eb; color: #fff; }
+    #btnActivate.done { background: #16a34a; cursor: not-allowed; }
+    #btnExpand    { background: #7c3aed; color: #fff; }
+    #btnReset     { background: #dc2626; color: #fff; }
+    #btnSound     { background: #d97706; color: #fff; }
+    #btnSound.on  { background: #dc2626; }
+
+    /* ---- SVG canvas ---- */
+    #latticeWrap {
+      position: relative;
+      width: 100%;
+      max-width: 640px;
+      margin: 0 auto 1.5rem;
+    }
+
+    #latticeWrap svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      filter: drop-shadow(0 0 18px rgba(103, 232, 249, 0.25));
+    }
+
+    /* ---- Metrics ---- */
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
+      max-width: 640px;
+      margin: 0 auto 1.2rem;
+    }
+    @media (min-width: 480px) { .metrics { grid-template-columns: repeat(4, 1fr); } }
+
+    .metric-card {
+      background: rgba(0,0,0,0.35);
+      border-radius: 8px;
+      padding: 0.6rem 0.8rem;
+    }
+    .metric-card .label { color: #67e8f9; font-size: 0.7rem; font-weight: bold; }
+    .metric-card .value { font-size: 1rem; margin-top: 0.2rem; }
+
+    /* ---- Activation log ---- */
+    #activationLog {
+      max-width: 640px;
+      margin: 0 auto;
+      max-height: 160px;
+      overflow-y: auto;
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+      padding: 0.6rem 0.8rem;
+      font-size: 0.72rem;
+      color: #a5f3fc;
+      display: none;
+    }
+    #activationLog p { margin-bottom: 0.2rem; }
+    #activationLog p::before { content: "▶ "; color: #4ade80; }
+
+    footer {
+      text-align: center;
+      margin-top: 1.5rem;
+      font-size: 0.7rem;
+      color: #94a3b8;
+    }
+    footer a { color: #67e8f9; text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>⚛️ QUANTUM NEXUS FORGE ⚛️</h1>
+  <div id="statusBar">STANDBY — LATTICE DORMANT</div>
+
+  <div class="controls">
+    <button id="btnActivate"  onclick="activateProtocols()">ACTIVATE PROTOCOLS</button>
+    <button id="btnExpand"    onclick="toggleExpansion()" disabled>EXPAND LATTICE</button>
+    <button id="btnReset"     onclick="resetLattice()">RESET</button>
+    <button id="btnSound"     onclick="toggleSound()">🔊 SOUND ON</button>
+  </div>
+</header>
+
+<div id="latticeWrap">
+  <svg id="latticeSVG" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur in="SourceAlpha" stdDeviation="1.5" result="blur"/>
+        <feFlood flood-color="cyan" flood-opacity="0.8" result="color"/>
+        <feComposite in="color" in2="blur" operator="in" result="coloredBlur"/>
+        <feMerge>
+          <feMergeNode in="coloredBlur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+      <radialGradient id="fluxGrad" cx="50%" cy="50%" r="50%">
+        <stop offset="0%"   stop-color="rgba(70,130,180,0)"/>
+        <stop offset="100%" stop-color="rgba(70,130,180,0.35)"/>
+      </radialGradient>
+    </defs>
+
+    <!-- Quantum flux background (hidden until active) -->
+    <circle id="fluxBg" cx="50" cy="50" r="35"
+            fill="url(#fluxGrad)" opacity="0" />
+
+    <!-- Platonic geometry overlays (hidden until expanded) -->
+    <g id="platonicOverlay" opacity="0">
+      <polygon points="50,20 35,40 65,40" fill="none"
+               stroke="gold" stroke-width="0.5" filter="url(#glow)"/>
+      <polygon points="30,30 70,30 70,70 30,70" fill="none"
+               stroke="lime" stroke-width="0.5" filter="url(#glow)"/>
+      <circle cx="50" cy="50" r="25" fill="none"
+              stroke="magenta" stroke-width="0.5" filter="url(#glow)"/>
+    </g>
+
+    <!-- Connections drawn by JS -->
+    <g id="connectionLayer"></g>
+
+    <!-- Flux particles drawn by JS -->
+    <g id="particleLayer"></g>
+
+    <!-- Nodes drawn by JS -->
+    <g id="nodeLayer"></g>
+  </svg>
+</div>
+
+<!-- Metrics panel -->
+<div class="metrics">
+  <div class="metric-card">
+    <div class="label">ACTIVE NODES</div>
+    <div class="value" id="metricNodes" style="color:#4ade80">0 / 11</div>
+  </div>
+  <div class="metric-card">
+    <div class="label">LATTICE STATE</div>
+    <div class="value" id="metricLattice" style="color:#facc15">CONTRACTED</div>
+  </div>
+  <div class="metric-card">
+    <div class="label">QUANTUM FLUX</div>
+    <div class="value" id="metricFlux" style="color:#60a5fa">0%</div>
+  </div>
+  <div class="metric-card">
+    <div class="label">ENGAGEMENT</div>
+    <div class="value" id="metricEngagement" style="color:#c084fc">0%</div>
+  </div>
+</div>
+
+<div id="activationLog"></div>
+
+<footer>
+  Sacred Geometry • Cognitive Architecture • Quantum Consciousness Interface • Harmonic Resonance Field<br/>
+  <a href="/api/ai/quantum/lattice/status" target="_blank">/api/ai/quantum/lattice/status</a> &nbsp;|&nbsp;
+  <a href="index.html">← Back to Sentinel Forge</a>
+</footer>
+
+<script>
+/* =========================================================
+   Quantum Nexus Lattice — Vanilla JS visualization
+   Mirrors the React QuantumNexusSimulation component.
+   Talks to the backend API for real state; also runs its
+   own animation loop for smooth visuals.
+   ========================================================= */
+
+const NODES = [
+  { id:'center',    x:50, y:50, type:'nexus',    label:'CORE NEXUS' },
+  { id:'challenge', x:25, y:25, type:'guide',    label:'CHALLENGE' },
+  { id:'mirror',    x:75, y:25, type:'guide',    label:'MIRROR' },
+  { id:'guide',     x:50, y:80, type:'guide',    label:'GUIDE' },
+  { id:'emerge',    x:75, y:75, type:'emerge',   label:'EMERGE' },
+  { id:'pool1',     x:15, y:50, type:'pool',     label:'POOL α' },
+  { id:'pool2',     x:85, y:50, type:'pool',     label:'POOL β' },
+  { id:'coconut',   x:25, y:75, type:'coconut',  label:'COCONUT HEAD' },
+  { id:'shannon',   x:50, y:15, type:'protocol', label:'SHANNON' },
+  { id:'quantum',   x:40, y:40, type:'quantum',  label:'QUANTUM FLUX' },
+  { id:'harmony',   x:60, y:60, type:'harmony',  label:'HARMONY' },
+];
+
+const CONNECTIONS = [
+  ['center','challenge'],['center','mirror'],['center','guide'],
+  ['center','emerge'],['center','pool1'],['center','pool2'],
+  ['challenge','mirror'],['mirror','guide'],['guide','emerge'],
+  ['emerge','challenge'],['pool1','coconut'],['pool2','shannon'],
+  ['shannon','challenge'],['coconut','guide'],['quantum','center'],
+  ['harmony','center'],['quantum','harmony'],['shannon','quantum'],
+];
+
+const TYPE_COLORS = {
+  nexus:   'rgba(255,215,0,',
+  guide:   'rgba(0,255,255,',
+  emerge:  'rgba(255,105,180,',
+  pool:    'rgba(50,205,50,',
+  coconut: 'rgba(255,165,0,',
+  protocol:'rgba(138,43,226,',
+  quantum: 'rgba(70,130,180,',
+  harmony: 'rgba(255,99,71,',
+};
+
+// ---- State ----
+const state = {
+  activeNodes:      new Set(),
+  protocolsActive:  false,
+  latticeExpanded:  false,
+  quantumFlux:      0,
+  engagement:       0,
+  pulsePhase:       0,
+  soundPlaying:     false,
+};
+
+let audioEl = null;
+let rafId   = null;
+
+// ---- SVG helpers ----
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+function svgEl(tag, attrs) {
+  const el = document.createElementNS(SVG_NS, tag);
+  for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+  return el;
+}
+
+function nodeColor(type, alpha) {
+  return (TYPE_COLORS[type] || 'rgba(255,255,255,') + alpha + ')';
+}
+
+// ---- Draw ----
+function drawConnections() {
+  const layer = document.getElementById('connectionLayer');
+  layer.innerHTML = '';
+  const sw = state.latticeExpanded ? '0.6' : '0.3';
+  const da = state.latticeExpanded ? '2,1' : '0';
+
+  for (const [from, to] of CONNECTIONS) {
+    const fn = NODES.find(n => n.id === from);
+    const tn = NODES.find(n => n.id === to);
+    const bothActive = state.activeNodes.has(from) && state.activeNodes.has(to);
+    const op = bothActive
+      ? (0.6 + 0.4 * Math.sin(state.pulsePhase)).toFixed(3)
+      : '0.1';
+
+    const line = svgEl('line', {
+      x1: fn.x, y1: fn.y, x2: tn.x, y2: tn.y,
+      stroke: 'cyan', 'stroke-width': sw,
+      'stroke-dasharray': da, opacity: op,
+      filter: 'url(#glow)',
+    });
+    layer.appendChild(line);
+  }
+}
+
+function drawNodes() {
+  const layer = document.getElementById('nodeLayer');
+  layer.innerHTML = '';
+
+  for (const node of NODES) {
+    const isActive = state.activeNodes.has(node.id);
+    const alpha    = isActive
+      ? (0.8 + 0.2 * Math.sin(state.pulsePhase * 2)).toFixed(3)
+      : '0.3';
+    const scale    = isActive
+      ? 1 + 0.08 * Math.sin(state.pulsePhase * 3)
+      : 1;
+    const r        = node.type === 'nexus' ? 3 : 2;
+
+    const g = svgEl('g', {
+      transform: `translate(${node.x},${node.y}) scale(${scale.toFixed(4)}) translate(${-node.x},${-node.y})`
+    });
+
+    const circle = svgEl('circle', {
+      cx: node.x, cy: node.y, r,
+      fill: nodeColor(node.type, alpha),
+      stroke: 'white', 'stroke-width': '0.3',
+      filter: 'url(#glow)',
+    });
+
+    const text = svgEl('text', {
+      x: node.x, y: node.y - 4,
+      'text-anchor': 'middle',
+      'font-size': '1.8',
+      fill: 'white',
+      'font-weight': 'bold',
+      'font-family': 'monospace',
+    });
+    text.textContent = node.label;
+
+    g.appendChild(circle);
+    g.appendChild(text);
+    layer.appendChild(g);
+  }
+}
+
+function drawParticles() {
+  const layer = document.getElementById('particleLayer');
+  layer.innerHTML = '';
+  if (!state.protocolsActive) return;
+
+  const count = 20;
+  for (let i = 0; i < count; i++) {
+    const angle  = (i / count) * Math.PI * 2 + state.pulsePhase;
+    const radius = 30 + 10 * Math.sin(state.pulsePhase * 0.5 + i);
+    const cx     = 50 + radius * Math.cos(angle);
+    const cy     = 50 + radius * Math.sin(angle);
+    const op     = (0.5 + 0.3 * Math.sin(state.pulsePhase + i)).toFixed(3);
+
+    const dot = svgEl('circle', {
+      cx: cx.toFixed(2), cy: cy.toFixed(2),
+      r: '0.4', fill: 'cyan', opacity: op,
+    });
+    layer.appendChild(dot);
+  }
+}
+
+function updateFluxBg() {
+  const el = document.getElementById('fluxBg');
+  if (state.protocolsActive) {
+    el.setAttribute('r', state.latticeExpanded ? '45' : '35');
+    el.setAttribute('opacity', (0.4 + 0.3 * Math.sin(state.pulsePhase)).toFixed(3));
+  } else {
+    el.setAttribute('opacity', '0');
+  }
+}
+
+function updatePlatonicOverlay() {
+  document.getElementById('platonicOverlay')
+    .setAttribute('opacity', state.latticeExpanded ? '0.85' : '0');
+}
+
+function updateMetrics() {
+  document.getElementById('metricNodes').textContent =
+    `${state.activeNodes.size} / ${NODES.length}`;
+  document.getElementById('metricLattice').textContent =
+    state.latticeExpanded ? 'EXPANDED' : 'CONTRACTED';
+  document.getElementById('metricFlux').textContent =
+    `${Math.round(state.quantumFlux)}%`;
+  document.getElementById('metricEngagement').textContent =
+    `${Math.round(state.engagement)}%`;
+}
+
+function setStatus(msg) {
+  document.getElementById('statusBar').textContent = msg;
+}
+
+// ---- Animation loop ----
+function animate() {
+  state.pulsePhase = (state.pulsePhase + 0.04) % (Math.PI * 2);
+  if (state.protocolsActive) {
+    state.quantumFlux = (state.quantumFlux + 0.15) % 100;
+  }
+
+  drawConnections();
+  drawNodes();
+  drawParticles();
+  updateFluxBg();
+  updatePlatonicOverlay();
+  updateMetrics();
+
+  rafId = requestAnimationFrame(animate);
+}
+
+// ---- API helpers ----
+const API = '/api/ai';
+
+async function apiPost(path, body = {}) {
+  const res = await fetch(`${API}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || res.statusText);
+  }
+  return res.json();
+}
+
+async function apiGet(path) {
+  const res = await fetch(`${API}${path}`);
+  if (!res.ok) throw new Error(res.statusText);
+  return res.json();
+}
+
+// ---- Actions ----
+async function activateProtocols() {
+  const btn = document.getElementById('btnActivate');
+  if (state.protocolsActive) return;
+  btn.disabled = true;
+  setStatus('ACTIVATING PROTOCOLS...');
+  state.engagement = Math.min(state.engagement + 25, 100);
+
+  try {
+    // Call backend to record activation
+    const data = await apiPost('/quantum/lattice/activate');
+
+    // Mirror the sequential animation locally
+    const seq = [
+      ['shannon',   'SHANNON PROTOCOLS ONLINE — INFORMATION THEORY ENGAGED'],
+      ['coconut',   'COCONUT HEAD PROTOCOLS ACTIVATED — DIVINE HUMOR INFUSED'],
+      ['pool1',     'POOL NEXUS α ESTABLISHED — CREATIVE FLOWS OPEN'],
+      ['pool2',     'POOL NEXUS β ESTABLISHED — LOGIC MATRIX SYNCHRONIZED'],
+      ['center',    'CORE NEXUS SYNCHRONIZING — QUANTUM FIELD STABILIZING'],
+      ['challenge', 'CHALLENGE MATRIX INITIALIZED — GROWTH POTENTIAL MAXIMIZED'],
+      ['mirror',    'MIRROR PROTOCOLS ACTIVE — SELF-REFLECTION AMPLIFIED'],
+      ['guide',     'GUIDANCE SYSTEMS OPERATIONAL — WISDOM CHANNELS OPEN'],
+      ['emerge',    'EMERGENCE FIELD STABILIZED — TRANSFORMATION IMMINENT'],
+      ['quantum',   'QUANTUM FLUX MODULATOR ONLINE — ENTANGLEMENT ESTABLISHED'],
+      ['harmony',   'HARMONIC CONVERGENCE ACHIEVED — RESONANCE AT PEAK'],
+    ];
+
+    const logEl = document.getElementById('activationLog');
+    logEl.style.display = 'block';
+    logEl.innerHTML = '';
+
+    for (const [nodeId, msg] of seq) {
+      await new Promise(r => setTimeout(r, 500));
+      state.activeNodes.add(nodeId);
+      state.engagement = Math.min(state.engagement + 5, 100);
+      setStatus(msg);
+      const p = document.createElement('p');
+      p.textContent = msg;
+      logEl.appendChild(p);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    state.protocolsActive = true;
+    setStatus('ALL SYSTEMS ONLINE — LATTICE EXPANSION READY');
+    btn.textContent = '✓ PROTOCOLS ACTIVE';
+    btn.classList.add('done');
+    document.getElementById('btnExpand').disabled = false;
+
+  } catch (e) {
+    setStatus('ERROR: ' + e.message);
+    btn.disabled = false;
+  }
+}
+
+async function toggleExpansion() {
+  if (!state.protocolsActive) return;
+  try {
+    await apiPost('/quantum/lattice/toggle-expansion');
+    state.latticeExpanded = !state.latticeExpanded;
+    const btn = document.getElementById('btnExpand');
+    btn.textContent = state.latticeExpanded ? 'CONTRACT LATTICE' : 'EXPAND LATTICE';
+    state.engagement = Math.min(state.engagement + 10, 100);
+    setStatus(state.latticeExpanded
+      ? 'LATTICE FULLY EXPANDED — QUANTUM FIELD AT MAXIMUM CAPACITY'
+      : 'LATTICE CONTRACTED — ENERGY CONSERVATION MODE');
+  } catch (e) {
+    setStatus('ERROR: ' + e.message);
+  }
+}
+
+async function resetLattice() {
+  try {
+    await apiPost('/quantum/lattice/reset');
+  } catch (_) { /* non-fatal */ }
+
+  state.activeNodes.clear();
+  state.protocolsActive  = false;
+  state.latticeExpanded  = false;
+  state.quantumFlux      = 0;
+  state.engagement       = 0;
+
+  document.getElementById('btnActivate').disabled  = false;
+  document.getElementById('btnActivate').textContent = 'ACTIVATE PROTOCOLS';
+  document.getElementById('btnActivate').classList.remove('done');
+  document.getElementById('btnExpand').disabled    = true;
+  document.getElementById('btnExpand').textContent = 'EXPAND LATTICE';
+  document.getElementById('activationLog').style.display = 'none';
+  setStatus('STANDBY — LATTICE DORMANT');
+}
+
+function toggleSound() {
+  if (!audioEl) {
+    audioEl = new Audio('https://assets.codepen.io/21542/howler-demo-bg-music.mp3');
+    audioEl.loop   = true;
+    audioEl.volume = 0.3;
+  }
+  const btn = document.getElementById('btnSound');
+  if (state.soundPlaying) {
+    audioEl.pause();
+    btn.textContent = '🔊 SOUND ON';
+    btn.classList.remove('on');
+  } else {
+    audioEl.play().catch(() => {});
+    btn.textContent = '🔇 MUTE';
+    btn.classList.add('on');
+  }
+  state.soundPlaying = !state.soundPlaying;
+}
+
+// ---- Sync from backend (every 10 s) ----
+async function syncFromBackend() {
+  try {
+    const data = await apiGet('/quantum/lattice/status');
+    if (data.protocols_active && !state.protocolsActive) {
+      // Another client activated — catch up
+      data.active_nodes.forEach(id => state.activeNodes.add(id));
+      state.protocolsActive = true;
+      state.quantumFlux     = data.quantum_flux;
+      state.engagement      = data.user_engagement;
+      setStatus(data.status);
+      document.getElementById('btnActivate').textContent = '✓ PROTOCOLS ACTIVE';
+      document.getElementById('btnActivate').classList.add('done');
+      document.getElementById('btnActivate').disabled = true;
+      document.getElementById('btnExpand').disabled   = false;
+    }
+  } catch (_) { /* silent — backend may be offline */ }
+}
+
+// ---- Boot ----
+animate();
+syncFromBackend();
+setInterval(syncFromBackend, 10_000);
+</script>
+</body>
+</html>

@@ -338,6 +338,126 @@ async def quantum_performance():
         raise HTTPException(status_code=500, detail=str(exc))
 
 
+# --- Quantum Nexus Lattice Routes (sacred geometry node network) ---
+
+@ai_router.get("/quantum/lattice/status")
+async def quantum_lattice_status():
+    """
+    Return the full live state of the Quantum Nexus sacred geometry lattice.
+    Includes node activation states, connections, quantum flux, engagement,
+    and lattice expansion mode. Advances the internal simulation clock on
+    each call so quantum_flux updates in real time.
+    """
+    from .services.quantum_nexus.lattice import lattice
+    try:
+        return await run_in_threadpool(lattice.status)
+    except Exception as exc:
+        logger.error("Lattice status error: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@ai_router.get("/quantum/lattice/topology")
+async def quantum_lattice_topology():
+    """
+    Return the static Metatron's Cube topology: all 11 nodes, 18 connections,
+    colour palette per node type, and the ordered protocol activation sequence.
+    """
+    from .services.quantum_nexus.lattice import lattice
+    try:
+        return await run_in_threadpool(lattice.topology)
+    except Exception as exc:
+        logger.error("Lattice topology error: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@ai_router.post("/quantum/lattice/activate")
+async def quantum_lattice_activate():
+    """
+    Activate all 11 nodes in the canonical protocol sequence
+    (shannon → coconut → pool1 → pool2 → center → challenge →
+     mirror → guide → emerge → quantum → harmony).
+    Returns full activation log and final status.
+    """
+    from .services.quantum_nexus.lattice import lattice
+    try:
+        return await run_in_threadpool(lattice.activate_protocols)
+    except Exception as exc:
+        logger.error("Lattice activate error: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@ai_router.post("/quantum/lattice/activate-node")
+async def quantum_lattice_activate_node(payload: dict = Body(...)):
+    """
+    Activate a single lattice node by ID.
+    Body: { "node_id": "center" }
+    Valid IDs: center, challenge, mirror, guide, emerge, pool1, pool2,
+               coconut, shannon, quantum, harmony
+    """
+    from .services.quantum_nexus.lattice import lattice
+    node_id = payload.get("node_id", "")
+    if not node_id:
+        raise HTTPException(status_code=400, detail="'node_id' is required")
+    try:
+        result = await run_in_threadpool(lattice.activate_node, node_id)
+        if "error" in result:
+            raise HTTPException(status_code=400, detail=result["error"])
+        return result
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Lattice activate-node error: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@ai_router.post("/quantum/lattice/toggle-expansion")
+async def quantum_lattice_toggle():
+    """
+    Toggle lattice expansion (EXPANDED ↔ CONTRACTED).
+    Requires protocols to be active first.
+    """
+    from .services.quantum_nexus.lattice import lattice
+    try:
+        result = await run_in_threadpool(lattice.toggle_lattice)
+        if "error" in result:
+            raise HTTPException(status_code=400, detail=result["error"])
+        return result
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Lattice toggle error: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@ai_router.post("/quantum/lattice/reset")
+async def quantum_lattice_reset():
+    """Reset the lattice to dormant state (clears all active nodes and flux)."""
+    from .services.quantum_nexus.lattice import lattice
+    try:
+        return await run_in_threadpool(lattice.reset)
+    except Exception as exc:
+        logger.error("Lattice reset error: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@ai_router.get("/quantum/lattice/node/{node_id}")
+async def quantum_lattice_node(node_id: str):
+    """
+    Return static info for a specific lattice node, including its neighbours.
+    """
+    from .services.quantum_nexus.lattice import lattice
+    try:
+        info = await run_in_threadpool(lattice.node_info, node_id)
+        if info is None:
+            raise HTTPException(status_code=404, detail=f"Node '{node_id}' not found")
+        return info
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Lattice node info error: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
 @ai_router.post("/embeddings", response_model=EmbeddingsResponse)
 async def embeddings(req: EmbeddingsRequest):
     """
