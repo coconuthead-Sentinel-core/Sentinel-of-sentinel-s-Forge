@@ -35,13 +35,19 @@ Most AI tools are built around a single model of thinking — linear, neurotypic
 
 | Metric | Target | Current |
 |--------|--------|---------|
-| Cognitive lenses implemented | 4 | 4 ✅ (ADHD, Autism, Dyslexia, Neurotypical) |
+| Cognitive lenses implemented | 5 | 5 ✅ (ADHD, Autism, Dyslexia, Dyscalculia, Neurotypical) |
 | Three-zone memory system | Active | Active ✅ |
 | Glyph processing engine | Active | Active ✅ |
-| Evaluation score (Overall) | ≥ 3.5 / 5.0 | Production-ready ✅ |
+| Evaluation score (Relevance) | ≥ 3.8 / 5.0 | **3.97** ✅ |
+| Evaluation score (Coherence) | ≥ 3.8 / 5.0 | **3.94** ✅ |
+| Evaluation score (Groundedness) | ≥ 3.8 / 5.0 | **3.96** ✅ |
+| Evaluation score (Overall) | ≥ 3.9 / 5.0 | **3.96** ✅ |
+| Evaluation prompts | 80 queries | 80 ✅ (20 per lens) |
 | CI pipeline passing | Yes | Yes ✅ |
-| Azure OpenAI integration | Optional | Configured ✅ |
-| Unit tests passing | Yes | Yes ✅ |
+| Azure OpenAI o4-mini connected | Yes | Yes ✅ (sbryank1234-7203-resource) |
+| Unit tests passing | Yes | Yes ✅ (14 tests) |
+| API endpoints (REST) | ≥ 10 | 40+ ✅ |
+| Cognitive orchestration latency | < 2,000ms | avg 91.4ms ✅ |
 
 ---
 
@@ -60,8 +66,8 @@ Most AI tools are built around a single model of thinking — linear, neurotypic
 | Constraint | Detail |
 |------------|--------|
 | **Runtime** | Python 3.11+ required |
-| **AI Model** | Azure OpenAI (optional) — mock mode available |
-| **Architecture** | Single-file cognitive engine (`quantum_nexus_forge_v5_2_enhanced.py`) |
+| **AI Model** | Azure OpenAI o4-mini — `sbryank1234-7203-resource` — API version 2025-01-01-preview |
+| **Architecture** | FastAPI backend (`backend/`) + 5 cognitive lens services + 3 AI sub-protocols (EventMind, Onset, VoidLogic) |
 | **Memory** | Three-zone in-memory system (resets on restart) |
 | **Platform** | Windows and Chromebook compatible |
 | **Accessibility** | Must remain accessible to non-technical users |
