@@ -106,7 +106,7 @@ class CognitiveOrchestrator:
                 deployment=deployment,
                 messages=messages,
                 temperature=params.get("temperature", 0.7),
-                max_tokens=params.get("max_tokens"),
+                max_tokens=params.get("max_completion_tokens"),
             )
         except Exception as exc:
             logger.error("AI adapter error in CognitiveOrchestrator: %s", exc)

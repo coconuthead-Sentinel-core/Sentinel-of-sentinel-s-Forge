@@ -21,7 +21,7 @@ SYSTEM_PROMPT = (
 
 GENERATION_PARAMS: Dict[str, Any] = {
     "temperature": 0.2,      # Low temperature for consistency and precision
-    "max_tokens": 1200,      # Longer allowance for complete step-by-step output
+    "max_completion_tokens": 1200,      # Longer allowance for complete step-by-step output
 }
 
 

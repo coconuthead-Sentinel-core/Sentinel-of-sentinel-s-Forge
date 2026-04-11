@@ -101,7 +101,7 @@ class EventMindEngine:
                     deployment=settings.AOAI_CHAT_DEPLOYMENT,
                     messages=messages,
                     temperature=0.75,
-                    max_tokens=900,
+                    max_tokens=900,  # passed to adapter which maps to max_completion_tokens
                 )
             except Exception as exc:
                 logger.error("EventMind AI adapter error: %s", exc)

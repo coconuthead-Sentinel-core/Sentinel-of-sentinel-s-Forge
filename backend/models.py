@@ -47,7 +47,7 @@ class AzureOpenAIAdapter(BaseAdapter):
             resp = self._client.chat.completions.create(
                 model=self.deployment,
                 messages=[{"role": "user", "content": prompt}],
-                max_tokens=kwargs.get("max_tokens", 1024),
+                max_completion_tokens=kwargs.get("max_completion_tokens", 1024),
             )
             return resp.choices[0].message.content or ""
         except Exception as e:
@@ -78,7 +78,7 @@ class ClaudeAdapter(BaseAdapter):
         try:
             resp = self._client.messages.create(
                 model=kwargs.get("model", "claude-sonnet-4-20250514"),
-                max_tokens=kwargs.get("max_tokens", 1024),
+                max_tokens=kwargs.get("max_tokens", 1024),  # Claude uses max_tokens
                 messages=[{"role": "user", "content": prompt}],
             )
             return resp.content[0].text if resp.content else ""
@@ -109,7 +109,7 @@ class ChatGPTAdapter(BaseAdapter):
             resp = self._client.chat.completions.create(
                 model=kwargs.get("model", "gpt-4"),
                 messages=[{"role": "user", "content": prompt}],
-                max_tokens=kwargs.get("max_tokens", 1024),
+                max_completion_tokens=kwargs.get("max_completion_tokens", 1024),
             )
             return resp.choices[0].message.content or ""
         except Exception as e:

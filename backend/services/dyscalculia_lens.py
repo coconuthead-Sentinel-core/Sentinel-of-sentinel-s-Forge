@@ -27,7 +27,7 @@ SYSTEM_PROMPT = (
 
 GENERATION_PARAMS: Dict[str, Any] = {
     "temperature": 0.6,
-    "max_tokens":  900,
+    "max_completion_tokens":  900,
 }
 
 

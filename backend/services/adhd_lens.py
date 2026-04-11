@@ -20,7 +20,7 @@ SYSTEM_PROMPT = (
 
 GENERATION_PARAMS: Dict[str, Any] = {
     "temperature": 0.8,      # Slightly higher creativity keeps engagement up
-    "max_tokens": 600,       # Cap to prevent walls of text
+    "max_completion_tokens": 600,       # Cap to prevent walls of text
 }
 
 

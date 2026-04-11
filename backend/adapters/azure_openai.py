@@ -101,7 +101,7 @@ class AzureOpenAIAdapter:
         if temperature is not None:
             body["temperature"] = temperature
         if max_tokens is not None:
-            body["max_tokens"] = max_tokens
+            body["max_completion_tokens"] = max_tokens  # required for o4-mini, GPT-5 models
         if tools:
             body["tools"] = tools
         if tool_choice:

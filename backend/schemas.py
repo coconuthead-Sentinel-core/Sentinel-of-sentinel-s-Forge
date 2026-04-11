@@ -144,7 +144,7 @@ class ChatMessage(BaseModel):
 class ChatRequest(BaseModel):
     messages: conlist(ChatMessage, min_length=1)
     temperature: Optional[float] = Field(default=0.2, ge=0.0, le=2.0)
-    max_tokens: Optional[int] = Field(default=None, ge=1)
+    max_completion_tokens: Optional[int] = Field(default=None, ge=1)  # required for o4-mini / GPT-5 models
     tools: Optional[List[Dict[str, Any]]] = None
     tool_choice: Optional[Union[str, Dict[str, Any]]] = None
     response_format: Optional[Dict[str, Any]] = None

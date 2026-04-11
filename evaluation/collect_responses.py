@@ -30,7 +30,7 @@ def collect_response(base_url: str, query: str, context: str, api_key: str = Non
             {"role": "user", "content": query}
         ],
         "temperature": 0.7,
-        "max_tokens": 500
+        "max_completion_tokens": 500
     }
     
     try:

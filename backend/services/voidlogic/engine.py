@@ -174,7 +174,7 @@ class VoidLogicEngine:
                         {"role": "user",    "content": text},
                     ],
                     temperature = 0.65,
-                    max_tokens  = 1000,
+                    max_completion_tokens  = 1000,
                 )
             except Exception as exc:
                 ai_response = f"[VoidLogic AI error: {exc}]"

@@ -121,7 +121,7 @@ class OnsetProtocol:
                 deployment=settings.AOAI_CHAT_DEPLOYMENT,
                 messages=messages,
                 temperature=0.6,
-                max_tokens=1200,
+                max_tokens=1200,  # passed to adapter which maps to max_completion_tokens
             )
         except Exception as exc:
             logger.error("Onset Protocol AI adapter error: %s", exc)
