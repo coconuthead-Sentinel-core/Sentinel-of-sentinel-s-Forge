@@ -1,10 +1,37 @@
-# QUANTUM NEXUS FORGE — SDLC DOCUMENTATION SUITE
+﻿# Sentinel-of-sentinel-s-Forge â€” SDLC DOCUMENTATION SUITE
 
 **P1-BIZCASE-002 | Phase: 1-Initiation**
 
 # Business Case Document
 
-**Status: COMPLETED — Filled from codebase review 2026-03-24**
+**Status: COMPLETED - Updated with EARP Project 4 integration directive on 2026-04-14**
+
+## 1A. EARP Project 4 Integrative Addendum (Field of Light Framework)
+
+This business case is expanded to include Field of Light / Recursive Intelligence Mapping for EARP Project 4. The framework is treated as a universal ethical standard, not a religious doctrine.
+
+### Business and Policy Position
+- Human-centric and culturally agnostic by design.
+- Global workforce-safe posture for mixed religious and ethnic environments.
+- Enterprise-compatible with internal ethics and HR guidelines.
+
+### Required Commercial and Technical Framing
+1. Recursive Triangulation:
+- Internal logic filters balance logic, creativity, and emotion to maintain neutral decision center behavior.
+
+2. Scientific Neutrality:
+- Recursive Node Expansion is documented as a mathematical context-management method suitable for university-level scrutiny.
+
+3. Corporate Readiness:
+- Framework supports adoption in regulated and multinational enterprises without requiring culture-specific assumptions.
+
+4. Ethical Firewall:
+- Field of Light acts as a guiding layer for transparency, safety, and non-harmful interaction constraints.
+
+### Value Impact
+- Reduces risk of culturally insensitive output incidents.
+- Improves procurement confidence for enterprise buyers requiring inclusive AI governance language.
+- Strengthens market viability for global deployment.
 
 ---
 
@@ -18,9 +45,9 @@ All minimum required fields are filled. This document is sufficient for an LLM o
 
 | Field | Value |
 |-------|-------|
-| **Project Name** | Sentinel Forge (Quantum Nexus Forge) |
+| **Project Name** | Sentinel Forge (Sentinel-of-sentinel-s-Forge) |
 | **Author** | Claude Code (Engineering Review) |
-| **Date** | 2026-03-24 |
+| **Date** | 2026-04-14 |
 | **Related Charter** | P1-CHARTER-001 |
 
 ---
@@ -131,7 +158,7 @@ The platform code is production-ready with all core systems implemented and test
 
 ## 9. LLM Prompt for Next Steps (Copy/Paste)
 
-> You are the project planning assistant. Using the filled sections of this document, produce: (1) a 1-page project overview, (2) a phased roadmap with milestones, (3) a prioritized backlog of 20–40 work items with acceptance criteria, (4) key risks with mitigations, and (5) open questions to resolve. All required fields are filled.
+> You are the project planning assistant. Using the filled sections of this document, produce: (1) a 1-page project overview, (2) a phased roadmap with milestones, (3) a prioritized backlog of 20â€“40 work items with acceptance criteria, (4) key risks with mitigations, and (5) open questions to resolve. All required fields are filled.
 
 ---
 
@@ -139,6 +166,7 @@ The platform code is production-ready with all core systems implemented and test
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1 | 2026-04-14 | Claude Code (Engineering) | Added EARP Project 4 Field of Light inclusivity, scientific neutrality, and corporate readiness framing |
 | 1.0 | 2026-03-24 | Claude Code (Engineering) | Completed all sections from codebase review |
 
 ---
@@ -149,3 +177,5 @@ The platform code is production-ready with all core systems implemented and test
 |------|------|-----------|------|
 | Shannon Bryan Kelly | Founder / Product Owner | _Pending_ | _Pending_ |
 | | Engineering Lead | _Pending_ | _Pending_ |
+
+

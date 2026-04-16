@@ -27,20 +27,25 @@
     └─────────┬──┘  └─────────┬──────────┘
               │               │
               │    ┌──────────▼────────────────────────┐
-              │    │      Cognitive Orchestrator        │
+              │    │      CognitiveLensRouter           │
               │    │  backend/services/                 │
               │    │  cognitive_orchestrator.py         │
               │    │                                    │
-              │    │  ┌─────────┐  ┌───────────────┐   │
-              │    │  │EventMind│  │Onset Protocol │   │
-              │    │  │ engine  │  │  protocol.py  │   │
-              │    │  └─────────┘  └───────────────┘   │
+              │    │  ┌──────────────────┐  ┌────────────────────────┐  │
+              │    │  │SignalProcessing   │  │QueryProcessingPipeline │  │
+              │    │  │Engine            │  │  protocol.py           │  │
+              │    │  └──────────────────┘  └────────────────────────┘  │
               │    │                                    │
               │    │  ┌─────────────────────────────┐  │
-              │    │  │    VoidLogic 5.0 + IWE       │  │
-              │    │  │    voidlogic/engine.py        │  │
-              │    │  │  CNO→CRFE→Tesseract→A1→BWT→  │  │
-              │    │  │  STVL→NexusTag→Overlay       │  │
+              │    │  │  SymbolicReasoningEngine     │  │
+              │    │  │  voidlogic/engine.py         │  │
+              │    │  │  ComputeNodeRouter→          │  │
+              │    │  │  RecursiveFeedbackEngine→    │  │
+              │    │  │  ContextMemoryStore→         │  │
+              │    │  │  SymbolicMemoryIndex→        │  │
+              │    │  │  KnowledgeBridge→            │  │
+              │    │  │  TopologyRenderer→           │  │
+              │    │  │  OutputTaggingSystem         │  │
               │    │  └─────────────────────────────┘  │
               │    │                                    │
               │    │  Neurodivergent Lens Processor     │
@@ -77,7 +82,7 @@
 | Router | Prefix | Auth | Purpose |
 |--------|--------|------|---------|
 | `api_router` | `/api` | None | System health, metrics, notes, glyph processing, COG engine |
-| `ai_router` | `/api/ai` | X-API-Key | Cognitive AI: chat, EventMind, Onset, VoidLogic, Quantum |
+| `ai_router` | `/api/ai` | X-API-Key | Cognitive AI: chat, SignalProcessing, QueryProcessing, SymbolicReasoning, Quantum |
 | `auth_router` | `/api` | — | JWT authentication endpoints |
 | `billing_router` | `/api` | — | Stripe billing endpoints |
 | `ws_router` | (root) | None | WebSocket streams: `/ws/cognitive`, `/ws/metrics` |
@@ -91,23 +96,23 @@
 | FastAPI app | `backend/main.py` | App factory, middleware, router mounting, lifespan |
 | API routes | `backend/api.py` | All REST and WebSocket route handlers |
 | Schemas | `backend/schemas.py` | Pydantic request/response models |
-| Cognitive Orchestrator | `backend/services/cognitive_orchestrator.py` | Lens selection → prompt assembly → AI call → post-processing → memory |
+| CognitiveLensRouter | `backend/services/cognitive_orchestrator.py` | Lens selection → prompt assembly → AI call → post-processing → memory |
 | ADHD Lens | `backend/services/adhd_lens.py` | Rapid burst processing, 600 tokens, temperature 0.9 |
 | Autism Lens | `backend/services/autism_lens.py` | Precision pattern, 1200 tokens, temperature 0.3 |
 | Dyslexia Lens | `backend/services/dyslexia_lens.py` | Spatial/symbol, 700 tokens, temperature 0.7 |
 | Dyscalculia Lens | `backend/services/dyscalculia_lens.py` | Alternative math logic, 900 tokens, temperature 0.6 |
 | Neurotypical Lens | `backend/services/neurotypical_lens.py` | Baseline, 1000 tokens, temperature 0.7 |
-| EventMind Engine | `backend/services/eventmind/engine.py` | CorePulse→Sensor→Triangulation→Fulcrum→ReturnVector pipeline |
-| Onset Protocol | `backend/services/onset/protocol.py` | Snowflake→Rainfall→Mist→SphericalMemory→Spiderweb pipeline |
-| VoidLogic Engine | `backend/services/voidlogic/engine.py` | CNO→CRFE→Tesseract→A1→BWT→STVL→NexusTag master pipeline |
-| VoidLogic CNO | `backend/services/voidlogic/cno.py` | Geometric node fabric routing (Tetrahedral/Octahedral/Icosahedral) |
-| VoidLogic CRFE | `backend/services/voidlogic/crfe.py` | Recursive feedback, paradox detection, emergence amplification |
-| VoidLogic Tesseract | `backend/services/voidlogic/tesseract_storage.py` | 4D hypercube symbolic memory |
-| VoidLogic A1 | `backend/services/voidlogic/a1_filing.py` | Tag-based symbolic filing |
-| VoidLogic BWT | `backend/services/voidlogic/bridge_wisdom.py` | Cross-domain wisdom thread reinforcement |
-| VoidLogic STVL | `backend/services/voidlogic/stvl.py` | Symbolic Topology Visualization Layer |
-| VoidLogic Nexus Tag | `backend/services/voidlogic/nexus_tag.py` | Auto-tagging engine |
-| VoidLogic Overlay | `backend/services/voidlogic/overlay_protocol.py` | Cognitive bias overlay (STANDARD/MYTHIC/LOGICAL/etc.) |
+| SignalProcessingEngine | `backend/services/eventmind/engine.py` | SignalStrengthAnalyzer→SignalSensor→MultiPerspectiveAnalyzer→ContextReframer→ResponseRouter |
+| QueryProcessingPipeline | `backend/services/onset/protocol.py` | QueryDecomposer→StreamIngester→PredictiveRetriever→MultiLayerMemoryStore→KnowledgeGraph |
+| SymbolicReasoningEngine | `backend/services/voidlogic/engine.py` | ComputeNodeRouter→RecursiveFeedbackEngine→ContextMemoryStore→SymbolicMemoryIndex→KnowledgeBridge→TopologyRenderer→OutputTaggingSystem |
+| ComputeNodeRouter | `backend/services/voidlogic/cno.py` | Geometric node fabric routing and load balancing |
+| RecursiveFeedbackEngine | `backend/services/voidlogic/crfe.py` | Recursive pattern detection, paradox resolution, emergence amplification |
+| ContextMemoryStore | `backend/services/voidlogic/tesseract_storage.py` | Multi-dimensional binary-addressed session memory |
+| SymbolicMemoryIndex | `backend/services/voidlogic/a1_filing.py` | Tag-based memory filing with drift monitoring |
+| CrossDomainBridgeWeaver | `backend/services/voidlogic/bridge_wisdom.py` | Cross-domain knowledge bridge thread reinforcement |
+| TopologyRenderer | `backend/services/voidlogic/stvl.py` | Topology visualization data layer |
+| OutputTaggingSystem | `backend/services/voidlogic/nexus_tag.py` | Structured metadata auto-tagging |
+| OverlayProtocol | `backend/services/voidlogic/overlay_protocol.py` | Processing bias overlay (STANDARD/ANALYTICAL/BALANCED/etc.) |
 | Azure OpenAI Adapter | `backend/adapters/azure_openai.py` | Azure OpenAI o4-mini calls, `max_completion_tokens` mapping |
 | Mock Adapter | `backend/mock_adapter.py` | Development fallback |
 | Cosmos Repository | `backend/infrastructure/cosmos_repo.py` | Note persistence via Azure Cosmos DB |
@@ -147,22 +152,22 @@
 }
 ```
 
-### VoidLogic Report
+### Symbolic Reasoning Report
 ```python
 {
   "session":           int,    # increments per call
   "complexity":        float,  # 0–1 from text heuristic
   "biased_complexity": float,  # overlay-adjusted (60/40 blend)
-  "domain":            str,    # "logic"|"emotion"|"pattern"|"system"|"myth"|"general"
+  "domain":            str,    # "logic"|"emotion"|"pattern"|"system"|"narrative"|"general"
   "cno":               dict,   # routing tier, node count, path
   "crfe": {
     "rsml":     {"score": float, "matched_markers": list[str]},
     "emergence": {"amplified": bool, "score": float, "emergent_pattern": str},
     "system_health": "STABLE|AMPLIFIED|EMERGING|CRITICAL"
   },
-  "tesseract":  {"stored": bool, "cell_id": str, "resonance": float},
-  "a1_filing":  {"tag": str, "domain": str, "confidence": float},
-  "bridge":     {"source": str, "target": str, "strength": float},
+  "context_memory": {"stored": bool, "cell_id": str, "coherence_score": float},
+  "symbolic_memory": {"tag": str, "domain": str, "confidence": float},
+  "bridge":          {"source": str, "target": str, "strength": float},
   "system_health": str,
   "active_overlay": str
 }
@@ -191,7 +196,7 @@
 ```
 1.  Request arrives → api_key_guard validates X-API-Key header
 2.  ChatRequest parsed and validated by Pydantic schema
-3.  CognitiveOrchestrator.process() called with user_message + profile
+3.  CognitiveLensRouter.process() called with user_message + profile
 4.  _resolve_lens(profile) selects lens module (default: neurotypical)
 5.  lens.SYSTEM_PROMPT prepended to messages
 6.  lens.GENERATION_PARAMS supplies temperature + max_completion_tokens
@@ -203,45 +208,45 @@
 10. ChatResponse returned with lens_metadata + latency_ms
 ```
 
-### VoidLogic Full Pipeline (POST /api/ai/voidlogic/process)
+### Symbolic Reasoning Pipeline (POST /api/ai/voidlogic/process)
 ```
 1.  Input text received
 2.  _estimate_complexity(text) → float 0–1
 3.  _detect_domain(text) → domain string
 4.  overlay.get_complexity_bias() → biased_complexity (60/40 blend)
-5.  cno.route_payload(text, biased_complexity) → CNO routing result
+5.  cno.route_payload(text, biased_complexity) → ComputeNodeRouter routing result
 6.  crfe.process(text) → RSML score, paradox, emergence, system_health
-7.  tesseract.store(content, domain, complexity, resonance) → cell_id
-8.  a1.file(content, tag, domain, confidence) → filing record
-9.  bwt.bridge(domain, "general") → wisdom thread reinforcement
+7.  context_memory.store(content, domain, complexity, coherence_score) → cell_id
+8.  a1.file(content, tag, domain, confidence) → symbolic memory record
+9.  knowledge_bridge.bridge(domain, "general") → cross-domain thread reinforcement
 10. stvl.lite_render() → topology snapshot
 11. AzureOpenAIAdapter.complete() called with system prompt from _build_system_prompt()
 12. nexus_tag.auto_tag(result) → tags appended
-13. Full report returned: ai_response + voidlogic_report + topology_snapshot + latency_ms
+13. Full report returned: ai_response + reasoning_report + topology_snapshot + latency_ms
 ```
 
-### EventMind Pipeline (POST /api/ai/eventmind/chat)
+### Signal Processing Pipeline (POST /api/ai/eventmind/chat)
 ```
-1.  CorePulse.measure(text)           → score, state, hum
-2.  CoreSensor.sense(text)            → urgency_level, triggers
-3.  TriangulationTelescope.analyze()  → triangulated_score, perspectives
-4.  FulcrumLens.reframe(text)         → reframe string, confidence
-5.  ReturnVector.compute(scores...)   → delivery_mode, system_prompt_prefix
-6.  If delivery_mode == "SILENT": return hum as response (no AI call)
-7.  Else: AzureOpenAIAdapter.chat() with EventMind system prompt
-8.  eventmind_analysis attached to response
+1.  SignalStrengthAnalyzer.measure(text)    → score, state, fallback_response
+2.  SignalSensor.sense(text)                → urgency_level, triggers
+3.  MultiPerspectiveAnalyzer.analyze()      → triangulated_score, perspectives
+4.  ContextReframer.reframe(text)           → reframe string, confidence
+5.  ResponseRouter.compute(scores...)       → delivery_mode, system_prompt_prefix
+6.  If delivery_mode == "SILENT": return fallback_response (no AI call)
+7.  Else: AzureOpenAIAdapter.chat() with signal processing system prompt
+8.  signal_analysis attached to response
 ```
 
-### Onset Protocol (POST /api/ai/onset/activate)
+### Query Processing Pipeline (POST /api/ai/onset/activate)
 ```
-1.  SnowflakeProcessor.decompose(text)    → flakes (dimensions)
-2.  rainfall.ingest(text)                 → stream_id
-3.  mist.diffuse(text)                    → anticipated_concepts, pattern
-4.  spherical_memory.layer_snapshot()     → memory layer counts
-5.  spiderweb.strongest_paths(top_n=5)   → network path list
-6.  Build enriched system_prompt from mist + snowflake context
+1.  QueryDecomposer.decompose(text)           → units (query dimensions)
+2.  stream_ingester.ingest(text)              → stream_id
+3.  predictive_retriever.diffuse(text)        → anticipated_concepts, pattern
+4.  multi_layer_store.layer_snapshot()        → memory layer counts
+5.  knowledge_graph.strongest_paths(top_n=5) → network path list
+6.  Build enriched system_prompt from retriever + decomposition context
 7.  AzureOpenAIAdapter.chat() with enriched prompt
-8.  onset_report attached to response
+8.  pipeline_report attached to response
 ```
 
 ---
@@ -256,7 +261,7 @@
 | Cosmos DB unavailable | `CosmosHttpResponseError` | Warning logged; response still returned (non-fatal) |
 | Max request body exceeded | `RequestSizeLimitMiddleware` | HTTP 413 — "Payload Too Large" |
 | WebSocket client disconnects | `WebSocketDisconnect` | Server continues; client reconnects on reload |
-| VoidLogic CRFE paradox detected | `system_health == "CRITICAL"` | System prompt modified to include collapse-risk reframing |
+| RecursiveFeedbackEngine paradox detected | `system_health == "CRITICAL"` | System prompt modified to include high-complexity reframing |
 | Invalid ChatRequest schema | Pydantic `ValidationError` | HTTP 422 — field-level error details returned |
 
 ---

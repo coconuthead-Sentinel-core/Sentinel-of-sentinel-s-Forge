@@ -1,18 +1,18 @@
-# Terms of Service
-## The Forge Trilogy — Quantum Nexus Forge | Sentinel-of-sentinel-s-Forge | Sovereign Forge
+﻿# Terms of Service
+## The Forge Trilogy â€” Sentinel-of-sentinel-s-Forge | Sentinel-of-sentinel-s-Forge | Sentinel-of-sentinel-s-Forge
 
 **Effective Date:** April 10, 2026
 **Last Updated:** April 10, 2026
 **Agreement Between:** [YOUR LLC NAME] ("Company") and the User ("you", "Customer")
 
-> **⚠️ FILL IN BEFORE PUBLISHING:**
+> **âš ï¸ FILL IN BEFORE PUBLISHING:**
 > Replace `[YOUR LLC NAME]`, `[YOUR EMAIL]`, `[YOUR TEXAS ADDRESS]`, and `[PRICING]` placeholders.
 
 ---
 
 ## 1. Agreement and Acceptance
 
-By accessing or using any platform operated by **[YOUR LLC NAME]** — including Quantum Nexus Forge, Sentinel-of-sentinel-s-Forge, and Sovereign Forge (collectively, the "Platforms") — you agree to be bound by these Terms of Service ("Terms"), our Privacy Policy, and any additional terms applicable to your subscription tier.
+By accessing or using any platform operated by **[YOUR LLC NAME]** â€” including Sentinel-of-sentinel-s-Forge, Sentinel-of-sentinel-s-Forge, and Sentinel-of-sentinel-s-Forge (collectively, the "Platforms") â€” you agree to be bound by these Terms of Service ("Terms"), our Privacy Policy, and any additional terms applicable to your subscription tier.
 
 If you do not agree to these Terms, you may not use the Platforms.
 
@@ -24,9 +24,9 @@ If you do not agree to these Terms, you may not use the Platforms.
 
 | Platform | Core Service |
 |----------|-------------|
-| **Quantum Nexus Forge** | Multi-agent AI orchestration. Routes your prompts through five specialized AI agents and returns coordinated, multi-perspective responses |
+| **Sentinel-of-sentinel-s-Forge** | Multi-agent AI orchestration. Routes your prompts through five specialized AI agents and returns coordinated, multi-perspective responses |
 | **Sentinel-of-sentinel-s-Forge** | Neurodivergent cognitive AI. Processes your input through ADHD, Autism, Dyslexia, Dyscalculia, or Neurotypical cognitive modes via Azure OpenAI |
-| **Sovereign Forge** | Self-optimizing cognitive AI OS. Real-time metacognition engine, 14-Mirror Cognitive Array, voice interface, and persistent user profile |
+| **Sentinel-of-sentinel-s-Forge** | Self-optimizing cognitive AI OS. Real-time metacognition engine, 14-Mirror Cognitive Array, voice interface, and persistent user profile |
 
 All Platforms are powered by Azure OpenAI (model: o4-mini) with mock fallback mode.
 
@@ -48,7 +48,7 @@ All Platforms are powered by Azure OpenAI (model: o4-mini) with mock fallback mo
 ### 3.2 Billing
 
 - Subscription fees are billed monthly in advance on your signup date
-- Payment is processed by **Stripe** — a PCI-DSS Level 1 compliant payment processor
+- Payment is processed by **Stripe** â€” a PCI-DSS Level 1 compliant payment processor
 - We do not store your credit card information
 - All fees are in USD
 
@@ -63,7 +63,7 @@ The Developer tier is provided free of charge. API calls above 100/month in mock
 To access paid features, you must:
 - Create an account with accurate, current, complete information
 - Keep your email address current
-- Keep your API key confidential — **do not share your API key**
+- Keep your API key confidential â€” **do not share your API key**
 - Accept responsibility for all activity under your account
 - Notify us immediately at [YOUR EMAIL] if you suspect unauthorized use
 
@@ -71,13 +71,13 @@ To access paid features, you must:
 
 ## 5. Acceptable Use
 
-### ✅ Permitted Uses
+### âœ… Permitted Uses
 - AI-assisted research, writing, analysis, and cognitive processing
 - Building applications using the API under your subscription tier
 - Portfolio demonstration and personal use
 - Enterprise B2B applications under a valid Enterprise Agreement
 
-### ❌ Prohibited Uses
+### âŒ Prohibited Uses
 
 You agree NOT to use the Platforms to:
 - Violate any law, regulation, or third-party rights
@@ -87,7 +87,7 @@ You agree NOT to use the Platforms to:
 - Reverse engineer, decompile, or attempt to extract the source code
 - Use automated bots or scripts beyond normal API usage
 - Exceed API rate limits or attempt to circumvent them
-- Use the Platforms in any high-risk application without appropriate independent validation (see §8)
+- Use the Platforms in any high-risk application without appropriate independent validation (see Â§8)
 - Resell or sublicense API access without an Enterprise Agreement
 - Use outputs to train competing AI models
 
@@ -97,7 +97,7 @@ Violation of prohibited uses may result in immediate account suspension without 
 
 ## 6. API Usage and Rate Limits
 
-- API access is subject to the rate limits of your tier (see §3.1)
+- API access is subject to the rate limits of your tier (see Â§3.1)
 - Rate limit headers are returned with every API response
 - Exceeding your tier limit will result in HTTP 429 responses until the next billing cycle
 - Enterprise tier customers may request higher limits
@@ -107,7 +107,7 @@ Violation of prohibited uses may result in immediate account suspension without 
 ## 7. Intellectual Property
 
 ### 7.1 Our IP
-The Platforms, including all code, algorithms, cognitive architecture, documentation, trademarks, and the names "Quantum Nexus Forge," "Sentinel-of-sentinel-s-Forge," "Sovereign Forge," "CNO-AX Engine," and "14-Mirror Cognitive Array" are owned by [YOUR LLC NAME] and protected by applicable intellectual property laws.
+The Platforms, including all code, algorithms, cognitive architecture, documentation, trademarks, and the names "Sentinel-of-sentinel-s-Forge," "Sentinel-of-sentinel-s-Forge," and "Sentinel-of-sentinel-s-Forge" are owned by [YOUR LLC NAME] and protected by applicable intellectual property laws.
 
 ### 7.2 Your Content
 You retain full ownership of all data, text, and content you submit to the Platforms ("Input Data"). You grant [YOUR LLC NAME] a limited, non-exclusive license to process your Input Data solely to deliver the Service to you.
@@ -120,7 +120,7 @@ AI-generated outputs are not guaranteed to be accurate, complete, or fit for any
 ## 8. AI-Specific Terms and Limitations
 
 ### 8.1 Not a Medical, Legal, or Professional Tool
-The Platforms do **not** provide medical advice, legal advice, financial advice, or professional consultation. Cognitive lens processing modes are designed to present information in different formats — they are **not** diagnostic tools.
+The Platforms do **not** provide medical advice, legal advice, financial advice, or professional consultation. Cognitive lens processing modes are designed to present information in different formats â€” they are **not** diagnostic tools.
 
 ### 8.2 Not for High-Risk AI Applications
 The Platforms are currently classified as **Limited-Risk AI** under the EU AI Act and are **not** intended or validated for:
@@ -139,8 +139,8 @@ AI outputs are probabilistic and may contain errors, hallucinations, or outdated
 
 | Tier | SLA Commitment |
 |------|---------------|
-| Developer | No SLA — best effort |
-| Starter | No SLA — best effort |
+| Developer | No SLA â€” best effort |
+| Starter | No SLA â€” best effort |
 | Pro | 99% uptime target (monthly) |
 | Enterprise | 99.5% uptime commitment + credit terms |
 
@@ -184,7 +184,7 @@ You agree to indemnify, defend, and hold harmless [YOUR LLC NAME] and its affili
 ## 13. Refund and Cancellation
 
 Full terms in our [Refund & Cancellation Policy](REFUND_CANCELLATION_POLICY.md). Summary:
-- Cancel anytime — no lock-in
+- Cancel anytime â€” no lock-in
 - Refunds: within 7 days of initial signup only (Pro/Enterprise: 14 days)
 - No partial-month refunds
 - Developer (free) tier: no billing, cancel anytime
@@ -198,7 +198,7 @@ You may cancel your subscription and close your account at any time. Your access
 
 ### By Us
 We may suspend or terminate your account immediately if you:
-- Violate these Terms (especially Prohibited Uses in §5)
+- Violate these Terms (especially Prohibited Uses in Â§5)
 - Fail to pay fees when due
 - Engage in fraudulent activity
 
@@ -246,7 +246,8 @@ Notwithstanding arbitration, either party may seek emergency injunctive relief i
 For questions about these Terms:
 
 **[YOUR LLC NAME]**
-Attn: Legal — Shannon Bryan Kelly
+Attn: Legal â€” Shannon Bryan Kelly
 [YOUR TEXAS ADDRESS]
 Texas, United States
 Email: [YOUR EMAIL]
+

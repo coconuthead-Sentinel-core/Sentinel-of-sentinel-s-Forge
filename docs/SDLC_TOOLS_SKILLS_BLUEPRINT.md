@@ -1,4 +1,4 @@
-# Quantum Nexus Forge SDLC Tools + Skills Blueprint
+﻿# Sentinel-of-sentinel-s-Forge SDLC Tools + Skills Blueprint
 
 Date: 2026-03-24
 Owner: Project Delivery and Operations
@@ -243,3 +243,4 @@ Project closeout can be declared only when:
 4. Remaining items are only accepted exceptions with owners and due dates.
 
 If any of the above fails, status remains Blocked.
+

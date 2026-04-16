@@ -19,7 +19,7 @@ Every cognitive lens must produce verifiable, reproducible output. Tests ensure 
 
 | Test ID | What It Covers | Pass Criteria |
 |---------|---------------|---------------|
-| UT-001 | `CognitiveOrchestrator` initialization | Object created with selected lens |
+| UT-001 | `CognitiveLensRouter` initialization | Object created with selected lens |
 | UT-002 | ADHD lens processing | Returns response, entropy, zone fields |
 | UT-003 | Autism lens processing | Returns precision-pattern response |
 | UT-004 | Dyslexia lens processing | Returns spatial/symbol-based response |

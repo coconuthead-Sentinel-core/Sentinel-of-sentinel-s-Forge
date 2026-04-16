@@ -1,10 +1,10 @@
-# QUANTUM NEXUS FORGE — SDLC DOCUMENTATION SUITE
+﻿# Sentinel-of-sentinel-s-Forge â€” SDLC DOCUMENTATION SUITE
 
 **P9-TRANS-077 | Phase: 9-Closure**
 
 # Transition to Operations Plan
 
-**Document Status: Completed — Filled from codebase review 2026-03-24**
+**Document Status: Completed â€” Filled from codebase review 2026-03-24**
 
 ### AQA Reconciliation Addendum (2026-03-24)
 
@@ -30,7 +30,7 @@
 | Term | Definition / Reference |
 |------|----------------------|
 | Hypercare / Warranty | Post-go-live period where developer provides elevated support; 30 days recommended |
-| SLA / OLA | Service/Operational level objectives — TBD before production launch |
+| SLA / OLA | Service/Operational level objectives â€” TBD before production launch |
 | References | P1-CHARTER-001, P1-SOW-004, docs/QUICKSTART.md, docs/TROUBLESHOOTING.md, docker-compose.yml |
 
 ---
@@ -39,7 +39,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Project Name** | Sentinel Forge (Quantum Nexus Forge) |
+| **Project Name** | Sentinel Forge (Sentinel-of-sentinel-s-Forge) |
 | **Release / Version** | v2.0.0 |
 | **Document Owner** | Claude Code (Engineering Review) |
 | **Author** | Claude Code |
@@ -90,14 +90,14 @@
 | **Support Model** | Self-service (documentation) + owner-operated |
 | **Support Hours / On-Call** | Best effort; no formal SLA (define before scaling) |
 | **Ticket Intake** | GitHub Issues (recommended) |
-| **SLAs / OLAs** | TBD — define P0/P1/P2/P3 severity levels before launch |
+| **SLAs / OLAs** | TBD â€” define P0/P1/P2/P3 severity levels before launch |
 | **Transition Date** | Upon production deployment (TBD) |
 | **Warranty Period (Hypercare)** | 30 days recommended post-launch |
 | **Escalation Path** | Shannon Bryan Kelly (sole operator) |
 | **Monitoring Ownership** | Shannon |
 | **Access Provisioning** | Environment variables (API_KEY, JWT_SECRET_KEY); RBAC via register_api_key() |
 | **Backup/Restore Ownership** | Azure Cosmos DB automatic backup; Shannon manages |
-| **DR Targets (RTO/RPO)** | TBD — recommend RTO: 4 hours, RPO: 1 hour |
+| **DR Targets (RTO/RPO)** | TBD â€” recommend RTO: 4 hours, RPO: 1 hour |
 | **Third-Party Contacts** | Azure Support, Stripe Support |
 
 ---
@@ -118,7 +118,7 @@
 
 | Item | Details | Status |
 |------|---------|--------|
-| Cutover Window | TBD — coordinate with Azure provisioning | Planned |
+| Cutover Window | TBD â€” coordinate with Azure provisioning | Planned |
 | Validation / Smoke Tests | scripts/smoke_test.py, scripts/preflight_check.py; docs/PARTNER_ENV_EXECUTION_CHECKLIST.md; health endpoints /healthz, /readyz | Planned |
 | Backout Plan | `docker-compose down` + redeploy previous image version; Cosmos DB point-in-time restore | Planned |
 
@@ -146,3 +146,4 @@
 | Name | Role | Signature | Date |
 |------|------|-----------|------|
 | Shannon Bryan Kelly | Founder / Product Owner | Pending External Verification | Pending External Verification |
+

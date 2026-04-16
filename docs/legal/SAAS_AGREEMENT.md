@@ -1,5 +1,5 @@
-# Cloud / SaaS Service Agreement
-## The Forge Trilogy — [YOUR LLC NAME]
+﻿# Cloud / SaaS Service Agreement
+## The Forge Trilogy â€” [YOUR LLC NAME]
 
 **Agreement Type:** Standard B2B Cloud Service Agreement
 **Template Source:** Adapted from Common Paper Cloud Service Agreement (CC Attribution)
@@ -28,15 +28,15 @@ Provider will make available the following platforms ("Services") as selected in
 
 | Platform | Base URL | Primary Feature |
 |----------|----------|----------------|
-| Quantum Nexus Forge | TBD (hosted) | Multi-agent AI orchestration |
+| Sentinel-of-sentinel-s-Forge | TBD (hosted) | Multi-agent AI orchestration |
 | Sentinel-of-sentinel-s-Forge | TBD (hosted) | Neurodivergent cognitive AI |
-| Sovereign Forge | TBD (hosted) | Self-optimizing cognitive AI OS |
+| Sentinel-of-sentinel-s-Forge | TBD (hosted) | Self-optimizing cognitive AI OS |
 
 ### 1.2 Service Scope
 
 Services include:
 - REST API access per subscription tier
-- WebSocket real-time event streaming (Sentinel, Sovereign Forge)
+- WebSocket real-time event streaming (Sentinel, Sentinel-of-sentinel-s-Forge)
 - AI processing via Azure OpenAI o4-mini model
 - Dashboard access
 - Cognitive lens processing (ADHD, Autism, Dyslexia, Dyscalculia, Neurotypical modes)
@@ -52,8 +52,8 @@ Services do **not** include:
 
 API documentation is maintained at:
 - Sentinel-of-sentinel-s-Forge: `docs/sdlc/API_CONTRACTS.md`
-- Sovereign Forge: `docs/sdlc/API_CONTRACTS.md`
-- Quantum Nexus Forge: `docs/sdlc/API_CONTRACTS.md`
+- Sentinel-of-sentinel-s-Forge: `docs/sdlc/API_CONTRACTS.md`
+- Sentinel-of-sentinel-s-Forge: `docs/sdlc/API_CONTRACTS.md`
 
 Current API version: defined per platform in respective documentation.
 
@@ -136,7 +136,7 @@ Uptime is measured monthly, excluding:
 Credits are applied to the next invoice. Credits do not accumulate as cash refunds.
 
 ### 5.4 Maintenance
-Provider will schedule maintenance during off-peak hours (Sunday 02:00–06:00 CT) where possible. Emergency maintenance may occur without advance notice.
+Provider will schedule maintenance during off-peak hours (Sunday 02:00â€“06:00 CT) where possible. Emergency maintenance may occur without advance notice.
 
 ---
 
@@ -280,3 +280,4 @@ Neither party is liable for delays caused by events beyond their reasonable cont
 
 *Adapted from Common Paper Cloud Service Agreement Standard v2.0 (CC Attribution)*
 *Source: https://commonpaper.com/standards/cloud-service-agreement/*
+

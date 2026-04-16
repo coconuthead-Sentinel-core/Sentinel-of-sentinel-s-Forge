@@ -1,7 +1,7 @@
-# Data Processing Agreement (DPA)
-## The Forge Trilogy — [YOUR LLC NAME]
+﻿# Data Processing Agreement (DPA)
+## The Forge Trilogy â€” [YOUR LLC NAME]
 
-**GDPR Article 28 — Controller-to-Processor Agreement**
+**GDPR Article 28 â€” Controller-to-Processor Agreement**
 **Template Source:** Adapted from Common Paper DPA Standard (CC Attribution)
 **Version:** 1.0
 
@@ -46,7 +46,7 @@ Processor will process Personal Data submitted by Controller through the Service
 ### 2.3 Types of Personal Data
 Depending on Controller's use:
 - Text prompts (may contain names, descriptions of persons, contact details)
-- Voice transcripts (Sovereign Forge — session only, browser-side)
+- Voice transcripts (Sentinel-of-sentinel-s-Forge â€” session only, browser-side)
 - User account data (name, email, organization)
 - API usage logs (IP address, timestamps, endpoint)
 
@@ -98,7 +98,7 @@ Processor will provide Controller with reasonable assistance in responding to da
 Processor will provide reasonable assistance if Controller is required to conduct a Data Protection Impact Assessment (DPIA) related to the Services. Processor's own DPIAs are maintained per platform in `docs/compliance/DPIA.md`.
 
 ### 3.7 Breach Notification
-Processor will notify Controller without undue delay — and in any event within **72 hours** — of becoming aware of a Personal Data Breach affecting Customer Data. Notification will include:
+Processor will notify Controller without undue delay â€” and in any event within **72 hours** â€” of becoming aware of a Personal Data Breach affecting Customer Data. Notification will include:
 - Nature of the breach (if known)
 - Categories and approximate number of data subjects affected
 - Likely consequences of the breach
@@ -128,7 +128,7 @@ Controller warrants that:
 
 ## 5. International Data Transfers
 
-Processor transfers Personal Data to Microsoft Azure (USA) under Standard Contractual Clauses (EU Commission Decision 2021/914, Module 3 — Processor to Sub-processor). Copies of applicable SCCs available upon request.
+Processor transfers Personal Data to Microsoft Azure (USA) under Standard Contractual Clauses (EU Commission Decision 2021/914, Module 3 â€” Processor to Sub-processor). Copies of applicable SCCs available upon request.
 
 ---
 
@@ -162,3 +162,4 @@ In case of conflict, the order of precedence is:
 
 *Adapted from Common Paper DPA Standard v1.0 (CC Attribution)*
 *Source: https://commonpaper.com/standards/data-processing-agreement/*
+

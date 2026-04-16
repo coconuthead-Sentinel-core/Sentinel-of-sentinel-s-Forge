@@ -1,29 +1,29 @@
-# Sentinel Forge - AI Coding Agent Instructions
+﻿# Sentinel Forge - AI Coding Agent Instructions
 
 ## Architecture Overview
 
 Sentinel Forge is a **Cognitive AI Orchestration Platform** with two major subsystems:
 
 1. **Backend API** (`backend/`) - FastAPI service using Domain-Driven Design (DDD)
-2. **Quantum Nexus Forge** (`quantum_nexus_forge_v5_2_enhanced.py`) - Standalone cognitive engine with neurodivergent processing modes
+2. **Sentinel-of-sentinel-s-Forge** (`quantum_nexus_forge_v5_2_enhanced.py`) - Standalone cognitive engine with neurodivergent processing modes
 
 ```
 backend/
-├── domain/models.py      # Pure Python entities (Note, Entity) - NO DB fields
-├── infrastructure/       # Cosmos DB repository with auto Mock DB fallback  
-├── services/             # ChatService orchestrates: Input → AI → Memory
-├── adapters/             # AzureOpenAIAdapter (AAD auth) ↔ MockOpenAIAdapter
-├── core/config.py        # ALL env vars via Pydantic Settings
-├── api.py                # REST routes: router (general), ai_router (guarded)
-└── ws_api.py             # WebSocket routes: /ws/sync, /ws/metrics
+â”œâ”€â”€ domain/models.py      # Pure Python entities (Note, Entity) - NO DB fields
+â”œâ”€â”€ infrastructure/       # Cosmos DB repository with auto Mock DB fallback  
+â”œâ”€â”€ services/             # ChatService orchestrates: Input â†’ AI â†’ Memory
+â”œâ”€â”€ adapters/             # AzureOpenAIAdapter (AAD auth) â†” MockOpenAIAdapter
+â”œâ”€â”€ core/config.py        # ALL env vars via Pydantic Settings
+â”œâ”€â”€ api.py                # REST routes: router (general), ai_router (guarded)
+â””â”€â”€ ws_api.py             # WebSocket routes: /ws/sync, /ws/metrics
 ```
 
-**Core Data Flow:** `api.py` → `ChatService` → `AI Adapter` → `cosmos_repo` (persist)
+**Core Data Flow:** `api.py` â†’ `ChatService` â†’ `AI Adapter` â†’ `cosmos_repo` (persist)
 
 ## Development Workflows
 
 ```powershell
-# Full evaluation pipeline (starts server → collects responses → runs eval)
+# Full evaluation pipeline (starts server â†’ collects responses â†’ runs eval)
 python scripts/run_full_eval.py
 
 # Manual server (hot reload)
@@ -96,7 +96,7 @@ API_KEY: str = "secret"            # For X-API-Key header validation
 
 - **Unit tests**: Pure logic in `tests/` - domain models, eventbus, vector utils
 - **Integration tests**: `scripts/smoke_test.py` (requires running server)
-- **Evaluation**: `evaluation/` folder with `test_queries.json` → `collect_responses.py` → `run_evaluation.py`
+- **Evaluation**: `evaluation/` folder with `test_queries.json` â†’ `collect_responses.py` â†’ `run_evaluation.py`
 
 ## Common Gotchas
 
@@ -135,10 +135,10 @@ from backend.services.chat_service import ChatService
 4. Test: `curl http://localhost:8000/api/status`
 
 **To add a new feature:**
-1. Domain model? → `backend/domain/models.py` (use `ConfigDict(extra="ignore")`)
-2. API endpoint? → `backend/api.py` (`router` or `ai_router`)
-3. Business logic? → `backend/services/` (inject adapters)
-4. Database? → `backend/infrastructure/cosmos_repo.py`
+1. Domain model? â†’ `backend/domain/models.py` (use `ConfigDict(extra="ignore")`)
+2. API endpoint? â†’ `backend/api.py` (`router` or `ai_router`)
+3. Business logic? â†’ `backend/services/` (inject adapters)
+4. Database? â†’ `backend/infrastructure/cosmos_repo.py`
 
 **To run evaluation:**
 ```powershell
@@ -148,3 +148,4 @@ uvicorn backend.main:app --port 8000 &
 python evaluation/collect_responses.py
 python evaluation/run_evaluation.py
 ```
+

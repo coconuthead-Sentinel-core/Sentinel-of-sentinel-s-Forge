@@ -1,10 +1,10 @@
-# Quantum Nexus Forge
+﻿# Sentinel-of-sentinel-s-Forge
 
 **AI that processes information using diverse cognitive patterns**
 
 An enterprise-grade cognitive architecture that processes information using diverse processing modes - making AI systems accessible to diverse thinkers instead of assuming everyone thinks the same way.
 
-## 🎯 What It Does
+## ðŸŽ¯ What It Does
 
 Traditional AI assumes everyone thinks the same way. This framework includes specialized processing modes for:
 
@@ -15,7 +15,7 @@ Traditional AI assumes everyone thinks the same way. This framework includes spe
 
 **The Result:** AI systems that adapt to how YOU think, not the other way around.
 
-## 💡 Why It Matters
+## ðŸ’¡ Why It Matters
 
 Most AI tools ignore this entirely, creating accessibility barriers. This framework proves AI can be built inclusively from the ground[...]
 
@@ -25,14 +25,14 @@ Most AI tools ignore this entirely, creating accessibility barriers. This framew
 - Enterprise tools for diverse teams
 - Research into computational models of different thinking styles
 
-## 🚀 Tech Stack
+## ðŸš€ Tech Stack
 
 - **Language:** Python 3.11+
 - **Architecture:** Object-oriented with dataclasses and type hints
 - **Key Features:** Three-zone memory system, symbolic processing, real-time performance monitoring
 - **Code Quality:** 1000+ lines, fully typed, production-ready
 
-## 📦 Quick Start
+## ðŸ“¦ Quick Start
 ```bash
 # Clone the repository
 git clone https://github.com/coconuthead-Sentinel-core/Sentinel-of-sentinel-s-Forge.git
@@ -45,12 +45,12 @@ pip install -r requirements.txt
 python quantum_nexus_forge_v5_2_enhanced.py
 ```
 
-## ✨ Core Features
+## âœ¨ Core Features
 
 ### Three-Zone Memory System
-- **🟢 Active Processing:** High-entropy real-time data (>0.7 entropy)
-- **🟡 Pattern Emergence:** Mid-entropy pattern recognition (0.3-0.7 entropy)
-- **🔴 Crystallized Storage:** Low-entropy stable memory (<0.3 entropy)
+- **ðŸŸ¢ Active Processing:** High-entropy real-time data (>0.7 entropy)
+- **ðŸŸ¡ Pattern Emergence:** Mid-entropy pattern recognition (0.3-0.7 entropy)
+- **ðŸ”´ Crystallized Storage:** Low-entropy stable memory (<0.3 entropy)
 
 ### Specialized Processing Modes
 - Precision pattern recognition modes
@@ -65,27 +65,27 @@ python quantum_nexus_forge_v5_2_enhanced.py
 - **Spatial Cognition:** 3D coordinate system with cognitive elevation
 - **Geometric Primitives:** Tetrahedron, Cube, Octahedron, Dodecahedron, Icosahedron
 
-## 📁 Project Structure
+## ðŸ“ Project Structure
 ```
 Sentinel-of-sentinel-s-Forge/
-├── quantum_nexus_forge_v5_2_enhanced.py  # Main cognitive architecture
-├── demo.py                                # Demonstration script
-├── requirements.txt                       # Python dependencies
-├── __init__.py                            # Package initialization
-└── README.md                              # This file
+â”œâ”€â”€ quantum_nexus_forge_v5_2_enhanced.py  # Main cognitive architecture
+â”œâ”€â”€ demo.py                                # Demonstration script
+â”œâ”€â”€ requirements.txt                       # Python dependencies
+â”œâ”€â”€ __init__.py                            # Package initialization
+â””â”€â”€ README.md                              # This file
 ```
 
-## 👤 Author
+## ðŸ‘¤ Author
 
-**Shannon Bryan Kelly** (Coconut Head)  
+**Shannon Bryan Kelly**  
 *Neurodivergent AI Architect*
 
 Built in collaboration with Claude AI (Anthropic)
 
-## 📊 Status
+## ðŸ“Š Status
 
 **Production-Ready** | **Version:** 5.2.0 | **Last Updated:** November 2025
 
 ---
 
-*Making AI accessible to all cognitive styles, one framework at a time.* 🧠✨
+*Making AI accessible to all cognitive styles, one framework at a time.* ðŸ§ âœ¨

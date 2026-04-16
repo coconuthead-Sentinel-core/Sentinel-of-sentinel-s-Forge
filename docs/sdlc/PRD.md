@@ -67,7 +67,7 @@ Most AI tools are built around a single model of thinking — linear, neurotypic
 |------------|--------|
 | **Runtime** | Python 3.11+ required |
 | **AI Model** | Azure OpenAI o4-mini — `sbryank1234-7203-resource` — API version 2025-01-01-preview |
-| **Architecture** | FastAPI backend (`backend/`) + 5 cognitive lens services + 3 AI sub-protocols (EventMind, Onset, VoidLogic) |
+| **Architecture** | FastAPI backend (`backend/`) + 5 cognitive lens services + 3 AI pipelines (Signal Processing, Query Processing, Symbolic Reasoning) |
 | **Memory** | Three-zone in-memory system (resets on restart) |
 | **Platform** | Windows and Chromebook compatible |
 | **Accessibility** | Must remain accessible to non-technical users |

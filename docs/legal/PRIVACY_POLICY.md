@@ -1,11 +1,11 @@
-# Privacy Policy
-## The Forge Trilogy — Quantum Nexus Forge | Sentinel-of-sentinel-s-Forge | Sovereign Forge
+﻿# Privacy Policy
+## The Forge Trilogy â€” Sentinel-of-sentinel-s-Forge | Sentinel-of-sentinel-s-Forge | Sentinel-of-sentinel-s-Forge
 
 **Effective Date:** April 10, 2026
 **Last Updated:** April 10, 2026
 **Controller:** [YOUR LLC NAME], operated by Shannon Bryan Kelly
 
-> **⚠️ FILL IN BEFORE PUBLISHING:**
+> **âš ï¸ FILL IN BEFORE PUBLISHING:**
 > Replace every `[YOUR LLC NAME]`, `[YOUR EMAIL]`, and `[YOUR TEXAS ADDRESS]` with your real information before this policy goes live.
 
 ---
@@ -16,9 +16,9 @@
 
 | Platform | Description |
 |----------|-------------|
-| **Quantum Nexus Forge** | Multi-agent AI orchestration — five specialized AI perspectives in one request |
-| **Sentinel-of-sentinel-s-Forge** | Neurodivergent cognitive AI — ADHD, Autism, Dyslexia, and Neurotypical processing modes |
-| **Sovereign Forge** | Self-optimizing cognitive AI operating system with real-time metacognition |
+| **Sentinel-of-sentinel-s-Forge** | Multi-agent AI orchestration â€” five specialized AI perspectives in one request |
+| **Sentinel-of-sentinel-s-Forge** | Neurodivergent cognitive AI â€” ADHD, Autism, Dyslexia, and Neurotypical processing modes |
+| **Sentinel-of-sentinel-s-Forge** | Self-optimizing cognitive AI operating system with real-time metacognition |
 
 **Contact:**
 Email: [YOUR EMAIL]
@@ -33,9 +33,9 @@ Address: [YOUR TEXAS ADDRESS], Texas, United States
 | Data | When Collected | Why |
 |------|---------------|-----|
 | Name and email address | Account registration | Identity verification, account management |
-| Payment information | Subscription purchase | Billing — processed by Stripe (we never see your full card number) |
-| API input text | Every API call | AI processing — generate your response |
-| Voice audio (Sovereign Forge only) | When voice mode is active | Speech-to-text conversion — processed in-browser, not stored |
+| Payment information | Subscription purchase | Billing â€” processed by Stripe (we never see your full card number) |
+| API input text | Every API call | AI processing â€” generate your response |
+| Voice audio (Sentinel-of-sentinel-s-Forge only) | When voice mode is active | Speech-to-text conversion â€” processed in-browser, not stored |
 | Support messages | When you contact us | Answering your question |
 
 ### 2.2 Data Collected Automatically
@@ -54,18 +54,18 @@ Address: [YOUR TEXAS ADDRESS], Texas, United States
 - We do **not** sell your data to advertisers
 - We do **not** use third-party advertising or tracking cookies
 - We do **not** store voice audio files
-- We do **not** share your input/output data with third parties (except Azure for processing — see §5)
+- We do **not** share your input/output data with third parties (except Azure for processing â€” see Â§5)
 
 ---
 
 ## 3. Special Category Data Notice (Neurodivergent Users)
 
-**Sentinel-of-sentinel-s-Forge** and **Sovereign Forge** offer cognitive lens options (ADHD, Autism, Dyslexia, Dyscalculia). Selecting a lens may implicitly indicate a neurodivergent status, which is **special category health data** under GDPR Article 9.
+**Sentinel-of-sentinel-s-Forge** and **Sentinel-of-sentinel-s-Forge** offer cognitive lens options (ADHD, Autism, Dyslexia, Dyscalculia). Selecting a lens may implicitly indicate a neurodivergent status, which is **special category health data** under GDPR Article 9.
 
 **Our protections:**
-- Lens selections are treated as processing preferences — they are **not** stored as diagnostic records
+- Lens selections are treated as processing preferences â€” they are **not** stored as diagnostic records
 - No lens selections are shared with third parties
-- Users may choose any lens for any reason — we do not infer or record health status
+- Users may choose any lens for any reason â€” we do not infer or record health status
 - Lens selections are **not** retained after your session unless you have opted into Cosmos DB notes storage
 
 ---
@@ -102,11 +102,11 @@ We do **not** sell your personal information. We share with:
 | Data Type | Retention Period |
 |-----------|-----------------|
 | Account information | Duration of account + 30 days after deletion |
-| API input / output (session only) | Deleted at session end — not stored unless you use Notes |
+| API input / output (session only) | Deleted at session end â€” not stored unless you use Notes |
 | Saved Notes (if enabled) | Until you delete them or close account |
 | Billing records and invoices | 7 years (IRS/tax compliance requirement) |
 | Server and security logs | 90 days |
-| Voice audio | Never stored — processed in-browser and discarded |
+| Voice audio | Never stored â€” processed in-browser and discarded |
 
 ---
 
@@ -130,7 +130,7 @@ Depending on your location, you have the right to:
 ## 8. International Data Transfers
 
 Our services are hosted in the United States. If you are in the EU or UK, your data may be transferred to the US. Transfers are protected by:
-- **Microsoft Azure:** Standard Contractual Clauses (SCCs) — EU-U.S. Data Privacy Framework
+- **Microsoft Azure:** Standard Contractual Clauses (SCCs) â€” EU-U.S. Data Privacy Framework
 - **Stripe:** Standard Contractual Clauses
 
 ---
@@ -144,7 +144,7 @@ We implement the following security measures:
 | Encryption in transit | TLS 1.2+ for all API communications |
 | Encryption at rest | AES-256 via Azure Cosmos DB |
 | API authentication | X-API-Key header required for all AI endpoints |
-| Credential management | API keys in `.env` files — never committed to version control |
+| Credential management | API keys in `.env` files â€” never committed to version control |
 | Access control | Owner-only access to all production credentials |
 | Incident response | 72-hour notification to affected users for data breaches |
 
@@ -153,7 +153,7 @@ We implement the following security measures:
 ## 10. Cookies
 
 Our platforms use minimal browser storage:
-- **Local Storage only** — API keys stored locally in your browser (not a cookie)
+- **Local Storage only** â€” API keys stored locally in your browser (not a cookie)
 - **No advertising cookies**
 - **No third-party tracking**
 - **No analytics cookies**
@@ -179,7 +179,8 @@ We may update this Privacy Policy. Material changes will be communicated by:
 **For privacy questions, data requests, or to exercise your rights:**
 
 [YOUR LLC NAME]
-Attn: Privacy — Shannon Bryan Kelly
+Attn: Privacy â€” Shannon Bryan Kelly
 [YOUR TEXAS ADDRESS]
 Texas, United States
 Email: [YOUR EMAIL]
+

@@ -144,11 +144,11 @@ System/health routes (`/api/status`, `/api/healthz`, etc.) are **unauthenticated
 
 ---
 
-## EventMind Endpoints
+## Signal Processing Pipeline Endpoints
 
 ### POST /api/ai/eventmind/chat
 
-**Purpose:** Chat through the EventMind pipeline (CorePulse → CoreSensor → Triangulation → FulcrumLens → ReturnVector → AI).
+**Purpose:** Chat through the Signal Processing Pipeline (SignalStrengthAnalyzer → SignalSensor → MultiPerspectiveAnalyzer → ContextReframer → ResponseRouter → AI).
 
 **Auth:** Required
 
@@ -171,28 +171,28 @@ System/health routes (`/api/status`, `/api/healthz`, etc.) are **unauthenticated
   "created": 1744300920,
   "choices": [{ "index": 0, "message": { "role": "assistant", "content": "string" }, "finish_reason": "stop" }],
   "usage":   { "prompt_tokens": 95, "completion_tokens": 340, "total_tokens": 435 },
-  "eventmind_analysis": {
-    "core_pulse": {
-      "score":  0.82,
-      "state":  "RESONANT",
-      "hum":    "Signal is clear and structured."
+  "signal_analysis": {
+    "signal_strength": {
+      "score":             0.82,
+      "state":             "HIGH",
+      "fallback_response": "Signal is clear and structured."
     },
-    "core_sensor": {
+    "signal_sensor": {
       "urgency_level": "MEDIUM",
       "triggers":      ["pattern", "emergence"]
     },
-    "triangulation": {
+    "multi_perspective": {
       "triangulated_score": 0.74,
       "perspectives":       ["logical", "emotional", "systemic"]
     },
-    "fulcrum_lens": {
+    "context_reframe": {
       "reframe":    "Shift from reaction to strategic response.",
       "confidence": 0.88
     },
-    "return_vector": {
-      "delivery_mode":      "DIRECT",
-      "system_prompt_prefix": "string — EventMind system context",
-      "alignment_score":    0.79
+    "response_router": {
+      "delivery_mode":        "DIRECT",
+      "system_prompt_prefix": "string — signal processing system context",
+      "alignment_score":      0.79
     },
     "latency_ms": 312.5
   }
@@ -203,7 +203,7 @@ System/health routes (`/api/status`, `/api/healthz`, etc.) are **unauthenticated
 
 ### POST /api/ai/eventmind/analyze
 
-**Purpose:** Run the EventMind analysis pipeline without calling the AI model — signal scoring only.
+**Purpose:** Run the Signal Processing analysis pipeline without calling the AI model — signal scoring only.
 
 **Auth:** Required
 
@@ -215,21 +215,21 @@ System/health routes (`/api/status`, `/api/healthz`, etc.) are **unauthenticated
 #### Response (200 OK)
 ```json
 {
-  "core_pulse":     { "score": 0.82, "state": "RESONANT" },
-  "core_sensor":    { "urgency_level": "MEDIUM" },
-  "triangulation":  { "triangulated_score": 0.74 },
-  "fulcrum_lens":   { "reframe": "string", "confidence": 0.88 },
-  "return_vector":  { "delivery_mode": "DIRECT", "alignment_score": 0.79 }
+  "signal_strength":   { "score": 0.82, "state": "HIGH" },
+  "signal_sensor":     { "urgency_level": "MEDIUM" },
+  "multi_perspective": { "triangulated_score": 0.74 },
+  "context_reframe":   { "reframe": "string", "confidence": 0.88 },
+  "response_router":   { "delivery_mode": "DIRECT", "alignment_score": 0.79 }
 }
 ```
 
 ---
 
-## Onset Protocol Endpoints
+## Query Processing Pipeline Endpoints
 
 ### POST /api/ai/onset/activate
 
-**Purpose:** Full Onset Protocol activation: Snowflake decomposition → Rainfall ingestion → Mist anticipation → Spherical Memory → Spiderweb paths → AI generation.
+**Purpose:** Full Query Processing Pipeline activation: QueryDecomposer → StreamIngester → PredictiveRetriever → MultiLayerMemoryStore → KnowledgeGraph paths → AI generation.
 
 **Auth:** Required
 
@@ -242,30 +242,30 @@ System/health routes (`/api/status`, `/api/healthz`, etc.) are **unauthenticated
 }
 ```
 
-#### Response (200 OK) — includes AI response + Onset report
+#### Response (200 OK) — includes AI response + pipeline report
 ```json
 {
   "id":      "chatcmpl-onset-789",
   "choices": [{ "message": { "role": "assistant", "content": "string" } }],
-  "onset_report": {
+  "pipeline_report": {
     "activation": {
-      "storage_protocol":   ["Spiderweb", "Sphere"],
-      "processing_protocol": ["Snowflake", "Rainfall", "Mist"],
-      "system_state":       "OPERATIONAL"
+      "storage_components":    ["KnowledgeGraph", "MultiLayerMemoryStore"],
+      "processing_components": ["QueryDecomposer", "StreamIngester", "PredictiveRetriever"],
+      "system_state":          "OPERATIONAL"
     },
-    "snowflake": {
-      "flakes": [
+    "query_decomposition": {
+      "units": [
         { "dimension": "analytical", "weight": 0.7 },
         { "dimension": "creative",   "weight": 0.5 }
       ]
     },
-    "rainfall":  { "stream_id": "uuid", "ingested": true },
-    "mist": {
-      "anticipated_concepts": ["emergence", "pattern", "resonance"],
+    "stream_ingestion":    { "stream_id": "uuid", "ingested": true },
+    "predictive_retrieval": {
+      "anticipated_concepts": ["emergence", "pattern", "structure"],
       "pattern_detected":     "recursive_structure"
     },
-    "memory_layers": { "active": 12, "pattern": 8, "crystal": 5 },
-    "network_paths": [{ "path": "A→B→C", "strength": 0.94 }],
+    "memory_layers":  { "active": 12, "pattern": 8, "archived": 5 },
+    "network_paths":  [{ "path": "A→B→C", "strength": 0.94 }],
     "latency_ms": 428.7
   }
 }
@@ -275,32 +275,32 @@ System/health routes (`/api/status`, `/api/healthz`, etc.) are **unauthenticated
 
 ### GET /api/ai/onset/status
 
-**Purpose:** Return current state of all Onset subsystems.
+**Purpose:** Return current state of all Query Processing Pipeline subsystems.
 
 **Auth:** Required
 
 #### Response (200 OK)
 ```json
 {
-  "protocol":     "ONSET",
+  "pipeline":     "QUERY_PROCESSING_PIPELINE",
   "version":      "2.0.0",
   "system_state": "OPERATIONAL",
   "subsystems": {
-    "spiderweb":       { "nodes": 24, "edges": 67, "active_paths": 5 },
-    "spherical_memory": { "active": 12, "pattern": 8, "crystal": 5 },
-    "rainfall":        { "total_ingested": 87, "active_streams": 3 },
-    "mist_log":        [{ "query": "...", "anticipated": ["...", "..."] }]
+    "knowledge_graph":    { "nodes": 24, "edges": 67, "active_paths": 5 },
+    "multi_layer_store":  { "active": 12, "pattern": 8, "archived": 5 },
+    "stream_ingester":    { "total_ingested": 87, "active_streams": 3 },
+    "retrieval_log":      [{ "query": "...", "anticipated": ["...", "..."] }]
   }
 }
 ```
 
 ---
 
-## VoidLogic Endpoints
+## Symbolic Reasoning Engine Endpoints
 
 ### POST /api/ai/voidlogic/process
 
-**Purpose:** Full VoidLogic 5.0 + IWE pipeline: CNO routing → CRFE feedback → Tesseract storage → A1 Filing → Bridge Wisdom → STVL topology → AI generation.
+**Purpose:** Full Symbolic Reasoning Engine pipeline: ComputeNodeRouter → RecursiveFeedbackEngine → ContextMemoryStore → SymbolicMemoryIndex → CrossDomainBridgeWeaver → TopologyRenderer → AI generation.
 
 **Auth:** Required
 
@@ -318,11 +318,11 @@ System/health routes (`/api/status`, `/api/healthz`, etc.) are **unauthenticated
 {
   "id":      "chatcmpl-vl-321",
   "choices": [{ "message": { "role": "assistant", "content": "string" } }],
-  "voidlogic_report": {
+  "reasoning_report": {
     "session":           42,
     "complexity":        0.7312,
     "biased_complexity": 0.6821,
-    "domain":            "logic | emotion | pattern | system | myth | general",
+    "domain":            "logic | emotion | pattern | system | narrative | general",
     "cno": {
       "tier":            "Octahedral",
       "node_count":      6,
@@ -330,11 +330,11 @@ System/health routes (`/api/status`, `/api/healthz`, etc.) are **unauthenticated
     },
     "crfe": {
       "rsml":            { "score": 0.84, "matched_markers": ["recursion", "emergence"] },
-      "emergence":       { "amplified": true, "score": 0.79, "emergent_pattern": "fractal_self_reference" },
+      "emergence":       { "amplified": true, "score": 0.79, "emergent_pattern": "self_referential_loop" },
       "system_health":   "EMERGING"
     },
-    "tesseract":         { "stored": true, "cell_id": "uuid", "resonance": 0.84 },
-    "a1_filing":         { "tag": "emergence", "domain": "pattern", "confidence": 0.71 },
+    "context_memory":    { "stored": true, "cell_id": "uuid", "coherence_score": 0.84 },
+    "symbolic_memory":   { "tag": "emergence", "domain": "pattern", "confidence": 0.71 },
     "bridge":            { "source": "pattern", "target": "general", "strength": 0.66 },
     "system_health":     "EMERGING",
     "active_overlay":    "STANDARD"
@@ -348,7 +348,7 @@ System/health routes (`/api/status`, `/api/healthz`, etc.) are **unauthenticated
 
 ### POST /api/ai/voidlogic/emerge
 
-**Purpose:** Focused emergence scan — CRFE + Bridge Wisdom, no storage, no AI call.
+**Purpose:** Focused emergence scan — RecursiveFeedbackEngine + CrossDomainBridgeWeaver, no storage, no AI call.
 
 **Auth:** Required
 
@@ -360,7 +360,7 @@ System/health routes (`/api/status`, `/api/healthz`, etc.) are **unauthenticated
 #### Response (200 OK)
 ```json
 {
-  "emergence":     { "amplified": true, "score": 0.79, "emergent_pattern": "fractal_self_reference" },
+  "emergence":     { "amplified": true, "score": 0.79, "emergent_pattern": "self_referential_loop" },
   "rsml":          { "score": 0.84, "matched_markers": ["recursion"] },
   "domain":        "pattern",
   "cross_domain":  { "insight": "string", "bridge_strength": 0.72 },
@@ -372,7 +372,7 @@ System/health routes (`/api/status`, `/api/healthz`, etc.) are **unauthenticated
 
 ### GET /api/ai/voidlogic/topology
 
-**Purpose:** Full STVL topology render for dashboard / debug.
+**Purpose:** Full TopologyRenderer snapshot for dashboard / debug.
 
 **Auth:** Required
 
@@ -392,17 +392,17 @@ System/health routes (`/api/status`, `/api/healthz`, etc.) are **unauthenticated
 
 ### GET /api/ai/voidlogic/overlay
 
-**Purpose:** Return current active VoidLogic overlay and all available overlays.
+**Purpose:** Return current active processing overlay and all available overlays.
 
 **Auth:** Required
 
 #### Response (200 OK)
 ```json
 {
-  "current_overlay":  "STANDARD",
-  "complexity_bias":  0.5,
-  "a1_confidence":    0.6,
-  "system_prompt_modifier": "string"
+  "current_overlay":          "STANDARD",
+  "complexity_bias":          0.5,
+  "symbolic_memory_confidence": 0.6,
+  "system_prompt_modifier":   "string"
 }
 ```
 
@@ -410,18 +410,18 @@ System/health routes (`/api/status`, `/api/healthz`, etc.) are **unauthenticated
 
 ### POST /api/ai/voidlogic/overlay/activate
 
-**Purpose:** Switch the active VoidLogic overlay.
+**Purpose:** Switch the active processing overlay.
 
 **Auth:** Required
 
 #### Request
 ```json
-{ "overlay": "STANDARD | MYTHIC | LOGICAL | EMOTIONAL | PATTERN" }
+{ "overlay": "STANDARD | ANALYTICAL | LOGICAL | EMOTIONAL | PATTERN" }
 ```
 
 #### Response (200 OK)
 ```json
-{ "activated": "MYTHIC", "previous": "STANDARD" }
+{ "activated": "ANALYTICAL", "previous": "STANDARD" }
 ```
 
 ---
