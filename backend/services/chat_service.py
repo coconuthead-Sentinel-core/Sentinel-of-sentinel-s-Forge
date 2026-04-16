@@ -1,6 +1,6 @@
 """
 Chat Service
-Thin coordination layer that delegates to CognitiveOrchestrator.
+Thin coordination layer that delegates to CognitiveLensRouter.
 Kept separate to preserve the public interface used by api.py.
 """
 from __future__ import annotations
@@ -13,19 +13,19 @@ logger = logging.getLogger(__name__)
 
 class ChatService:
     """
-    Orchestrates the Cognitive Chat Pipeline via CognitiveOrchestrator.
+    Orchestrates the Cognitive Chat Pipeline via CognitiveLensRouter.
 
     Pipeline:
         1. Input validation
         2. Lens selection (profile parameter)
-        3. AI generation + post-processing  (inside CognitiveOrchestrator)
-        4. Memory consolidation             (inside CognitiveOrchestrator)
+        3. AI generation + post-processing  (inside CognitiveLensRouter)
+        4. Memory consolidation             (inside CognitiveLensRouter)
         5. Return structured response
     """
 
     def __init__(self, ai_adapter) -> None:
-        from backend.services.cognitive_orchestrator import CognitiveOrchestrator
-        self._orchestrator = CognitiveOrchestrator(ai_adapter)
+        from backend.services.cognitive_orchestrator import CognitiveLensRouter
+        self._orchestrator = CognitiveLensRouter(ai_adapter)
 
     async def process_message(
         self,
@@ -59,5 +59,5 @@ class ChatService:
     @staticmethod
     def available_profiles() -> List[Dict[str, Any]]:
         """Return metadata for all registered cognitive lens profiles."""
-        from backend.services.cognitive_orchestrator import CognitiveOrchestrator
-        return CognitiveOrchestrator.available_profiles()
+        from backend.services.cognitive_orchestrator import CognitiveLensRouter
+        return CognitiveLensRouter.available_profiles()

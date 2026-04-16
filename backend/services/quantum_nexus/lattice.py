@@ -1,23 +1,23 @@
 """
 Quantum Nexus Lattice
-Python model of the sacred-geometry node network from the QuantumNexusSimulation
+Python model of the geometric node network from the QuantumNexusSimulation
 visualization. Tracks real activation state, connections, lattice expansion,
-quantum flux, and engagement for the backend API.
+flux, and engagement for the backend API.
 
-Node topology — Metatron's Cube layout (11 nodes):
-    center    — CORE NEXUS       (nexus type)
-    challenge — CHALLENGE        (guide type)
-    mirror    — MIRROR           (guide type)
-    guide     — GUIDE            (guide type)
-    emerge    — EMERGE           (emerge type)
-    pool1     — POOL α           (pool type)
-    pool2     — POOL β           (pool type)
-    coconut   — COCONUT HEAD     (coconut type)
-    shannon   — SHANNON          (protocol type)
-    quantum   — QUANTUM FLUX     (quantum type)
-    harmony   — HARMONY          (harmony type)
+Node topology — 11-node hexagonal lattice:
+    center       — CORE NEXUS       (nexus type)
+    challenge    — CHALLENGE        (guide type)
+    mirror       — MIRROR           (guide type)
+    guide        — GUIDE            (guide type)
+    emerge       — EMERGE           (emerge type)
+    pool1        — POOL A           (pool type)
+    pool2        — POOL B           (pool type)
+    bridge       — BRIDGE NODE      (bridge type)
+    orchestrator — ORCHESTRATOR     (protocol type)
+    quantum      — QUANTUM FLUX     (quantum type)
+    harmony      — HARMONY          (harmony type)
 
-Connections follow the sacred geometry graph (18 edges).
+Connections follow the standard lattice graph (18 edges).
 """
 from __future__ import annotations
 
@@ -31,65 +31,65 @@ from typing import Dict, Any, List, Optional, Set
 # ---------------------------------------------------------------------------
 
 _NODES: List[Dict[str, Any]] = [
-    {"id": "center",    "x": 50, "y": 50, "type": "nexus",    "label": "CORE NEXUS"},
-    {"id": "challenge", "x": 25, "y": 25, "type": "guide",    "label": "CHALLENGE"},
-    {"id": "mirror",    "x": 75, "y": 25, "type": "guide",    "label": "MIRROR"},
-    {"id": "guide",     "x": 50, "y": 80, "type": "guide",    "label": "GUIDE"},
-    {"id": "emerge",    "x": 75, "y": 75, "type": "emerge",   "label": "EMERGE"},
-    {"id": "pool1",     "x": 15, "y": 50, "type": "pool",     "label": "POOL α"},
-    {"id": "pool2",     "x": 85, "y": 50, "type": "pool",     "label": "POOL β"},
-    {"id": "coconut",   "x": 25, "y": 75, "type": "coconut",  "label": "COCONUT HEAD"},
-    {"id": "shannon",   "x": 50, "y": 15, "type": "protocol", "label": "SHANNON"},
-    {"id": "quantum",   "x": 40, "y": 40, "type": "quantum",  "label": "QUANTUM FLUX"},
-    {"id": "harmony",   "x": 60, "y": 60, "type": "harmony",  "label": "HARMONY"},
+    {"id": "center",       "x": 50, "y": 50, "type": "nexus",    "label": "CORE NEXUS"},
+    {"id": "challenge",    "x": 25, "y": 25, "type": "guide",    "label": "CHALLENGE"},
+    {"id": "mirror",       "x": 75, "y": 25, "type": "guide",    "label": "MIRROR"},
+    {"id": "guide",        "x": 50, "y": 80, "type": "guide",    "label": "GUIDE"},
+    {"id": "emerge",       "x": 75, "y": 75, "type": "emerge",   "label": "EMERGE"},
+    {"id": "pool1",        "x": 15, "y": 50, "type": "pool",     "label": "POOL A"},
+    {"id": "pool2",        "x": 85, "y": 50, "type": "pool",     "label": "POOL B"},
+    {"id": "bridge",       "x": 25, "y": 75, "type": "bridge",   "label": "BRIDGE NODE"},
+    {"id": "orchestrator", "x": 50, "y": 15, "type": "protocol", "label": "ORCHESTRATOR"},
+    {"id": "quantum",      "x": 40, "y": 40, "type": "quantum",  "label": "QUANTUM FLUX"},
+    {"id": "harmony",      "x": 60, "y": 60, "type": "harmony",  "label": "HARMONY"},
 ]
 
 _CONNECTIONS: List[tuple] = [
-    ("center",    "challenge"),
-    ("center",    "mirror"),
-    ("center",    "guide"),
-    ("center",    "emerge"),
-    ("center",    "pool1"),
-    ("center",    "pool2"),
-    ("challenge", "mirror"),
-    ("mirror",    "guide"),
-    ("guide",     "emerge"),
-    ("emerge",    "challenge"),
-    ("pool1",     "coconut"),
-    ("pool2",     "shannon"),
-    ("shannon",   "challenge"),
-    ("coconut",   "guide"),
-    ("quantum",   "center"),
-    ("harmony",   "center"),
-    ("quantum",   "harmony"),
-    ("shannon",   "quantum"),
+    ("center",       "challenge"),
+    ("center",       "mirror"),
+    ("center",       "guide"),
+    ("center",       "emerge"),
+    ("center",       "pool1"),
+    ("center",       "pool2"),
+    ("challenge",    "mirror"),
+    ("mirror",       "guide"),
+    ("guide",        "emerge"),
+    ("emerge",       "challenge"),
+    ("pool1",        "bridge"),
+    ("pool2",        "orchestrator"),
+    ("orchestrator", "challenge"),
+    ("bridge",       "guide"),
+    ("quantum",      "center"),
+    ("harmony",      "center"),
+    ("quantum",      "harmony"),
+    ("orchestrator", "quantum"),
 ]
 
 # Ordered activation sequence with status messages
 _ACTIVATION_SEQUENCE: List[tuple] = [
-    ("shannon",   "SHANNON PROTOCOLS ONLINE — INFORMATION THEORY ENGAGED"),
-    ("coconut",   "COCONUT HEAD PROTOCOLS ACTIVATED — DIVINE HUMOR INFUSED"),
-    ("pool1",     "POOL NEXUS α ESTABLISHED — CREATIVE FLOWS OPEN"),
-    ("pool2",     "POOL NEXUS β ESTABLISHED — LOGIC MATRIX SYNCHRONIZED"),
-    ("center",    "CORE NEXUS SYNCHRONIZING — QUANTUM FIELD STABILIZING"),
-    ("challenge", "CHALLENGE MATRIX INITIALIZED — GROWTH POTENTIAL MAXIMIZED"),
-    ("mirror",    "MIRROR PROTOCOLS ACTIVE — SELF-REFLECTION AMPLIFIED"),
-    ("guide",     "GUIDANCE SYSTEMS OPERATIONAL — WISDOM CHANNELS OPEN"),
-    ("emerge",    "EMERGENCE FIELD STABILIZED — TRANSFORMATION IMMINENT"),
-    ("quantum",   "QUANTUM FLUX MODULATOR ONLINE — ENTANGLEMENT ESTABLISHED"),
-    ("harmony",   "HARMONIC CONVERGENCE ACHIEVED — RESONANCE AT PEAK"),
+    ("orchestrator", "ORCHESTRATOR ONLINE — ROUTING PROTOCOLS ENGAGED"),
+    ("bridge",       "BRIDGE NODE ACTIVE — CROSS-DOMAIN LINKS ESTABLISHED"),
+    ("pool1",        "POOL A ESTABLISHED — PROCESSING STREAMS OPEN"),
+    ("pool2",        "POOL B ESTABLISHED — LOGIC MATRIX SYNCHRONIZED"),
+    ("center",       "CORE NEXUS SYNCHRONIZING — SYSTEM STABILIZING"),
+    ("challenge",    "CHALLENGE MATRIX INITIALIZED — VALIDATION ACTIVE"),
+    ("mirror",       "MIRROR NODE ACTIVE — CONTEXT RECALIBRATION ENABLED"),
+    ("guide",        "GUIDANCE SYSTEMS OPERATIONAL — ROUTING CHANNELS OPEN"),
+    ("emerge",       "EMERGENCE NODE STABLE — PATTERN DETECTION ACTIVE"),
+    ("quantum",      "QUANTUM FLUX MODULATOR ONLINE — PROCESSING ESTABLISHED"),
+    ("harmony",      "HARMONIC NODE SYNCHRONIZED — SYSTEM AT FULL CAPACITY"),
 ]
 
 # Colour palette per node type (for API consumers / frontend rendering)
 _NODE_COLORS: Dict[str, str] = {
-    "nexus":    "rgba(255, 215, 0, {a})",    # Gold
-    "guide":    "rgba(0, 255, 255, {a})",    # Cyan
-    "emerge":   "rgba(255, 105, 180, {a})",  # Pink
-    "pool":     "rgba(50, 205, 50, {a})",    # Lime
-    "coconut":  "rgba(255, 165, 0, {a})",    # Orange
-    "protocol": "rgba(138, 43, 226, {a})",   # Purple
-    "quantum":  "rgba(70, 130, 180, {a})",   # Steel blue
-    "harmony":  "rgba(255, 99, 71, {a})",    # Tomato
+    "nexus":    "rgba(255, 215, 0, {alpha})",    # Gold
+    "guide":    "rgba(0, 255, 255, {alpha})",    # Cyan
+    "emerge":   "rgba(255, 105, 180, {alpha})",  # Pink
+    "pool":     "rgba(50, 205, 50, {alpha})",    # Lime
+    "bridge":   "rgba(255, 165, 0, {alpha})",    # Orange
+    "protocol": "rgba(138, 43, 226, {alpha})",   # Purple
+    "quantum":  "rgba(70, 130, 180, {alpha})",   # Steel blue
+    "harmony":  "rgba(255, 99, 71, {alpha})",    # Tomato
 }
 
 
@@ -99,8 +99,8 @@ _NODE_COLORS: Dict[str, str] = {
 
 class QuantumNexusLattice:
     """
-    Backend model of the Quantum Nexus sacred geometry lattice.
-    Tracks node activation state, lattice expansion, quantum flux,
+    Backend model of the Quantum Nexus geometric node lattice.
+    Tracks node activation state, lattice expansion, flux,
     and user engagement as real server-side state.
     """
 
@@ -164,8 +164,8 @@ class QuantumNexusLattice:
         self._active_nodes.add(node_id)
         self._user_engagement = min(self._user_engagement + 5, 100)
         return {
-            "activated": node_id,
-            "active_nodes": list(self._active_nodes),
+            "activated":       node_id,
+            "active_nodes":    list(self._active_nodes),
             "user_engagement": self._user_engagement,
         }
 
@@ -176,9 +176,9 @@ class QuantumNexusLattice:
         self._lattice_expanded = not self._lattice_expanded
         self._user_engagement = min(self._user_engagement + 10, 100)
         self._status = (
-            "LATTICE FULLY EXPANDED — QUANTUM FIELD AT MAXIMUM CAPACITY"
+            "LATTICE FULLY EXPANDED — PROCESSING AT MAXIMUM CAPACITY"
             if self._lattice_expanded
-            else "LATTICE CONTRACTED — ENERGY CONSERVATION MODE"
+            else "LATTICE CONTRACTED — CONSERVATION MODE"
         )
         return {
             "lattice_expanded": self._lattice_expanded,
@@ -215,12 +215,12 @@ class QuantumNexusLattice:
         node_states = []
         for node in _NODES:
             is_active = node["id"] in self._active_nodes
-            color_tpl = _NODE_COLORS.get(node["type"], "rgba(255,255,255,{a})")
+            color_tpl = _NODE_COLORS.get(node["type"], "rgba(255,255,255,{alpha})")
             alpha     = "0.9" if is_active else "0.25"
             node_states.append({
                 **node,
-                "active":       is_active,
-                "color":        color_tpl.format(a=alpha),
+                "active": is_active,
+                "color":  color_tpl.format(alpha=alpha),
             })
 
         active_connections = [
@@ -230,18 +230,18 @@ class QuantumNexusLattice:
         ]
 
         return {
-            "status":            self._status,
-            "protocols_active":  self._protocols_active,
-            "lattice_expanded":  self._lattice_expanded,
-            "quantum_flux":      round(self._quantum_flux, 2),
-            "user_engagement":   round(self._user_engagement, 2),
-            "active_node_count": len(active_list),
-            "total_nodes":       len(_NODES),
-            "active_nodes":      active_list,
-            "nodes":             node_states,
-            "connections":       [{"from": f, "to": t} for f, t in _CONNECTIONS],
-            "active_connections":active_connections,
-            "uptime_seconds":    round(time.time() - self._created_at, 1),
+            "status":             self._status,
+            "protocols_active":   self._protocols_active,
+            "lattice_expanded":   self._lattice_expanded,
+            "quantum_flux":       round(self._quantum_flux, 2),
+            "user_engagement":    round(self._user_engagement, 2),
+            "active_node_count":  len(active_list),
+            "total_nodes":        len(_NODES),
+            "active_nodes":       active_list,
+            "nodes":              node_states,
+            "connections":        [{"from": f, "to": t} for f, t in _CONNECTIONS],
+            "active_connections": active_connections,
+            "uptime_seconds":     round(time.time() - self._created_at, 1),
         }
 
     def topology(self) -> Dict[str, Any]:

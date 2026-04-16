@@ -1,26 +1,23 @@
 """
-Nexus Tagging System
-Structured symbolic metadata tagging for all VoidLogic outputs.
+Output Tagging System
+Structured metadata tagging for all SymbolicReasoningEngine outputs.
 
-Implements the tagging format from the Continuity Protocol:
+Implements a structured tag format for audit and traceability:
     [TagType_YYYY-MM-DD-HH-MM_Summary_Status].Type
 
 Tag Types:
-    NodePrimary   — Root activation node for a session or pipeline
-    Synthesis     — Multi-modal cognitive merge or lens combination
-    Anchor        — System activation confirmation / ground-truth stamp
-    OutputDoc     — Formatted AI output or documentation artifact
-    CommentSection — Reflective dialog, mentored annotation
-    Directive     — Next-step action or instruction block
-    Regulation    — Compliance, risk, governance notice
+    NodePrimary    — Root activation node for a session or pipeline
+    Synthesis      — Multi-modal cognitive merge or lens combination
+    Anchor         — System activation confirmation / ground-truth stamp
+    OutputDoc      — Formatted AI output or documentation artifact
+    CommentSection — Reflective dialog or annotation
+    Directive      — Next-step action or instruction block
+    Regulation     — Compliance, risk, or governance notice
 
 Status Values:
     GREEN  — Active, healthy, fully operational
     YELLOW — Warning, partial activation, review needed
-    RED    — Blocked, failed, governance violation
-
-The NexusTaggingSystem enriches A1 Filing entries and VoidLogic
-engine outputs with structured, scannable metadata stamps.
+    RED    — Blocked, failed, or governance violation
 """
 from __future__ import annotations
 
@@ -114,10 +111,10 @@ def parse_tag(tag_string: str) -> Optional[Dict[str, str]]:
 
 
 # ---------------------------------------------------------------------------
-# NexusTaggingSystem class
+# OutputTaggingSystem class
 # ---------------------------------------------------------------------------
 
-class NexusTaggingSystem:
+class OutputTaggingSystem:
     """
     Central tag registry for all VoidLogic outputs.
     Tags are stored with their payload for later recall and audit.
@@ -171,8 +168,8 @@ class NexusTaggingSystem:
         Automatically select tag type and status from a VoidLogic engine result.
         Attaches the tag to the result dict in-place and returns it.
         """
-        health = voidlogic_result.get("voidlogic_report", {}).get("system_health", "NOMINAL")
-        crfe   = voidlogic_result.get("voidlogic_report", {}).get("crfe", {})
+        health = voidlogic_result.get("reasoning_report", {}).get("system_health", "NOMINAL")
+        crfe   = voidlogic_result.get("reasoning_report", {}).get("crfe", {})
 
         # Determine tag type from health
         tag_type = {
@@ -256,4 +253,4 @@ class NexusTaggingSystem:
 
 
 # Module-level singleton
-nexus_tag = NexusTaggingSystem()
+nexus_tag = OutputTaggingSystem()

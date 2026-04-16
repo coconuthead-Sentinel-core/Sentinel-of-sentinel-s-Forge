@@ -1,10 +1,10 @@
 """
-EventMind Engine
-Orchestrates all EventMind components into a single processing pipeline.
+SignalProcessingEngine
+Orchestrates all signal analysis components into a single processing pipeline.
 
 Pipeline:
-    Input → CorePulse → CoreSensor → TriangulationTelescope →
-    FulcrumLens → ReturnVector → AI Generation → Output
+    Input → SignalStrengthAnalyzer → SignalSensor → MultiPerspectiveAnalyzer →
+    ContextReframer → ResponseRouter → AI Generation → Output
 """
 from __future__ import annotations
 
@@ -12,23 +12,23 @@ import logging
 import time
 from typing import Any, Dict, List, Optional
 
-from .core_pulse import CorePulse
-from .triangulation import TriangulationTelescope
-from .fulcrum_lens import FulcrumLens
-from .core_sensor import CoreSensor
-from .return_vector import ReturnVector
+from .core_pulse import SignalStrengthAnalyzer
+from .triangulation import MultiPerspectiveAnalyzer
+from .fulcrum_lens import ContextReframer
+from .core_sensor import SignalSensor
+from .return_vector import ResponseRouter
 
 logger = logging.getLogger(__name__)
 
 # Module-level singletons (stateless per request, shared instances are safe)
-_pulse       = CorePulse()
-_telescope   = TriangulationTelescope()
-_fulcrum     = FulcrumLens()
-_sensor      = CoreSensor()
-_return_vec  = ReturnVector()
+_pulse       = SignalStrengthAnalyzer()
+_telescope   = MultiPerspectiveAnalyzer()
+_fulcrum     = ContextReframer()
+_sensor      = SignalSensor()
+_return_vec  = ResponseRouter()
 
 
-class EventMindEngine:
+class SignalProcessingEngine:
     """
     Full EventMind processing pipeline.
     Wraps all five components and produces a complete analysis
@@ -72,7 +72,7 @@ class EventMindEngine:
 
         # --- Stage 6: If SILENT and no urgency, skip AI call ---
         if rv["delivery_mode"] == "SILENT":
-            ai_response_text = pulse["hum"] or "~ The frequency is not aligned. Refocus your inquiry."
+            ai_response_text = pulse["fallback_response"] or "Input activation score is below threshold. Please refocus or clarify your inquiry."
             raw_response = {
                 "id": f"eventmind-silent-{int(time.time())}",
                 "model": "eventmind-core",
@@ -110,13 +110,13 @@ class EventMindEngine:
         # --- Stage 8: Assemble full EventMind report ---
         latency = round((time.perf_counter() - t_start) * 1000, 2)
 
-        raw_response["eventmind_analysis"] = {
-            "core_pulse": pulse,
-            "core_sensor": sensor,
-            "triangulation": triangulation,
-            "fulcrum_lens": fulcrum,
-            "return_vector": rv,
-            "latency_ms": latency,
+        raw_response["signal_analysis"] = {
+            "signal_strength":   pulse,
+            "signal_sensor":     sensor,
+            "multi_perspective": triangulation,
+            "context_reframe":   fulcrum,
+            "response_router":   rv,
+            "latency_ms":        latency,
         }
 
         return raw_response

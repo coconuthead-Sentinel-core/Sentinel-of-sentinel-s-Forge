@@ -29,9 +29,9 @@ from .eventbus import bus
 from .domain.models import Note
 from .infrastructure.cosmos_repo import cosmos_repo
 from .services.chat_service import ChatService
-from .services.eventmind.engine import EventMindEngine
-from .services.onset.protocol import OnsetProtocol
-from .services.voidlogic import VoidLogicEngine
+from .services.eventmind.engine import SignalProcessingEngine
+from .services.onset.protocol import QueryProcessingPipeline
+from .services.voidlogic import SymbolicReasoningEngine
 from .services.quantum_nexus import EnhancedQuantumNexusForge
 from .services.cognitive_map import cognitive_map
 
@@ -50,9 +50,9 @@ else:
 
 # Initialize Services
 _chat_service   = ChatService(_adapter)
-_eventmind      = EventMindEngine(_adapter)
-_onset          = OnsetProtocol(_adapter)
-_voidlogic      = VoidLogicEngine()
+_eventmind      = SignalProcessingEngine(_adapter)
+_onset          = QueryProcessingPipeline(_adapter)
+_voidlogic      = SymbolicReasoningEngine()
 _quantum_forge  = EnhancedQuantumNexusForge()
 
 # --- AI Routes ---
@@ -141,8 +141,8 @@ async def eventmind_analyze(payload: dict = Body(...)):
     text = payload.get("text", "")
     if not text:
         raise HTTPException(status_code=400, detail="'text' field is required")
-    from .services.eventmind.engine import EventMindEngine
-    return EventMindEngine.analyze_only(text)
+    from .services.eventmind.engine import SignalProcessingEngine
+    return SignalProcessingEngine.analyze_only(text)
 
 
 # --- Onset Protocol Routes ---
@@ -172,8 +172,8 @@ async def onset_activate(req: ChatRequest):
 @ai_router.get("/onset/status")
 async def onset_status():
     """Return current status of all Onset Protocol subsystems."""
-    from .services.onset.protocol import OnsetProtocol
-    return OnsetProtocol.system_status()
+    from .services.onset.protocol import QueryProcessingPipeline
+    return QueryProcessingPipeline.system_status()
 
 
 @ai_router.post("/onset/ingest")
@@ -182,28 +182,28 @@ async def onset_ingest(payload: dict = Body(...)):
     Ingest raw text directly into the Onset Rainfall stream.
     Body: { "text": "...", "source": "optional_label" }
     """
-    from .services.onset.rainfall import rainfall
+    from .services.onset.rainfall import stream_ingester
     text = payload.get("text", "")
     source = payload.get("source", "direct_ingest")
     if not text:
         raise HTTPException(status_code=400, detail="'text' field is required")
-    return rainfall.ingest(text, source=source)
+    return stream_ingester.ingest(text, source=source)
 
-# --- VoidLogic 5.0 + IWE Routes ---
+# --- Symbolic Reasoning Engine Routes ---
 
 @ai_router.post("/voidlogic/process")
 async def voidlogic_process(req: ChatRequest):
     """
-    Process a message through the full VoidLogic 5.0 + IWE symbolic pipeline.
+    Process a message through the full Symbolic Reasoning Engine pipeline.
 
     Stages:
-      1. CNO — route payload through geometric node fabric (Tetrahedral/Octahedral/Icosahedral)
-      2. CRFE — recursive feedback, paradox detection, emergence amplification
-      3. Tesseract — store in 4D hypercube symbolic memory
-      4. A1 Filing — tag and file with metadata + drift monitoring
-      5. Bridge Wisdom — reinforce trans-domain wisdom threads
-      6. STVL — render topology snapshot
-      7. AI — generate a VoidLogic-enhanced response
+      1. ComputeNodeRouter      — route payload through the geometric node fabric
+      2. RecursiveFeedbackEngine — recursive pattern detection, paradox resolution, emergence
+      3. ContextMemoryStore     — store the interaction in multi-dimensional session memory
+      4. SymbolicMemoryIndex    — tag and file with metadata + drift monitoring
+      5. KnowledgeBridge        — reinforce cross-domain knowledge threads
+      6. TopologyRenderer       — render topology snapshot
+      7. AI                     — generate a Symbolic Reasoning-enhanced response
     """
     try:
         last_user_msg = next((m.content for m in reversed(req.messages) if m.role == "user"), "")
@@ -250,8 +250,8 @@ async def voidlogic_emerge(payload: dict = Body(...)):
 @ai_router.get("/voidlogic/topology")
 async def voidlogic_topology():
     """
-    Full STVL topology render — all subsystems, node fabric, tesseract,
-    bridge threads, A1 index, and CNO health in a single snapshot.
+    Full topology render — all subsystems, node fabric, context memory,
+    bridge threads, memory index, and router health in a single snapshot.
     """
     try:
         return await run_in_threadpool(_voidlogic.full_topology)
@@ -280,7 +280,7 @@ async def quantum_process(payload: dict = Body(...)):
         "content":         "text or any input",
         "symbol_sequence": "💠🔺🔶⭕"   (optional),
         "primitive_type":  "cube"        (optional: tetrahedron|cube|octahedron|
-                                          dodecahedron|icosahedron|metatrons_cube)
+                                          dodecahedron|icosahedron|origin)
     }
     """
     from .services.quantum_nexus.cognitive_node import CognitivePrimitiveType
@@ -351,12 +351,12 @@ async def quantum_performance():
         raise HTTPException(status_code=500, detail=str(exc))
 
 
-# --- Quantum Nexus Lattice Routes (sacred geometry node network) ---
+# --- Quantum Nexus Lattice Routes (geometric node network) ---
 
 @ai_router.get("/quantum/lattice/status")
 async def quantum_lattice_status():
     """
-    Return the full live state of the Quantum Nexus sacred geometry lattice.
+    Return the full live state of the Quantum Nexus geometric node lattice.
     Includes node activation states, connections, quantum flux, engagement,
     and lattice expansion mode. Advances the internal simulation clock on
     each call so quantum_flux updates in real time.
@@ -372,7 +372,7 @@ async def quantum_lattice_status():
 @ai_router.get("/quantum/lattice/topology")
 async def quantum_lattice_topology():
     """
-    Return the static Metatron's Cube topology: all 11 nodes, 18 connections,
+    Return the static lattice topology: all 11 nodes, 18 connections,
     colour palette per node type, and the ordered protocol activation sequence.
     """
     from .services.quantum_nexus.lattice import lattice
@@ -487,9 +487,8 @@ async def voidlogic_overlay_current():
 @ai_router.get("/voidlogic/overlay/all")
 async def voidlogic_overlay_all():
     """
-    Return all 6 Live Overlay Protocol node definitions:
-    INITIATIVE_NODE, REFLECTIVE_MIRBOR, GEOMETRIC_HARMONIOS,
-    COO_X_MODE, NEKUM_AFTIRRAD, METATRON_CORE
+    Return all 6 processing overlay mode definitions:
+    FOCUS, RECURSIVE, STRUCTURAL, PRECISION, DIVERGENT, COHERENCE
     """
     from .services.voidlogic.overlay_protocol import overlay
     try:
@@ -502,12 +501,11 @@ async def voidlogic_overlay_all():
 @ai_router.post("/voidlogic/overlay/activate")
 async def voidlogic_overlay_activate(payload: dict = Body(...)):
     """
-    Switch the active VoidLogic overlay node. Affects AI prompt tone,
-    CNO routing bias, CRFE sensitivity, and A1 confidence baseline.
+    Switch the active processing overlay. Affects AI prompt tone,
+    ComputeNodeRouter routing bias, RecursiveFeedbackEngine sensitivity, and memory confidence.
 
-    Body: { "overlay": "METATRON_CORE" }
-    Valid: INITIATIVE_NODE | REFLECTIVE_MIRBOR | GEOMETRIC_HARMONIOS |
-           COO_X_MODE | NEKUM_AFTIRRAD | METATRON_CORE
+    Body: { "overlay": "COHERENCE" }
+    Valid: FOCUS | RECURSIVE | STRUCTURAL | PRECISION | DIVERGENT | COHERENCE
     """
     from .services.voidlogic.overlay_protocol import overlay
     name = payload.get("overlay", "")
@@ -535,7 +533,7 @@ async def voidlogic_session_capture(payload: dict = Body(default={})):
     exactly where the session left off.
 
     Body (all optional): {
-        "overlay_name":   "METATRON_CORE",
+        "overlay_name":   "COHERENCE",
         "extra_context":  "text to run through CRFE for fresh seeds"
     }
     """
@@ -967,7 +965,7 @@ async def get_metrics_prom() -> Any:
         lines.append("# TYPE qnf_threads_total gauge")
         lines.append(f"qnf_threads_total {tcount}")
         # Resonance snapshot
-        res = await run_in_threadpool(service.resonance_last)
+        res = await run_in_threadpool(service.coherence_score_last)
         if isinstance(res, dict) and res:
             score = float(res.get('score', 0.0) or 0.0)
             lines.append("# HELP qnf_resonance_score Last resonance score")

@@ -1,20 +1,18 @@
 """
-STVL — Symbolic-Topology Visualization Layer
-Renders the internal state of VoidLogic as a structured symbolic map
-that can be consumed by a frontend visualizer, dashboard, or debug panel.
+TopologyRenderer
+Renders the internal state of the SymbolicReasoningEngine as a structured
+data payload consumable by a frontend visualizer, dashboard, or debug panel.
 
-The STVL does not produce graphics — it produces a data payload that
-describes the topology: nodes, edges, layers, load states, domain threads,
-tesseract cells, and emergent signals. The frontend can render this
-however it chooses (force graph, 3D hypercube, etc.).
+Produces structured JSON — not graphics. The frontend renders this
+however it chooses (force graph, 3D view, etc.).
 
 Output sections:
     node_fabric     — all node stacks and their geometric tiers
-    tesseract_map   — hyperplane snapshot of the 4D storage
-    bridge_map      — active trans-domain wisdom threads
-    crfe_pulse      — latest CRFE analysis result
-    a1_index        — filing system snapshot
-    cno_pulse       — CNO health pulse
+    context_memory  — multi-dimensional context memory snapshot
+    bridge_map      — active cross-domain knowledge bridge threads
+    crfe_pulse      — latest RecursiveFeedbackEngine analysis
+    memory_index    — symbolic memory index snapshot
+    router_health   — ComputeNodeRouter health pulse
     meta            — timestamp, engine version, render_mode
 """
 from __future__ import annotations
@@ -23,17 +21,17 @@ import time
 from typing import Dict, Any, Optional
 
 from .node_geometry  import dnc
-from .tesseract_storage import tesseract
-from .bridge_wisdom  import bwt
+from .tesseract_storage import context_memory
+from .bridge_wisdom  import knowledge_bridge
 from .a1_filing      import a1
 from .cno            import cno
 from .crfe           import crfe
 
 
-_ENGINE_VERSION = "VoidLogic-5.0-IWE"
+_ENGINE_VERSION = "SymbolicReasoningEngine-5.0"
 
 
-class STVL:
+class TopologyRenderer:
     """Symbolic-Topology Visualization Layer."""
 
     def render(
@@ -52,7 +50,7 @@ class STVL:
             A structured topology payload.
         """
         node_fabric   = self._render_node_fabric(render_mode)
-        tesseract_map = self._render_tesseract()
+        context_memory_map = self._render_context_memory()
         bridge_map    = self._render_bridges(render_mode)
         a1_index      = self._render_a1()
         cno_pulse     = cno.health_pulse()
@@ -65,7 +63,7 @@ class STVL:
                 "render_mode":  render_mode,
             },
             "node_fabric":    node_fabric,
-            "tesseract_map":  tesseract_map,
+            "context_memory_map":  context_memory_map,
             "bridge_map":     bridge_map,
             "a1_index":       a1_index,
             "cno_pulse":      cno_pulse,
@@ -94,9 +92,9 @@ class STVL:
             "global_avg_load":   global_avg,
             "routed_total":      cno_pulse["routed_total"],
             "overload_events":   cno_pulse["overload_events"],
-            "active_threads":    bwt.weave_snapshot()["active_threads"],
+            "active_threads":    knowledge_bridge.weave_snapshot()["active_threads"],
             "total_filings":     a1.index_snapshot()["total_filings"],
-            "tesseract_stored":  tesseract.hyperplane_snapshot()["total_stored"],
+            "tesseract_stored":  context_memory.hyperplane_snapshot()["total_stored"],
         }
 
     # ------------------------------------------------------------------
@@ -115,21 +113,21 @@ class STVL:
             }
         return snapshot
 
-    def _render_tesseract(self) -> Dict[str, Any]:
-        return tesseract.hyperplane_snapshot()
+    def _render_context_memory(self) -> Dict[str, Any]:
+        return context_memory.hyperplane_snapshot()
 
     def _render_bridges(self, mode: str) -> Dict[str, Any]:
-        ws = bwt.weave_snapshot()
+        ws = knowledge_bridge.weave_snapshot()
         if mode == "lite":
             return {
                 "active_threads":     ws["active_threads"],
                 "total_translations": ws["total_translations"],
             }
-        return {**ws, "threads": bwt.active_threads()}
+        return {**ws, "threads": knowledge_bridge.active_threads()}
 
     def _render_a1(self) -> Dict[str, Any]:
         return a1.index_snapshot()
 
 
 # Module-level singleton
-stvl = STVL()
+stvl = TopologyRenderer()

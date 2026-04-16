@@ -1,18 +1,18 @@
 """
-A1 Filing System
-Symbolic memory tagging, retrieval, and drift monitoring for VoidLogic.
+SymbolicMemoryIndex
+Symbolic memory tagging, retrieval, and drift monitoring for the SymbolicReasoningEngine.
 
-Every thought, session, or symbolic payload that passes through the engine
-is filed here with rich metadata. Over time the system watches for "drift" —
+Every session or payload that passes through the engine is indexed here
+with rich metadata. Over time the system watches for "drift" —
 when a concept shifts its meaning, frequency, or connection pattern — and
 flags it for review.
 
-Filing structure:
-    tag          — primary symbolic label (e.g. "recursion", "emergence")
-    domain       — symbolic domain (logic / emotion / pattern / system / myth)
+Index entry structure:
+    tag          — primary label (e.g. "recursion", "emergence")
+    domain       — cognitive domain (logic / emotion / pattern / system / narrative)
     confidence   — 0.0–1.0 certainty that the tag is accurate
-    access_count — how many times this filing has been retrieved
-    drift_score  — how much this filing has changed since first creation
+    access_count — how many times this entry has been retrieved
+    drift_score  — how much this entry has changed since first creation
 
 Drift is computed as:
     Δconfidence + Δaccess_rate divergence from rolling mean
@@ -29,7 +29,7 @@ _DRIFT_THRESHOLD = 0.35     # above this → filing is marked DRIFTED
 _MAX_FILINGS = 2000
 
 
-class A1Filing:
+class SymbolicMemoryEntry:
     """A single filed symbolic memory."""
 
     def __init__(
@@ -98,14 +98,14 @@ class A1Filing:
         }
 
 
-class A1FilingSystem:
+class SymbolicMemoryIndex:
     """
-    The A1 Filing System — master symbolic memory index for VoidLogic.
-    Files thoughts, monitors drift, and supports tag/domain retrieval.
+    SymbolicMemoryIndex — master symbolic memory index for the SymbolicReasoningEngine.
+    Files entries, monitors drift, and supports tag/domain retrieval.
     """
 
     def __init__(self) -> None:
-        self._filings: Dict[str, A1Filing] = {}        # id → filing
+        self._filings: Dict[str, SymbolicMemoryEntry] = {}        # id → filing
         self._tag_index: Dict[str, List[str]] = {}     # tag → [ids]
         self._domain_index: Dict[str, List[str]] = {}  # domain → [ids]
         self._total_filed = 0
@@ -127,7 +127,7 @@ class A1FilingSystem:
         if len(self._filings) >= _MAX_FILINGS:
             self._evict_lowest_confidence()
 
-        f = A1Filing(content, tag, domain, confidence)
+        f = SymbolicMemoryEntry(content, tag, domain, confidence)
         self._filings[f.id] = f
 
         self._tag_index.setdefault(f.tag, []).append(f.id)
@@ -204,7 +204,7 @@ class A1FilingSystem:
         if f.domain in self._domain_index:
             self._domain_index[f.domain] = [i for i in self._domain_index[f.domain] if i != victim_id]
 
-    def _log_drift(self, f: A1Filing) -> None:
+    def _log_drift(self, f: SymbolicMemoryEntry) -> None:
         self._drift_alerts = (self._drift_alerts + [{
             "filing_id":   f.id,
             "tag":         f.tag,
@@ -214,4 +214,4 @@ class A1FilingSystem:
 
 
 # Module-level singleton
-a1 = A1FilingSystem()
+a1 = SymbolicMemoryIndex()

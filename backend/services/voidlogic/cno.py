@@ -1,16 +1,15 @@
 """
-CNO — Cognitive Neural Overlay
+ComputeNodeRouter (CNO)
 Live orchestration layer that wraps the Dynamic Node Constructor (DNC)
-and provides real-time symbolic routing, load balancing, and stack health
-monitoring. The CNO acts as the "nervous system" of VoidLogic — it decides
-where each incoming thought-payload gets routed and ensures no node
+and provides real-time payload routing, load balancing, and node stack health
+monitoring. Decides where each incoming payload gets routed and ensures no node
 stack overloads or deadlocks.
 
 Responsibilities:
-    • Accept a symbolic payload and assign it to the optimal node stack
+    • Accept a payload and assign it to the optimal node stack
     • Monitor load across all active stacks and trigger auto-scaling
-    • Discharge stacks that have been idle for too long
-    • Emit a real-time health pulse for STVL to visualize
+    • Discharge idle stacks on a configurable interval
+    • Emit a health pulse for the topology renderer
 """
 from __future__ import annotations
 
@@ -26,8 +25,8 @@ _DISCHARGE_INTERVAL = 60.0
 _OVERLOAD_THRESHOLD = 0.80
 
 
-class CNO:
-    """Cognitive Neural Overlay — live routing and load management."""
+class ComputeNodeRouter:
+    """Compute Node Router — live routing and load management."""
 
     def __init__(self) -> None:
         self._last_discharge: float = time.time()
@@ -130,4 +129,4 @@ class CNO:
 
 
 # Module-level singleton
-cno = CNO()
+cno = ComputeNodeRouter()

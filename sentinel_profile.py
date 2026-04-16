@@ -2,8 +2,6 @@
 Sentinel Nexus Standard Initialization Protocol (Zero-State baseline).
 
 SENTINEL CORE UPGRADE PROTOCOL v3.3-R — CLEANING AND RE-INITIALIZATION
-Codename: Kairos_Engine_Standard_Nexus_Zero_State
-Prime Architect: Coconut Head
 
 Provides initialize_sentinel(target_profile) to reset a profile to a
 clean baseline suitable for D2 (Neural Networks and Cognitive Architectures).

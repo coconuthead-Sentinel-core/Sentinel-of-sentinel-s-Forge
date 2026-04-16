@@ -1,8 +1,8 @@
 """
-Rainfall Data Stream
+Stream Ingester
 Continuous real-time data ingestion layer.
-New information flows in like rainfall — continuously, in parallel streams —
-and is immediately indexed into the Spiderweb and Spherical Memory systems.
+New information is ingested as a stream and immediately indexed
+into the KnowledgeGraph and MultiLayerMemoryStore.
 """
 from __future__ import annotations
 
@@ -10,13 +10,12 @@ import re
 import time
 from typing import Dict, Any, List
 
-from .spiderweb import spiderweb
-from .spherical_memory import spherical_memory
+from .spiderweb import knowledge_graph
+from .spherical_memory import multi_layer_store
 
 
 def _extract_concepts(text: str) -> List[str]:
     """Extract meaningful concept words from text (nouns, key terms)."""
-    # Remove stopwords and short words
     stopwords = {
         "the", "a", "an", "is", "are", "was", "were", "be", "been", "being",
         "have", "has", "had", "do", "does", "did", "will", "would", "could",
@@ -29,7 +28,7 @@ def _extract_concepts(text: str) -> List[str]:
     return [w for w in words if w not in stopwords]
 
 
-class RainfallStream:
+class StreamIngester:
     """
     Manages real-time data ingestion into the Onset memory systems.
     """
@@ -40,7 +39,7 @@ class RainfallStream:
 
     def ingest(self, text: str, source: str = "user_input", tags: List[str] = None) -> Dict[str, Any]:
         """
-        Ingest a text stream into the Spiderweb and Spherical Memory.
+        Ingest a text stream into the KnowledgeGraph and MultiLayerMemoryStore.
 
         Args:
             text:    Raw text to ingest
@@ -53,17 +52,12 @@ class RainfallStream:
         concepts = _extract_concepts(text)
         auto_tags = tags or []
 
-        # Tag by source
         auto_tags.append(f"source:{source}")
-        auto_tags.extend(concepts[:5])  # top 5 concepts as tags
+        auto_tags.extend(concepts[:5])
 
-        # Feed into Spiderweb Node Network
-        web_stats = spiderweb.ingest(concepts)
+        graph_stats = knowledge_graph.ingest(concepts)
+        memory_entry = multi_layer_store.store(text, auto_tags)
 
-        # Store in Spherical Memory
-        memory_entry = spherical_memory.store(text, auto_tags)
-
-        # Log the stream event
         log_entry = {
             "timestamp": time.time(),
             "source": source,
@@ -82,7 +76,7 @@ class RainfallStream:
             "concepts_extracted": len(concepts),
             "top_concepts": concepts[:8],
             "memory_entry_id": memory_entry["id"],
-            "spiderweb_nodes": web_stats["node_count"],
+            "graph_nodes": graph_stats["node_count"],
             "total_ingested": self._total_ingested,
         }
 
@@ -98,4 +92,4 @@ class RainfallStream:
 
 
 # Module-level singleton
-rainfall = RainfallStream()
+stream_ingester = StreamIngester()

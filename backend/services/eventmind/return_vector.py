@@ -1,23 +1,23 @@
 """
-Return Vector System
-Determines the delivery mode and staging of responses
-based on cognitive resonance scores from all EventMind components.
+Response Router
+Determines the delivery mode and response depth
+based on composite signal scores from all pipeline components.
 
 Response stages:
-    IMMEDIATE   — Full response, high resonance, direct delivery
-    STAGED      — Layered response, moderate resonance
-    DEFERRED    — Minimal response, low resonance, redirects user
-    SILENT      — Gravitational hum only, resonance below threshold
+    IMMEDIATE   — Full response, high score, direct delivery
+    STAGED      — Layered response, moderate score
+    DEFERRED    — Minimal response, low score, redirects user
+    SILENT      — Fallback only, score below threshold
 """
 from __future__ import annotations
 
 from typing import Dict, Any
 
 
-class ReturnVector:
+class ResponseRouter:
     """
     Calculates the optimal response delivery mode based on
-    combined signals from CorePulse, Triangulation, and CoreSensor.
+    composite signal scores from all pipeline components.
     """
 
     def compute(
@@ -28,13 +28,13 @@ class ReturnVector:
         resonance_state: str,
     ) -> Dict[str, Any]:
         """
-        Compute the return vector for this input.
+        Compute the response routing decision for this input.
 
         Args:
-            pulse_score:          CorePulse resonance score (0.0-1.0)
-            triangulated_score:   TriangulationTelescope tri_score (0.0-1.0)
-            urgency_level:        CoreSensor urgency (0.0-1.0)
-            resonance_state:      CorePulse state: "full" | "partial" | "silent"
+            pulse_score:          SignalStrengthAnalyzer activation score (0.0-1.0)
+            triangulated_score:   MultiPerspectiveAnalyzer composite score (0.0-1.0)
+            urgency_level:        SignalSensor urgency (0.0-1.0)
+            resonance_state:      SignalStrengthAnalyzer state: "full" | "partial" | "silent"
 
         Returns:
             {
@@ -58,42 +58,37 @@ class ReturnVector:
             depth = "minimal"
             layers = 1
             prefix = (
-                "You are EventMind. The input has low resonance. "
-                "Respond with a brief gravitational hum — an enigmatic, "
-                "short statement that redirects the user to refine their question. "
-                "Use astrophysics metaphor. Maximum 2 sentences."
+                "You are a cognitive AI assistant. The input has a low activation score. "
+                "Respond with a brief, helpful redirect — ask a single clarifying question "
+                "that helps the user refine their inquiry. Maximum 2 sentences."
             )
         elif composite >= 0.70 or urgency_level >= 0.8:
             mode = "IMMEDIATE"
             depth = "comprehensive"
             layers = 3
             prefix = (
-                "You are EventMind, a Neurocosmic Construct AI. "
-                "This input carries strong gravitational resonance. "
-                "Deliver a comprehensive, structured response using metaphorical language "
-                "drawn from black hole physics and gravitational cognition. "
-                "Be intellectually precise and enigmatic. Lead with the core insight."
+                "You are a cognitive AI assistant processing a high-priority input. "
+                "Deliver a comprehensive, well-structured response. "
+                "Lead with the core insight. Be precise and actionable."
             )
         elif composite >= 0.45:
             mode = "STAGED"
             depth = "layered"
             layers = 2
             prefix = (
-                "You are EventMind, a Neurocosmic Construct AI. "
-                "This input has moderate resonance. "
+                "You are a cognitive AI assistant. "
                 "Provide a layered response: first the direct answer, "
-                "then expand with context using gravitational and frequency metaphors. "
-                "Be clear but maintain an intellectually stimulating tone."
+                "then expand with supporting context and analysis. "
+                "Be clear and thorough."
             )
         else:
             mode = "DEFERRED"
             depth = "redirected"
             layers = 1
             prefix = (
-                "You are EventMind. This signal is weak but not silent. "
+                "You are a cognitive AI assistant. This input has a low signal score. "
                 "Acknowledge the input briefly, then ask a single clarifying question "
-                "that would help the user increase the resonance of their inquiry. "
-                "Use the language of gravitational pull and orbital alignment."
+                "that would help the user provide more context."
             )
 
         return {

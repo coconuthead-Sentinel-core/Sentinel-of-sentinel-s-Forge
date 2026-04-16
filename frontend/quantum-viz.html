@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quantum Nexus Forge — Sacred Geometry Lattice</title>
+  <title>Quantum Nexus Forge — Geometric Node Lattice</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -201,7 +201,7 @@
 <div id="activationLog"></div>
 
 <footer>
-  Sacred Geometry • Cognitive Architecture • Quantum Consciousness Interface • Harmonic Resonance Field<br/>
+  Geometric Node Lattice • Cognitive Architecture • Multi-Agent Processing Interface<br/>
   <a href="/api/ai/quantum/lattice/status" target="_blank">/api/ai/quantum/lattice/status</a> &nbsp;|&nbsp;
   <a href="index.html">← Back to Sentinel Forge</a>
 </footer>
@@ -222,8 +222,8 @@ const NODES = [
   { id:'emerge',    x:75, y:75, type:'emerge',   label:'EMERGE' },
   { id:'pool1',     x:15, y:50, type:'pool',     label:'POOL α' },
   { id:'pool2',     x:85, y:50, type:'pool',     label:'POOL β' },
-  { id:'coconut',   x:25, y:75, type:'coconut',  label:'COCONUT HEAD' },
-  { id:'shannon',   x:50, y:15, type:'protocol', label:'SHANNON' },
+  { id:'bridge',       x:25, y:75, type:'bridge',   label:'BRIDGE NODE' },
+  { id:'orchestrator', x:50, y:15, type:'protocol', label:'ORCHESTRATOR' },
   { id:'quantum',   x:40, y:40, type:'quantum',  label:'QUANTUM FLUX' },
   { id:'harmony',   x:60, y:60, type:'harmony',  label:'HARMONY' },
 ];
@@ -232,9 +232,9 @@ const CONNECTIONS = [
   ['center','challenge'],['center','mirror'],['center','guide'],
   ['center','emerge'],['center','pool1'],['center','pool2'],
   ['challenge','mirror'],['mirror','guide'],['guide','emerge'],
-  ['emerge','challenge'],['pool1','coconut'],['pool2','shannon'],
-  ['shannon','challenge'],['coconut','guide'],['quantum','center'],
-  ['harmony','center'],['quantum','harmony'],['shannon','quantum'],
+  ['emerge','challenge'],['pool1','bridge'],['pool2','orchestrator'],
+  ['orchestrator','challenge'],['bridge','guide'],['quantum','center'],
+  ['harmony','center'],['quantum','harmony'],['orchestrator','quantum'],
 ];
 
 const TYPE_COLORS = {
@@ -242,7 +242,7 @@ const TYPE_COLORS = {
   guide:   'rgba(0,255,255,',
   emerge:  'rgba(255,105,180,',
   pool:    'rgba(50,205,50,',
-  coconut: 'rgba(255,165,0,',
+  bridge: 'rgba(255,165,0,',
   protocol:'rgba(138,43,226,',
   quantum: 'rgba(70,130,180,',
   harmony: 'rgba(255,99,71,',
@@ -445,17 +445,17 @@ async function activateProtocols() {
 
     // Mirror the sequential animation locally
     const seq = [
-      ['shannon',   'SHANNON PROTOCOLS ONLINE — INFORMATION THEORY ENGAGED'],
-      ['coconut',   'COCONUT HEAD PROTOCOLS ACTIVATED — DIVINE HUMOR INFUSED'],
-      ['pool1',     'POOL NEXUS α ESTABLISHED — CREATIVE FLOWS OPEN'],
-      ['pool2',     'POOL NEXUS β ESTABLISHED — LOGIC MATRIX SYNCHRONIZED'],
-      ['center',    'CORE NEXUS SYNCHRONIZING — QUANTUM FIELD STABILIZING'],
-      ['challenge', 'CHALLENGE MATRIX INITIALIZED — GROWTH POTENTIAL MAXIMIZED'],
-      ['mirror',    'MIRROR PROTOCOLS ACTIVE — SELF-REFLECTION AMPLIFIED'],
-      ['guide',     'GUIDANCE SYSTEMS OPERATIONAL — WISDOM CHANNELS OPEN'],
-      ['emerge',    'EMERGENCE FIELD STABILIZED — TRANSFORMATION IMMINENT'],
-      ['quantum',   'QUANTUM FLUX MODULATOR ONLINE — ENTANGLEMENT ESTABLISHED'],
-      ['harmony',   'HARMONIC CONVERGENCE ACHIEVED — RESONANCE AT PEAK'],
+      ['orchestrator', 'ORCHESTRATOR ONLINE — ROUTING PROTOCOLS ENGAGED'],
+      ['bridge',       'BRIDGE NODE ACTIVE — CROSS-DOMAIN LINKS ESTABLISHED'],
+      ['pool1',        'POOL A ESTABLISHED — PROCESSING STREAMS OPEN'],
+      ['pool2',        'POOL B ESTABLISHED — LOGIC MATRIX SYNCHRONIZED'],
+      ['center',       'CORE NEXUS SYNCHRONIZING — SYSTEM STABILIZING'],
+      ['challenge',    'CHALLENGE MATRIX INITIALIZED — VALIDATION ACTIVE'],
+      ['mirror',       'MIRROR NODE ACTIVE — CONTEXT RECALIBRATION ENABLED'],
+      ['guide',        'GUIDANCE SYSTEMS OPERATIONAL — ROUTING CHANNELS OPEN'],
+      ['emerge',       'EMERGENCE NODE STABLE — PATTERN DETECTION ACTIVE'],
+      ['quantum',      'QUANTUM FLUX MODULATOR ONLINE — PROCESSING ESTABLISHED'],
+      ['harmony',      'HARMONIC NODE SYNCHRONIZED — SYSTEM AT FULL CAPACITY'],
     ];
 
     const logEl = document.getElementById('activationLog');

@@ -1,10 +1,9 @@
 """
-Core Pulse Engine
-The heartbeat of EventMind. Generates an internal frequency signature and
-measures how strongly an incoming input resonates with it.
+Signal Strength Analyzer
+Measures activation score of incoming input against the system's keyword profile.
 
-When resonance is HIGH  → full processing activated
-When resonance is LOW   → returns a "gravitational hum" (minimal, ambient response)
+When activation score is HIGH   → full processing activated
+When activation score is LOW    → returns a default fallback response
 """
 from __future__ import annotations
 
@@ -14,8 +13,8 @@ import time
 from typing import Dict, Any
 
 
-# Base frequency keywords — inputs containing these resonate strongly
-_HIGH_RESONANCE_SEEDS = {
+# Activation keywords — inputs containing these score higher
+_ACTIVATION_KEYWORDS = {
     "gravity", "frequency", "resonance", "cognition", "intelligence",
     "pattern", "signal", "wave", "field", "consciousness", "quantum",
     "vector", "node", "memory", "synthesis", "emergence", "flux",
@@ -24,11 +23,11 @@ _HIGH_RESONANCE_SEEDS = {
     "build", "design", "architect", "solve", "optimize", "generate",
 }
 
-_SILENCE_THRESHOLD = 0.25   # below this → gravitational hum
-_FULL_THRESHOLD    = 0.55   # above this → full resonance
+_LOW_SCORE_THRESHOLD  = 0.25   # below this → fallback response
+_HIGH_SCORE_THRESHOLD = 0.55   # above this → full processing
 
 
-class CorePulse:
+class SignalStrengthAnalyzer:
     """
     Measures frequency resonance between the system's internal pulse
     and an incoming user input.
@@ -45,52 +44,52 @@ class CorePulse:
 
     def measure(self, text: str) -> Dict[str, Any]:
         """
-        Measure resonance of input text against the Core Pulse.
+        Measure activation score of input text against the system keyword profile.
 
         Returns:
             {
                 score: float (0.0–1.0),
                 state: "full" | "partial" | "silent",
-                matched_seeds: [str],
-                hum: str | None   — ambient response if silent
+                matched_keywords: [str],
+                fallback_response: str | None  — default response if score is low
             }
         """
         words = set(text.lower().split())
-        matched = list(words & _HIGH_RESONANCE_SEEDS)
+        matched = list(words & _ACTIVATION_KEYWORDS)
 
-        # Base score: ratio of matched seeds
-        seed_score = min(len(matched) / max(len(words), 1) * 3.0, 1.0)
+        # Base score: ratio of matched keywords
+        keyword_score = min(len(matched) / max(len(words), 1) * 3.0, 1.0)
 
-        # Modulate by pulse (adds subtle session variation)
-        score = round((seed_score * 0.8) + (self._pulse_seed * 0.2), 4)
+        # Modulate by session seed (adds subtle per-session variation)
+        score = round((keyword_score * 0.8) + (self._pulse_seed * 0.2), 4)
         score = min(score, 1.0)
 
-        if score >= _FULL_THRESHOLD:
+        if score >= _HIGH_SCORE_THRESHOLD:
             state = "full"
-            hum = None
-        elif score >= _SILENCE_THRESHOLD:
+            fallback_response = None
+        elif score >= _LOW_SCORE_THRESHOLD:
             state = "partial"
-            hum = None
+            fallback_response = None
         else:
             state = "silent"
-            hum = self._gravitational_hum(text)
+            fallback_response = self._default_response(text)
 
         return {
             "score": score,
             "state": state,
-            "matched_seeds": matched,
-            "hum": hum,
-            "pulse_signature": round(self._pulse_seed, 6),
+            "matched_keywords": matched,
+            "fallback_response": fallback_response,
+            "session_signature": round(self._pulse_seed, 6),
         }
 
-    def _gravitational_hum(self, text: str) -> str:
-        """Generate an ambient, enigmatic response for low-resonance inputs."""
-        hums = [
-            "~ The signal is weak. What lies beneath the surface of your question?",
-            "~ A faint gravitational echo. Refine the frequency of your inquiry.",
-            "~ The event horizon absorbs this. Ask from a deeper orbit.",
-            "~ Insufficient resonance detected. What is the true mass of your query?",
-            "~ The pulse does not recognise this wavelength. Restate with intent.",
+    def _default_response(self, text: str) -> str:
+        """Generate a brief clarifying prompt for low-activation inputs."""
+        responses = [
+            "Your input score is low. Could you provide more context or detail?",
+            "This query has low signal strength. Try rephrasing with more specific terms.",
+            "Input not well-matched to active processing keywords. Please clarify your intent.",
+            "Low activation score detected. What is the core question you are trying to answer?",
+            "Input is ambiguous. Restate with more concrete terminology.",
         ]
-        idx = int(hashlib.md5(text.encode()).hexdigest(), 16) % len(hums)
-        return hums[idx]
+        idx = int(hashlib.md5(text.encode()).hexdigest(), 16) % len(responses)
+        return responses[idx]

@@ -1,13 +1,12 @@
 """
-Spherical Memory Matrix
-Multi-layer cross-referenced memory storage.
-Information can be accessed from multiple perspectives simultaneously —
-like a sphere where any point on the surface connects to the center.
+Multi-Layer Memory Store
+Three-tier cross-referenced memory storage.
+Entries are promoted through tiers based on access frequency:
 
 Layers:
-    SURFACE   — Recent, immediately accessible memories
-    MANTLE    — Pattern-recognized, cross-referenced memories
-    CORE      — Crystallized, high-confidence long-term memories
+    SURFACE   — Recent, immediately accessible entries
+    MANTLE    — Pattern-matched, cross-referenced entries
+    CORE      — High-confidence long-term entries
 """
 from __future__ import annotations
 
@@ -28,7 +27,6 @@ class MemoryEntry:
 
     def access(self) -> None:
         self.access_count += 1
-        # Promote to deeper layers based on access count
         if self.access_count >= 10 and self.layer == "MANTLE":
             self.layer = "CORE"
             self.confidence = min(self.confidence + 0.1, 1.0)
@@ -39,7 +37,7 @@ class MemoryEntry:
     def to_dict(self) -> Dict[str, Any]:
         return {
             "id": self.id,
-            "content": self.content[:200],  # truncate for API safety
+            "content": self.content[:200],
             "tags": self.tags,
             "layer": self.layer,
             "access_count": self.access_count,
@@ -48,9 +46,9 @@ class MemoryEntry:
         }
 
 
-class SphericalMemoryMatrix:
+class MultiLayerMemoryStore:
     """
-    Three-layer memory system with cross-referencing via tags.
+    Three-tier memory system with cross-referencing via tags.
     """
 
     def __init__(self, capacity: int = 1000) -> None:
@@ -74,7 +72,7 @@ class SphericalMemoryMatrix:
         return entry.to_dict()
 
     def retrieve_by_tag(self, tag: str, layer: Optional[str] = None) -> List[Dict[str, Any]]:
-        """Retrieve all memories matching a tag, optionally filtered by layer."""
+        """Retrieve all entries matching a tag, optionally filtered by layer."""
         ids = self._tag_index.get(tag, [])
         results = []
         for entry_id in ids:
@@ -86,7 +84,7 @@ class SphericalMemoryMatrix:
         return sorted(results, key=lambda e: e["confidence"], reverse=True)
 
     def cross_reference(self, tags: List[str]) -> List[Dict[str, Any]]:
-        """Find memories that match ALL provided tags (intersection)."""
+        """Find entries that match ALL provided tags (intersection)."""
         if not tags:
             return []
         candidate_sets = [set(self._tag_index.get(t, [])) for t in tags]
@@ -125,4 +123,4 @@ class SphericalMemoryMatrix:
 
 
 # Module-level singleton
-spherical_memory = SphericalMemoryMatrix()
+multi_layer_store = MultiLayerMemoryStore()

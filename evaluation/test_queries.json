@@ -46,7 +46,7 @@
   },
   {
     "id": "query_010",
-    "query": "Explain the purpose of the Metatron Engine in rule generation",
+    "query": "Explain the purpose of the Pattern Suggestion Engine in rule generation",
     "context": "User needs explanation of automated rule suggestion feature"
   },
   {

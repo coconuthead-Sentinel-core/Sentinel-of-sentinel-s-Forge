@@ -3,19 +3,19 @@ Symbolic Stream Interpreter
 Parses sequences of symbolic/emoji inputs into cognitive operation chains.
 
 Each symbol maps to a Platonic solid primitive and a processing operation.
-The interpreter calculates total resonance and quantum coherence (how
-harmonically consistent the symbol sequence is as a cognitive pipeline).
+The interpreter calculates total processing weight and coherence score
+(how harmonically consistent the symbol sequence is as a processing pipeline).
 
 Supported symbols:
-    💠  → METATRONS_CUBE  → self.reflect()
-    🔺  → TETRAHEDRON     → transform(input)
-    🟫  → CUBE            → stable_storage()
-    🔷  → DODECAHEDRON    → synthesize(concepts)
-    🔶  → OCTAHEDRON      → process_bridges()
-    ⭕  → ICOSAHEDRON     → integrate_emotion()
+    💠  → ORIGIN        → origin_align()
+    🔺  → TETRAHEDRON   → transform(input)
+    🟫  → CUBE          → stable_storage()
+    🔷  → DODECAHEDRON  → synthesize(concepts)
+    🔶  → OCTAHEDRON    → process_bridges()
+    ⭕  → ICOSAHEDRON   → integrate_recursive()
 
-Coherence score: 1 / (1 + resonance_variance)
-  — lower variance in resonance across the sequence = higher coherence
+Coherence score: 1 / (1 + frequency_variance)
+  — lower variance in processing frequency across the sequence = higher coherence
 """
 from __future__ import annotations
 
@@ -29,7 +29,7 @@ from .cognitive_node import CognitivePrimitiveType
 # ---------------------------------------------------------------------------
 
 _SYMBOL_MAP: Dict[str, CognitivePrimitiveType] = {
-    "💠": CognitivePrimitiveType.METATRONS_CUBE,
+    "💠": CognitivePrimitiveType.ORIGIN,
     "🔺": CognitivePrimitiveType.TETRAHEDRON,
     "🟫": CognitivePrimitiveType.CUBE,
     "🔷": CognitivePrimitiveType.DODECAHEDRON,
@@ -38,21 +38,21 @@ _SYMBOL_MAP: Dict[str, CognitivePrimitiveType] = {
 }
 
 _OPERATION_MAP: Dict[CognitivePrimitiveType, str] = {
-    CognitivePrimitiveType.METATRONS_CUBE: "self.reflect()",
-    CognitivePrimitiveType.TETRAHEDRON:    "transform(input)",
-    CognitivePrimitiveType.CUBE:           "stable_storage()",
-    CognitivePrimitiveType.DODECAHEDRON:   "synthesize(concepts)",
-    CognitivePrimitiveType.OCTAHEDRON:     "process_bridges()",
-    CognitivePrimitiveType.ICOSAHEDRON:    "integrate_emotion()",
+    CognitivePrimitiveType.ORIGIN:       "origin_align()",
+    CognitivePrimitiveType.TETRAHEDRON:  "transform(input)",
+    CognitivePrimitiveType.CUBE:         "stable_storage()",
+    CognitivePrimitiveType.DODECAHEDRON: "synthesize(concepts)",
+    CognitivePrimitiveType.OCTAHEDRON:   "process_bridges()",
+    CognitivePrimitiveType.ICOSAHEDRON:  "integrate_recursive()",
 }
 
-_RESONANCE_FREQUENCIES: Dict[CognitivePrimitiveType, float] = {
-    CognitivePrimitiveType.METATRONS_CUBE: 13.0,
-    CognitivePrimitiveType.TETRAHEDRON:     7.83,
-    CognitivePrimitiveType.CUBE:            6.66,
-    CognitivePrimitiveType.DODECAHEDRON:   11.11,
-    CognitivePrimitiveType.OCTAHEDRON:      8.14,
-    CognitivePrimitiveType.ICOSAHEDRON:     9.63,
+_PROCESSING_FREQUENCIES: Dict[CognitivePrimitiveType, float] = {
+    CognitivePrimitiveType.ORIGIN:       13.0,
+    CognitivePrimitiveType.TETRAHEDRON:   7.83,
+    CognitivePrimitiveType.CUBE:          6.66,
+    CognitivePrimitiveType.DODECAHEDRON: 11.11,
+    CognitivePrimitiveType.OCTAHEDRON:    8.14,
+    CognitivePrimitiveType.ICOSAHEDRON:   9.63,
 }
 
 
@@ -70,14 +70,14 @@ class SymbolicStreamInterpreter:
         Parse symbol_sequence and return a full cognitive flow report.
 
         Returns:
-            symbol_sequence     — original input
-            cognitive_flow      — per-symbol breakdown
-            processing_chain    — human-readable "A → B → C" string
-            total_resonance     — sum of all symbol resonances
-            quantum_coherence   — harmonic consistency score (0–1)
-            interpreted_operations — list of operation strings
-            symbols_recognized  — count of recognised symbols
-            symbols_total       — total characters scanned
+            symbol_sequence         — original input
+            cognitive_flow          — per-symbol breakdown
+            processing_chain        — human-readable "A → B → C" string
+            total_processing_weight — sum of all symbol frequencies
+            coherence_score         — harmonic consistency score (0–1)
+            interpreted_operations  — list of operation strings
+            symbols_recognized      — count of recognised symbols
+            symbols_total           — total characters scanned
         """
         self._interpretations += 1
         cognitive_flow: List[Dict[str, Any]] = []
@@ -88,24 +88,24 @@ class SymbolicStreamInterpreter:
             if primitive is None:
                 continue
             op        = _OPERATION_MAP[primitive]
-            resonance = _RESONANCE_FREQUENCIES[primitive]
+            frequency = _PROCESSING_FREQUENCIES[primitive]
             operations.append(op)
             cognitive_flow.append({
-                "symbol":    char,
-                "primitive": primitive.value,
-                "operation": op,
-                "resonance": resonance,
+                "symbol":              char,
+                "primitive":           primitive.value,
+                "operation":           op,
+                "processing_frequency": frequency,
             })
 
-        total_resonance = round(sum(f["resonance"] for f in cognitive_flow), 4)
-        coherence       = self._coherence(cognitive_flow)
+        total_weight = round(sum(f["processing_frequency"] for f in cognitive_flow), 4)
+        coherence    = self._coherence(cognitive_flow)
 
         return {
             "symbol_sequence":         symbol_sequence,
             "cognitive_flow":          cognitive_flow,
             "processing_chain":        " → ".join(operations) or "(no recognized symbols)",
-            "total_resonance":         total_resonance,
-            "quantum_coherence":       coherence,
+            "total_processing_weight": total_weight,
+            "coherence_score":         coherence,
             "interpreted_operations":  operations,
             "symbols_recognized":      len(cognitive_flow),
             "symbols_total":           len(symbol_sequence),
@@ -121,7 +121,7 @@ class SymbolicStreamInterpreter:
             return "💠🔺🔷"
         elif "memory" in intent_lower or "store" in intent_lower:
             return "🟫💠🟫"
-        elif "emotion" in intent_lower or "feel" in intent_lower:
+        elif "recursive" in intent_lower or "feel" in intent_lower:
             return "⭕💠🔶"
         elif "process" in intent_lower or "bridge" in intent_lower:
             return "🔶🔷⭕"
@@ -141,9 +141,9 @@ class SymbolicStreamInterpreter:
     def _coherence(cognitive_flow: List[Dict[str, Any]]) -> float:
         if not cognitive_flow:
             return 0.0
-        resonances   = [f["resonance"] for f in cognitive_flow]
-        mean_r       = sum(resonances) / len(resonances)
-        variance     = sum((r - mean_r) ** 2 for r in resonances) / len(resonances)
+        frequencies = [f["processing_frequency"] for f in cognitive_flow]
+        mean_f      = sum(frequencies) / len(frequencies)
+        variance    = sum((f - mean_f) ** 2 for f in frequencies) / len(frequencies)
         return round(1.0 / (1.0 + variance), 4)
 
 

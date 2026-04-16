@@ -159,7 +159,7 @@ class GraphNode(UniversalInterface):
     # Subclasses implement execute
 
 
-class CognitiveNeuralOverlay(GraphNode):
+class InputProcessingNode(GraphNode):
     """Adds light-weight 'neural' features (hash-based embedding) to atom metadata."""
 
     def __init__(self) -> None:
@@ -315,7 +315,7 @@ class ResponseWeaverNode(GraphNode):
         out.metadata["confidence"] = confidence
         return out
 
-class ReflectivePool(GraphNode):
+class ContextMemoryNode(GraphNode):
     """Short-term memory; attaches references to similar past inputs."""
 
     def __init__(self, capacity: int = 64) -> None:
@@ -485,7 +485,7 @@ class CubeCore(GraphNode):
         return out
 
 
-class ShannonPrimeCore(GraphNode):
+class EntropyAnalyzerNode(GraphNode):
     """Information-theoretic core tracking token distribution & entropy.
 
     Produces metrics:
@@ -495,7 +495,7 @@ class ShannonPrimeCore(GraphNode):
     """
 
     def __init__(self, window: int = 256) -> None:
-        super().__init__("shannon_prime")
+        super().__init__("entropy_analyzer")
         self.window = window
         self._recent: List[str] = []
         self._prev_entropy: Optional[float] = None
@@ -533,7 +533,7 @@ class ShannonPrimeCore(GraphNode):
 
         out = QuantumAtom(id=_make_id("prime"), data=atom.data, primitive=CorePrimitive.PROCESS)
         out.metadata = dict(atom.metadata)
-        out.metadata["shannon_prime"] = {
+        out.metadata["information_analysis"] = {
             "entropy": H,
             "token_count": sum(counts.values()),
             "unique_tokens": len(counts),
@@ -552,11 +552,11 @@ class ShannonPrimeCore(GraphNode):
         }
 
 
-class MetatronEngine(GraphNode):
+class PatternSuggestionEngine(GraphNode):
     """Symbolic pattern suggester that proposes new rules from frequent tokens."""
 
-    def __init__(self, prime: ShannonPrimeCore, symbolic: 'SymbolicArray') -> None:
-        super().__init__("metatron_engine")
+    def __init__(self, prime: EntropyAnalyzerNode, symbolic: 'SymbolicArray') -> None:
+        super().__init__("pattern_suggester")
         self._prime = prime
         self._symbolic = symbolic
 
@@ -628,14 +628,14 @@ class SentinelProcessor(GraphNode):
 
     def __init__(self) -> None:
         super().__init__("sentinel_processor")
-        self.cno = CognitiveNeuralOverlay()
+        self.cno = InputProcessingNode()
         self.sym = SymbolicArray()
-        self.refl = ReflectivePool()
+        self.refl = ContextMemoryNode()
         self.intent = IntentParserNode()
         self.topic = TopicIndexerNode()
         self.gem = GeminiNodeStack()
-        self.prime = ShannonPrimeCore()
-        self.meta = MetatronEngine(self.prime, self.sym)
+        self.prime = EntropyAnalyzerNode()
+        self.meta = PatternSuggestionEngine(self.prime, self.sym)
         self.emo = EmotionalAnalyzer()
         self.eth = EthicalGuard()
         self.cube = CubeCore()
@@ -757,11 +757,11 @@ class SentinelCognitionGraph:
     def memory_clear(self) -> None:
         self.sp.refl.clear()
 
-    # Prime metrics and Metatron suggestions
+    # Entropy metrics and pattern suggestions
     def prime_metrics(self) -> Dict[str, Any]:  # pragma: no cover
         return self.sp.prime.metrics()
 
-    def metatron_suggestions(self, limit: int = 5) -> List[Dict[str, str]]:  # pragma: no cover
+    def pattern_suggestions(self, limit: int = 5) -> List[Dict[str, str]]:  # pragma: no cover
         return self.sp.meta.suggestions(limit=limit)
 
     def embed_metrics(self) -> Dict[str, Any]:  # pragma: no cover

@@ -1,16 +1,17 @@
 """
-Tesseract Mass Storage Unit (SMSU)
-Hypercube 4D symbolic memory — the central repository for VoidLogic.
+Context Memory Store
+Multi-dimensional symbolic session memory — the central repository for the
+SymbolicReasoningEngine.
 
-A tesseract (4D hypercube) has 8 cubic cells, 24 faces, 32 edges, 16 vertices.
-We model this as 4 dimensional axes, each with 2 poles — giving 8 addressable
-storage planes that can be accessed simultaneously without linear search.
+Addresses content across 4 independent binary dimensions (W, X, Y, Z),
+yielding 16 addressable cells that can be queried simultaneously without
+linear search. Each axis captures an independent property of the stored entry.
 
 Dimensions:
-    W — Temporal     (when was this stored / how recent)
-    X — Symbolic     (what symbolic domain does this belong to)
-    Y — Complexity   (how complex/deep is this memory)
-    Z — Resonance    (how strongly does this connect to the current context)
+    W — Temporal     (when was this stored: AM/PM window)
+    X — Domain type  (structured vs. open-ended domain)
+    Y — Complexity   (above or below complexity midpoint)
+    Z — Coherence    (above or below coherence score midpoint)
 """
 from __future__ import annotations
 
@@ -20,7 +21,7 @@ import uuid
 from typing import Dict, Any, List, Optional, Tuple
 
 
-class TesseractCell:
+class ContextMemoryCell:
     """A single addressable storage cell in the hypercube."""
 
     def __init__(self, w: int, x: int, y: int, z: int) -> None:
@@ -50,23 +51,23 @@ class TesseractCell:
         }
 
 
-class TesseractStorage:
+class ContextMemoryStore:
     """
-    Hypercube 4D mass storage system.
-    Stores symbolic memories across 4 dimensions (W, X, Y, Z),
-    each with 2 poles (0 or 1), yielding 16 addressable cells.
-    Enables zero-latency cross-dimensional recall.
+    Multi-dimensional context memory store.
+    Stores session memories across 4 binary dimensions (W, X, Y, Z),
+    yielding 16 addressable cells.
+    Supports multi-axis filtering for fast cross-dimensional retrieval.
     """
 
     def __init__(self) -> None:
         # 2^4 = 16 cells for a tesseract
-        self._cells: Dict[Tuple, TesseractCell] = {}
+        self._cells: Dict[Tuple, ContextMemoryCell] = {}
         for w in range(2):
             for x in range(2):
                 for y in range(2):
                     for z in range(2):
                         addr = (w, x, y, z)
-                        self._cells[addr] = TesseractCell(*addr)
+                        self._cells[addr] = ContextMemoryCell(*addr)
 
         self._total_stored = 0
         self._index: Dict[str, Tuple] = {}  # entry_id → cell address
@@ -152,4 +153,4 @@ class TesseractStorage:
 
 
 # Module-level singleton
-tesseract = TesseractStorage()
+context_memory = ContextMemoryStore()

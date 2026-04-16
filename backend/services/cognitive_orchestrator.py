@@ -45,7 +45,7 @@ def _resolve_lens(profile: Optional[str]):
     return lens
 
 
-class CognitiveOrchestrator:
+class CognitiveLensRouter:
     """
     Routes each request through the correct cognitive lens and
     manages the full processing pipeline:
@@ -97,7 +97,7 @@ class CognitiveOrchestrator:
         deployment = settings.AOAI_CHAT_DEPLOYMENT
 
         logger.info(
-            "CognitiveOrchestrator: lens=%s deployment=%s messages=%d",
+            "CognitiveLensRouter: lens=%s deployment=%s messages=%d",
             lens_meta["lens"], deployment, len(messages),
         )
 
@@ -109,7 +109,7 @@ class CognitiveOrchestrator:
                 max_tokens=params.get("max_completion_tokens"),
             )
         except Exception as exc:
-            logger.error("AI adapter error in CognitiveOrchestrator: %s", exc)
+            logger.error("AI adapter error in CognitiveLensRouter: %s", exc)
             raise
 
         # --- Post-Processing ---

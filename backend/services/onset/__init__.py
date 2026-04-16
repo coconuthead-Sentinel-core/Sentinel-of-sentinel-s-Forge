@@ -1,17 +1,16 @@
 """
-Onset Protocol — Distributed Cognitive Processing Framework
-Sibling protocol to Sentinel Forge. Handles data decomposition,
-node networking, layered memory, and anticipatory cognition.
+Query Processing Pipeline — distributed query decomposition, storage, and response framework
+integrated into Sentinel Forge as a first-class AI module.
 
 Components:
-    snowflake         — Query decomposition into parallel processing flakes
-    spiderweb         — Decentralized node network for context storage
-    spherical_memory  — Multi-layer cross-referenced memory matrix
-    rainfall          — Real-time data stream ingestion
-    mist              — Cognitive diffusion and anticipatory retrieval
-    protocol          — Master Onset activation and orchestration
+    query_decomposer    — Query decomposition into parallel processing sub-units
+    knowledge_graph     — Decentralized node network for context storage
+    multi_layer_store   — Multi-layer cross-referenced memory store
+    stream_ingester     — Real-time data stream ingestion
+    predictive_retriever — Anticipatory retrieval engine
+    protocol            — Master pipeline activation and orchestration
 """
 
-from .protocol import OnsetProtocol
+from .protocol import QueryProcessingPipeline
 
-__all__ = ["OnsetProtocol"]
+__all__ = ["QueryProcessingPipeline"]

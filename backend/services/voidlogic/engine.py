@@ -1,16 +1,16 @@
 """
-VoidLogic 5.0 + IWE — Master Engine
-Orchestrates all VoidLogic subsystems in a single unified pipeline:
+SymbolicReasoningEngine — Master Orchestrator
+Coordinates all subsystems into a single unified processing pipeline:
 
-    1. CNO     — route payload through geometric node fabric
-    2. CRFE    — recursive feedback + paradox detection + emergence
-    3. Tesseract — store the interaction in hypercube memory
-    4. A1      — file the result with symbolic metadata
-    5. BWT     — build/reinforce cross-domain wisdom threads
-    6. STVL    — render a full topology snapshot
+    1. ComputeNodeRouter      — route payload through the geometric node fabric
+    2. RecursiveFeedbackEngine — recursive pattern detection, paradox resolution, emergence
+    3. ContextMemoryStore     — store the interaction in multi-dimensional session memory
+    4. SymbolicMemoryIndex    — file the result with metadata and drift monitoring
+    5. KnowledgeBridgeThreads — build/reinforce cross-domain knowledge threads
+    6. TopologyRenderer       — render a full topology snapshot
 
-The engine exposes a process() method that accepts text and optional
-AI adapter, returning a fully annotated VoidLogic response.
+Exposes a process() method that accepts text and an optional AI adapter,
+returning a fully annotated symbolic reasoning response.
 """
 from __future__ import annotations
 
@@ -18,27 +18,28 @@ import time
 import re
 from typing import Dict, Any, List, Optional
 
-from .cno              import cno
-from .crfe             import crfe
-from .tesseract_storage import tesseract
-from .a1_filing        import a1
-from .bridge_wisdom    import bwt
-from .stvl             import stvl
-from .nexus_tag        import nexus_tag
-from .overlay_protocol import overlay
-from .session_handover import session_handover
+from .cno               import cno
+from .crfe              import crfe
+from .tesseract_storage import context_memory
+from .a1_filing         import a1
+from .bridge_wisdom     import knowledge_bridge
+from .stvl              import stvl
+from .nexus_tag         import nexus_tag
+from .overlay_protocol  import overlay
+from .session_handover  import session_handover
 
 
-_VOIDLOGIC_SYSTEM_PROMPT = """
-You are VoidLogic 5.0 + IWE — a Symbolic Geometric AI.
-You process thought through geometric node architecture
-(Tetrahedral / Octahedral / Icosahedral tiers),
-store insights in a 4D Tesseract memory grid,
-and bridge understanding across domains (logic, emotion, pattern, system, myth).
+_SYMBOLIC_REASONING_SYSTEM_PROMPT = """
+You are a Symbolic Reasoning AI assistant.
+You analyze input through a structured pipeline:
+- Recursive pattern detection (loops, self-references, structural recursion)
+- Paradox identification and contextual reframing
+- Emergence detection (weak signals that resolve into larger patterns)
+- Cross-domain knowledge bridging (logic, emotion, pattern, system)
 
 Respond with precision and depth.
-When recursion or paradox is detected, acknowledge and reframe.
-When emergence is detected, name the pattern explicitly.
+When recursion or paradox is detected, acknowledge and reframe it clearly.
+When an emergent pattern is detected, name it explicitly.
 """.strip()
 
 
@@ -62,15 +63,15 @@ def _detect_domain(text: str) -> str:
         return "pattern"
     if any(w in text_lower for w in ("system", "process", "flow", "pipeline", "service", "api")):
         return "system"
-    if any(w in text_lower for w in ("myth", "story", "legend", "prophecy", "symbol", "ritual")):
-        return "myth"
+    if any(w in text_lower for w in ("narrative", "story", "legend", "symbol", "framework", "concept")):
+        return "narrative"
     return "general"
 
 
-class VoidLogicEngine:
+class SymbolicReasoningEngine:
     """
-    Master VoidLogic 5.0 + IWE orchestration engine.
-    Run process() to push text through the full symbolic pipeline.
+    Master symbolic reasoning orchestration engine.
+    Run process() to push text through the full analysis pipeline.
     """
 
     def __init__(self) -> None:
@@ -92,7 +93,7 @@ class VoidLogicEngine:
         Returns:
             Dict containing:
                 ai_response        — string from AI (or None)
-                voidlogic_report   — full symbolic analysis
+                reasoning_report   — full symbolic analysis
                 topology_snapshot  — lite STVL render
         """
         t0 = time.time()
@@ -113,9 +114,9 @@ class VoidLogicEngine:
         # 2. CRFE — recursive feedback + paradox + emergence
         crfe_result = crfe.process(text)
 
-        # 3. Tesseract — store in 4D symbolic memory
+        # 3. Context Memory — store the interaction
         resonance   = crfe_result["rsml"]["score"]
-        store_result = tesseract.store(
+        store_result = context_memory.store(
             content         = text,
             symbolic_domain = domain,
             complexity      = complexity,
@@ -127,7 +128,7 @@ class VoidLogicEngine:
             },
         )
 
-        # 4. A1 Filing — tag and file the interaction
+        # 4. Symbolic Memory Index — tag and file the interaction
         dominant_tag = (
             crfe_result["emergence"].get("emergent_pattern") or
             crfe_result["rsml"]["matched_markers"][:1] or
@@ -137,7 +138,7 @@ class VoidLogicEngine:
         # Clean tag to a simple string
         tag = re.sub(r'[^a-zA-Z0-9_\-]', '', str(tag))[:40] or domain
         # Use overlay's A1 confidence baseline as a floor
-        overlay_confidence = overlay.get_a1_confidence()
+        overlay_confidence = overlay.get_memory_confidence()
         base_confidence = round(
             (crfe_result["rsml"]["score"] * 0.4) +
             (crfe_result["emergence"]["score"] * 0.3) +
@@ -154,11 +155,11 @@ class VoidLogicEngine:
 
         # 5. Bridge Wisdom — reinforce or build a cross-domain thread
         # Always bridge from detected domain → "general" at minimum
-        bwt_result = bwt.bridge(domain, "general")
+        bwt_result = knowledge_bridge.bridge(domain, "general")
 
         # If emergence is strong, also bridge to "pattern"
         if crfe_result["emergence"]["amplified"] and domain != "pattern":
-            bwt.bridge(domain, "pattern")
+            knowledge_bridge.bridge(domain, "pattern")
 
         # 6. STVL — lite topology snapshot
         topology = stvl.lite_render()
@@ -170,8 +171,8 @@ class VoidLogicEngine:
             try:
                 ai_response = adapter.complete(
                     messages=[
-                        {"role": "system",  "content": system_prompt},
-                        {"role": "user",    "content": text},
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user",   "content": text},
                     ],
                     temperature = 0.65,
                     max_completion_tokens  = 1000,
@@ -183,15 +184,15 @@ class VoidLogicEngine:
 
         result = {
             "ai_response": ai_response,
-            "voidlogic_report": {
+            "reasoning_report": {
                 "session":          self._session_count,
                 "complexity":       complexity,
                 "biased_complexity": biased_complexity,
                 "domain":           domain,
                 "cno":              cno_result,
                 "crfe":             crfe_result,
-                "tesseract":        store_result,
-                "a1_filing":        filing_result,
+                "context_memory":   store_result,
+                "symbolic_memory":  filing_result,
                 "bridge":           bwt_result,
                 "system_health":    crfe_result["system_health"],
                 "active_overlay":   overlay.current()["overlay"],
@@ -213,7 +214,7 @@ class VoidLogicEngine:
         """
         crfe_result  = crfe.process(text)
         domain       = _detect_domain(text)
-        cross_domain = bwt.cross_domain_insight(
+        cross_domain = knowledge_bridge.cross_domain_insight(
             crfe_result["emergence"].get("emergent_pattern") or text[:40],
             source=domain,
         )
@@ -242,7 +243,7 @@ class VoidLogicEngine:
 
     def _build_system_prompt(self, crfe_result: Dict[str, Any]) -> str:
         health = crfe_result["system_health"]
-        lines  = [_VOIDLOGIC_SYSTEM_PROMPT, ""]
+        lines  = [_SYMBOLIC_REASONING_SYSTEM_PROMPT, ""]
 
         # Prepend active overlay modifier — always present
         lines.append(overlay.get_system_prompt_modifier())

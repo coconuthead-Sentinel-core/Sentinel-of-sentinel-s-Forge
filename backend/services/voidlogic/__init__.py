@@ -1,18 +1,18 @@
 """
-VoidLogic 5.0 + IWE — Symbolic Geometric AI Architecture
-Integrated into Sentinel Forge as a first-class cognitive module.
+Symbolic Reasoning Engine — multi-layer symbolic processing pipeline
+integrated into Sentinel Forge as a first-class cognitive module.
 
 Components:
-    node_geometry     — Tetrahedral / Octahedral / Icosahedral node system
-    tesseract_storage — Hypercube 4D mass storage (SMSU)
-    cno               — Cognitive Neural Overlay with Dynamic Node Constructor
-    crfe              — Cognitive Recursive Feedback Engine (RSML + AHCL + Emergence)
-    a1_filing         — A1 Filing System with metadata tagging and drift monitoring
-    bridge_wisdom     — Trans-domain Bridge Wisdom Threads
-    stvl              — Symbolic-Topology Visualization Layer
-    engine            — VoidLogic master orchestration engine
+    node_geometry      — Geometric node tier system (tetrahedral / octahedral / icosahedral)
+    context_memory     — Session context memory store
+    compute_router     — Compute node router with load balancing
+    recursive_feedback — Recursive feedback engine (pattern detection + paradox resolution + emergence)
+    tiered_memory      — Tiered memory store with metadata tagging and drift monitoring
+    knowledge_bridge   — Cross-domain knowledge bridge threads
+    topology_renderer  — Topology visualization layer
+    engine             — Master symbolic reasoning orchestration engine
 """
 
-from .engine import VoidLogicEngine
+from .engine import SymbolicReasoningEngine
 
-__all__ = ["VoidLogicEngine"]
+__all__ = ["SymbolicReasoningEngine"]

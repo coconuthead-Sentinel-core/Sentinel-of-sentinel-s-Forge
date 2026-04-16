@@ -1,7 +1,7 @@
 """
-Core Sensor
+Signal Sensor
 Analyzes user inputs for emotional signals, contextual urgency,
-and vibrational intent — the latent meaning beneath the surface words.
+and intent classification.
 """
 from __future__ import annotations
 
@@ -39,7 +39,7 @@ _EMOTIONAL_SIGNALS: Dict[str, tuple] = {
 }
 
 # Vibrational intent categories
-_INTENT_VIBRATIONS = {
+_INTENT_CATEGORIES = {
     "creative":    {"create", "build", "design", "make", "generate", "invent", "imagine"},
     "analytical":  {"analyze", "evaluate", "measure", "compare", "assess", "examine", "review"},
     "directive":   {"run", "execute", "deploy", "send", "push", "activate", "start", "stop"},
@@ -48,7 +48,7 @@ _INTENT_VIBRATIONS = {
 }
 
 
-class CoreSensor:
+class SignalSensor:
     """
     Reads emotional charge, urgency level, and vibrational intent
     from raw input text.
@@ -87,46 +87,46 @@ class CoreSensor:
             urgency = round(max(s["intensity"] for s in signals if s["emotion"] == "urgency") if
                             any(s["emotion"] == "urgency" for s in signals) else 0.0, 4)
 
-        # --- Vibrational Intent Scan ---
-        vib_scores: Dict[str, int] = {}
-        for vib, seed_words in _INTENT_VIBRATIONS.items():
+        # --- Intent Category Scan ---
+        intent_scores: Dict[str, int] = {}
+        for category, seed_words in _INTENT_CATEGORIES.items():
             hits = len(word_set & seed_words)
             if hits:
-                vib_scores[vib] = hits
+                intent_scores[category] = hits
 
-        if vib_scores:
-            vibrational_intent = max(vib_scores, key=lambda k: vib_scores[k])
-            intent_confidence = round(min(vib_scores[vibrational_intent] / 3, 1.0), 4)
+        if intent_scores:
+            intent_category = max(intent_scores, key=lambda k: intent_scores[k])
+            intent_confidence = round(min(intent_scores[intent_category] / 3, 1.0), 4)
         else:
-            vibrational_intent = "ambient"
+            intent_category = "general"
             intent_confidence = 0.1
 
         # --- Latent Reading ---
-        latent = self._latent_reading(dominant_emotion, vibrational_intent, urgency)
+        latent = self._latent_reading(dominant_emotion, intent_category, urgency)
 
         return {
             "emotional_signals": signals,
             "dominant_emotion": dominant_emotion,
             "urgency_level": urgency,
-            "vibrational_intent": vibrational_intent,
+            "intent_category": intent_category,
             "intent_confidence": intent_confidence,
             "latent_reading": latent,
         }
 
     def _latent_reading(self, emotion: str | None, intent: str, urgency: float) -> str:
-        """Synthesize a single latent interpretation statement."""
+        """Synthesize a single intent interpretation statement."""
         if urgency >= 0.8:
-            return "HIGH URGENCY FIELD DETECTED — prioritise immediate resolution pathway."
+            return "HIGH URGENCY — prioritize immediate resolution."
         if emotion == "disorientation":
-            return "The signal carries navigational drift — recalibration of context is needed."
+            return "User context is unclear — recalibration needed before generating a response."
         if emotion == "friction":
-            return "Resistance pattern detected — a blockage in the processing flow is present."
+            return "Friction pattern detected — a processing blockage or blocker is present."
         if emotion == "activation" and intent == "creative":
-            return "Generative resonance is high — the system is primed for creative output."
+            return "Creative intent detected — system is primed for generative output."
         if intent == "analytical":
-            return "Structured inquiry detected — deep pattern analysis mode engaged."
+            return "Structured analytical inquiry detected — pattern analysis mode active."
         if intent == "connective":
-            return "Integration intent active — bridge-building sequence initialised."
+            return "Integration intent detected — system is building a cross-domain bridge."
         if emotion == "resonance":
-            return "Positive frequency alignment — the signal is well-matched to the system pulse."
-        return "Signal received. Processing through standard cognitive pathways."
+            return "Positive sentiment detected — input is well-matched to active context."
+        return "Signal received. Processing through standard cognitive pipeline."

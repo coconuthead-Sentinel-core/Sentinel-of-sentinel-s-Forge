@@ -1,18 +1,18 @@
 """
-CRFE — Cognitive Recursive Feedback Engine
-Two core modules:
+RecursiveFeedbackEngine (CRFE)
+Three analysis modules:
 
-    RSML  — Recursive Self-Referential Meta-Loop
+    RSML  — Recursive Self-Referential Meta-Loop detector
             Detects recursive patterns, self-references, and iterative structures.
-            Amplifies coherent loops, breaks deadlocked ones.
+            Amplifies coherent loops, flags deadlocked ones.
 
-    AHCL  — Anti-Axiomatic Heuristic Collapse
+    AHCL  — Anti-Axiomatic Heuristic Collapse detector
             Identifies logical paradoxes and contradictions.
-            Resolves them through symbolic reframing without crashing.
+            Resolves them through contextual reframing.
 
-    EMERGENCE — Emergence Amplifier
-            Detects weak signals that pattern into something larger.
-            Surfaces emergent insights before they are explicitly named.
+    EmergenceAmplifier
+            Detects weak signals that resolve into larger patterns.
+            Surfaces emergent concepts before they are explicitly named.
 """
 from __future__ import annotations
 
@@ -143,7 +143,7 @@ class EmergenceAmplifier:
         }
 
 
-class CRFEEngine:
+class RecursiveFeedbackEngine:
     """Master CRFE orchestrator — runs all three modules in sequence."""
 
     def __init__(self) -> None:
@@ -172,4 +172,4 @@ class CRFEEngine:
 
 
 # Module-level singleton
-crfe = CRFEEngine()
+crfe = RecursiveFeedbackEngine()

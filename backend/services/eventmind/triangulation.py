@@ -1,12 +1,12 @@
 """
-Triangulation Telescope
-Processes user input through three distinct observational vectors:
+Multi-Perspective Analyzer
+Processes user input through three independent scoring vectors:
 
-    1. Intent Weight    — the gravitational pull / purpose density of the input
-    2. Context Vector   — the angular trajectory / situational direction
-    3. Frequency Match  — pulsation sync with the system's resonance field
+    1. Intent Weight    — the purpose density of the input (action words, questions)
+    2. Context Vector   — the situational domain (technical, conceptual, emotional)
+    3. Structural Match — input structure score (punctuation, length, specificity)
 
-Returns a triangulated signal score and per-vector analysis.
+Returns a composite score and per-vector breakdown.
 """
 from __future__ import annotations
 
@@ -41,7 +41,7 @@ _EMOTIONAL_CONTEXT = {
 }
 
 
-class TriangulationTelescope:
+class MultiPerspectiveAnalyzer:
     """
     Three-vector input analyzer for EventMind.
     Each vector returns a score 0.0–1.0 and a classification label.
@@ -66,13 +66,13 @@ class TriangulationTelescope:
 
         intent = self._intent_weight(words, word_count, text)
         context = self._context_vector(words)
-        frequency = self._frequency_match(text, word_count)
+        structure = self._structural_match(text, word_count)
 
-        # Weighted triangulation: intent carries most mass
+        # Weighted score: intent carries most weight
         tri_score = round(
             (intent["score"] * 0.45) +
             (context["score"] * 0.30) +
-            (frequency["score"] * 0.25),
+            (structure["score"] * 0.25),
             4
         )
 
@@ -86,7 +86,7 @@ class TriangulationTelescope:
         return {
             "intent_weight": intent,
             "context_vector": context,
-            "frequency_match": frequency,
+            "structural_match": structure,
             "triangulated_score": tri_score,
             "signal_class": signal_class,
         }
@@ -137,9 +137,8 @@ class TriangulationTelescope:
             "emotional_hits": emotion_hits,
         }
 
-    def _frequency_match(self, text: str, word_count: int) -> Dict[str, Any]:
-        # Frequency match looks at structural resonance patterns
-        # Long, structured inputs with punctuation resonate more
+    def _structural_match(self, text: str, word_count: int) -> Dict[str, Any]:
+        # Structural match: longer, well-punctuated, specific inputs score higher
         punct_count = len(re.findall(r'[,;:\-–—]', text))
         caps_count = len(re.findall(r'\b[A-Z]{2,}\b', text))
         number_count = len(re.findall(r'\b\d+\b', text))

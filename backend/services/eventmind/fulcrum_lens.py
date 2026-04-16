@@ -48,7 +48,7 @@ _DEFAULT_CAUSE   = "An unmet need or unresolved state in a prior context generat
 _DEFAULT_OUTCOME = "This input will initiate a processing sequence that moves the system toward a new stable state."
 
 
-class FulcrumLens:
+class ContextReframer:
     """
     Applies backward causality tracing and forward outcome projection
     to any input text.

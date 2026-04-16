@@ -1,10 +1,7 @@
 """
-Snowflake Processor
-Decomposes a complex query into discrete processing flakes —
-each flake is an independently analyzable sub-query or data dimension.
-
-Like a snowflake's fractal structure, each flake is unique
-but part of a coherent whole.
+Query Decomposer
+Decomposes a complex query into discrete processing units —
+each unit is an independently analyzable sub-query or data dimension.
 """
 from __future__ import annotations
 
@@ -24,20 +21,20 @@ _DIMENSION_PATTERNS = {
 }
 
 
-class SnowflakeProcessor:
+class QueryDecomposer:
     """
-    Fractal Query Decomposition Engine.
-    Breaks a complex query into parallel processing flakes.
+    Parallel Query Decomposition Engine.
+    Breaks a complex query into independently analyzable processing units.
     """
 
     def decompose(self, query: str) -> Dict[str, Any]:
         """
-        Decompose a query into snowflake flakes.
+        Decompose a query into parallel processing units.
 
         Returns:
             {
-                flakes: [{id, text, dimension, weight}],
-                flake_count: int,
+                units: [{id, text, dimension, weight}],
+                unit_count: int,
                 primary_dimension: str,
                 complexity_score: float
             }
@@ -49,27 +46,27 @@ class SnowflakeProcessor:
         if not raw_flakes:
             raw_flakes = [query]
 
-        flakes = []
+        units = []
         dimension_counts: Dict[str, int] = {}
 
-        for i, flake_text in enumerate(raw_flakes):
-            dimension = self._classify_dimension(flake_text)
-            weight = round(len(flake_text.split()) / max(len(query.split()), 1), 4)
+        for i, unit_text in enumerate(raw_flakes):
+            dimension = self._classify_dimension(unit_text)
+            weight = round(len(unit_text.split()) / max(len(query.split()), 1), 4)
             dimension_counts[dimension] = dimension_counts.get(dimension, 0) + 1
 
-            flakes.append({
-                "id": f"flake_{i+1}",
-                "text": flake_text,
+            units.append({
+                "id": f"unit_{i+1}",
+                "text": unit_text,
                 "dimension": dimension,
                 "weight": weight,
             })
 
         primary = max(dimension_counts, key=lambda k: dimension_counts[k]) if dimension_counts else "general"
-        complexity = round(min(len(flakes) / 5, 1.0), 4)
+        complexity = round(min(len(units) / 5, 1.0), 4)
 
         return {
-            "flakes": flakes,
-            "flake_count": len(flakes),
+            "units": units,
+            "unit_count": len(units),
             "primary_dimension": primary,
             "complexity_score": complexity,
             "dimension_distribution": dimension_counts,

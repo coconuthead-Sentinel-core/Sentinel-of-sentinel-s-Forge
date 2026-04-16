@@ -1,7 +1,6 @@
 """
 Cognitive Architecture Map
-4-ring symbolic model of the AI cognitive system.
-Extracted from ClaudeSymbolicBootstrap (a6.txt).
+Five-ring model of the AI cognitive system with live activation tracking.
 
 Rings:
     CORE     — Reasoning Core (1 node)
@@ -11,18 +10,17 @@ Rings:
     ETHICS   — Value Alignment · Harm Prevention · Truthfulness · Helpfulness
 
 Each node tracks:
-    energy_level  — 0.0–1.0 current activation
+    energy_level  — 0.0–1.0 current activation score
     pulse_phase   — continuous sine-based pulsing
     access_count  — how many times this node has been activated
 
-Connections follow the original 24-edge topology.
-The Ethics ring gates the Nexus Tag system: if any ethics node
+The Ethics ring gates the output tagging system: if any ethics node
 falls below its threshold the tag status is downgraded.
 
 Used by:
-    - VoidLogic engine (routing domain selection)
-    - A1 Filing System (domain 'ethics' entries)
-    - Nexus Tagging (ethics gate for GREEN/YELLOW/RED)
+    - SymbolicReasoningEngine (routing domain selection)
+    - SymbolicMemoryIndex (domain 'ethics' entries)
+    - OutputTaggingSystem (ethics gate for GREEN/YELLOW/RED)
     - API endpoints for live cognitive map state
 """
 from __future__ import annotations

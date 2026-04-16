@@ -43,8 +43,8 @@ def _now() -> float:
     return time.time()
 
 
-def _glyphic_signature(payload: Dict[str, Any]) -> Tuple[int, int, int, int, int]:
-    """Generate a compact glyphic signature.
+def _content_signature(payload: Dict[str, Any]) -> Tuple[int, int, int, int, int]:
+    """Generate a compact content signature.
 
     Input is arbitrary agent state; we derive 5 integers (0..255) keyed to
     (structure, logic, emotion, transform, unity). This is deterministic and
@@ -66,14 +66,14 @@ class AgentState:
     agent: str
     timestamp: float
     payload: Dict[str, Any]
-    glyphic_signature: Tuple[int, int, int, int, int]
+    content_signature: Tuple[int, int, int, int, int]
 
 
 class SentinelPrimeSync:
-    """Shared session state across tri-node agents with glyph-aware sync.
+    """Shared session state across tri-node agents with content-signature sync.
 
-    Agents reflected in diagrams: 'Sentinel', 'Sora', and an 'Architect' (aka 'Coconut Head').
-    This in-process coordinator provides a minimal pub/sub and keeps a glyph
+    Agents: 'Sentinel', 'Sora', and 'Architect'.
+    This in-process coordinator provides a minimal pub/sub and keeps a
     sequence that can be validated for the boot protocol.
     """
 
@@ -89,8 +89,8 @@ class SentinelPrimeSync:
     def update_agent_state(self, agent: str, state: Dict[str, Any]) -> AgentState:
         if agent not in self.agents:
             self.agents.append(agent)
-        sig = _glyphic_signature(state)
-        st = AgentState(agent=agent, timestamp=_now(), payload=state, glyphic_signature=sig)
+        sig = _content_signature(state)
+        st = AgentState(agent=agent, timestamp=_now(), payload=state, content_signature=sig)
         self.shared[agent] = st
         # infer a glyph stage hint from state if present
         stage = state.get("glyph_stage")

@@ -1,12 +1,12 @@
 """
 Enhanced Quantum Nexus Forge v5.2 — Master Cognitive Orchestrator
 Combines:
-    • QuantumCognitiveNode — 3D Platonic solid geometry + resonance + entropy
+    • SpatialProcessingNode — 3D Platonic solid geometry + processing frequency + entropy
     • SymbolicStreamInterpreter — emoji/symbol sequence → cognitive operations
     • NeurodivergentProcessor — all 5 cognitive lenses (autism/adhd/dyslexia/
                                  dyscalculia/neurotypical) applied in parallel
     • PerformanceMonitor — real-time timing and throughput
-    • Zone management — Active / Emergence / Crystallized memory allocation
+    • Zone management — Active / Emergence / Archived memory allocation
 
 Entry point:
     forge = EnhancedQuantumNexusForge()
@@ -21,7 +21,7 @@ import re
 from typing import Any, Dict, List, Optional
 
 from .cognitive_node import (
-    QuantumCognitiveNode,
+    SpatialProcessingNode,
     CognitivePrimitiveType,
     MemoryZoneClassification,
 )
@@ -177,20 +177,20 @@ _DEFAULT_SYMBOLS = "💠🔺🔶⭕🔷"
 class EnhancedQuantumNexusForge:
     """
     Master cognitive architecture.
-    Each call to process() creates a QuantumCognitiveNode, runs the full
+    Each call to process() creates a SpatialProcessingNode, runs the full
     symbol stream + all 5 neurodivergent lenses, updates zone managers,
     and returns a rich processing report.
     """
 
     def __init__(self) -> None:
-        self._nodes: Dict[str, QuantumCognitiveNode] = {}
+        self._nodes: Dict[str, SpatialProcessingNode] = {}
         self._interpreter   = SymbolicStreamInterpreter()
         self._perf          = PerformanceMonitor()
         self._zone_managers: Dict[MemoryZoneClassification, List[str]] = {
             z: [] for z in MemoryZoneClassification
         }
         self._sessions      = 0
-        self.consciousness_elevation = 40.0
+        self.processing_elevation = 40.0
 
     # ------------------------------------------------------------------
     # Public API
@@ -212,13 +212,13 @@ class EnhancedQuantumNexusForge:
 
         Returns:
             node_id, symbolic_processing, neurodivergent_analyses,
-            spatial_coordinates, entropy, zone, resonance, timing, metrics.
+            spatial_coordinates, entropy, zone, processing_frequency, timing, metrics.
         """
         t0 = time.time()
         self._sessions += 1
 
-        # 1. Create quantum cognitive node
-        node = QuantumCognitiveNode(content=content, primitive_type=primitive_type)
+        # 1. Create spatial processing node
+        node = SpatialProcessingNode(content=content, primitive_type=primitive_type)
         self._nodes[node.id] = node
 
         # 2. Symbol stream interpretation
@@ -250,7 +250,7 @@ class EnhancedQuantumNexusForge:
             "cognitive_elevation":    node.cognitive_elevation,
             "entropy_coefficient":    node.entropy_coefficient,
             "zone_classification":    zone.value,
-            "resonance_frequency":    round(node.spatial_vector.resonance_frequency, 4),
+            "processing_frequency":   round(node.spatial_vector.processing_frequency, 4),
             "processing_timestamp":   node.creation_timestamp.isoformat(),
             "processing_ms":          round(duration * 1000, 3),
             "session":                self._sessions,
@@ -269,8 +269,8 @@ class EnhancedQuantumNexusForge:
         """Return a comprehensive health and metrics report."""
         zone_dist = {z.value: len(ids) for z, ids in self._zone_managers.items()}
 
-        total_resonance = sum(
-            n.spatial_vector.resonance_frequency for n in self._nodes.values()
+        total_processing_weight = sum(
+            n.spatial_vector.processing_frequency for n in self._nodes.values()
         )
         avg_entropy = (
             sum(n.entropy_coefficient for n in self._nodes.values()) / len(self._nodes)
@@ -282,9 +282,9 @@ class EnhancedQuantumNexusForge:
             "architecture_version":    "5.2.0",
             "total_cognitive_nodes":   len(self._nodes),
             "zone_distributions":      zone_dist,
-            "total_resonance":         round(total_resonance, 4),
+            "total_processing_weight": round(total_processing_weight, 4),
             "average_entropy":         round(avg_entropy, 4),
-            "consciousness_elevation": self.consciousness_elevation,
+            "processing_elevation":    self.processing_elevation,
             "total_forge_sessions":    self._sessions,
             "available_lenses":        [name for name, _ in _ALL_LENSES],
             "performance":             self._perf.metrics(),

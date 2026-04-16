@@ -104,7 +104,7 @@ class AgentSnapshot(BaseModel):
     agent: str
     timestamp: float
     payload: Dict[str, Any]
-    glyphic_signature: tuple[int, int, int, int, int]
+    content_signature: tuple[int, int, int, int, int]
 
 
 class SyncSnapshot(BaseModel):

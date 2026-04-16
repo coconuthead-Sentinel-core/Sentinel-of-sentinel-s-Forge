@@ -1,18 +1,17 @@
 """
-Spiderweb Node Network
+Knowledge Graph
 Decentralized context storage that maps relationships between concepts.
-Nodes are weighted by access frequency (thought density / gravitational influence).
-Pathways strengthen with repeated use — frequently accessed connections
-become primary routes.
+Nodes are weighted by access frequency.
+Edges strengthen with repeated co-occurrence — frequently accessed connections
+become primary retrieval paths.
 """
 from __future__ import annotations
 
 import time
-from collections import defaultdict
 from typing import Dict, Any, List, Optional
 
 
-class SpiderwebNode:
+class KnowledgeNode:
     def __init__(self, concept: str) -> None:
         self.concept = concept
         self.weight: float = 1.0
@@ -38,23 +37,22 @@ class SpiderwebNode:
         }
 
 
-class SpiderwebNetwork:
+class KnowledgeGraph:
     """
-    Dynamic node network for context relationship mapping.
+    Dynamic knowledge graph for concept relationship mapping.
     Stores concepts as nodes; relationships as weighted edges.
     """
 
     def __init__(self, max_nodes: int = 500) -> None:
-        self._nodes: Dict[str, SpiderwebNode] = {}
+        self._nodes: Dict[str, KnowledgeNode] = {}
         self._max_nodes = max_nodes
 
     def ingest(self, concepts: List[str]) -> Dict[str, Any]:
         """
-        Add concepts to the network and strengthen connections between co-occurring concepts.
+        Add concepts to the graph and strengthen edges between co-occurring concepts.
 
-        Returns network stats after ingestion.
+        Returns graph stats after ingestion.
         """
-        # Prune if at capacity (remove lowest-weight nodes)
         if len(self._nodes) >= self._max_nodes:
             self._prune()
 
@@ -62,9 +60,8 @@ class SpiderwebNetwork:
             if concept in self._nodes:
                 self._nodes[concept].access()
             else:
-                self._nodes[concept] = SpiderwebNode(concept)
+                self._nodes[concept] = KnowledgeNode(concept)
 
-        # Create connections between all concepts in this batch (co-occurrence = relationship)
         for i, c1 in enumerate(concepts):
             for c2 in concepts[i+1:]:
                 if c1 != c2:
@@ -97,7 +94,7 @@ class SpiderwebNetwork:
         return result
 
     def strongest_paths(self, top_n: int = 10) -> List[Dict[str, Any]]:
-        """Return the top N strongest node connections across the network."""
+        """Return the top N strongest edges across the graph."""
         edges = []
         seen = set()
         for concept, node in self._nodes.items():
@@ -118,12 +115,12 @@ class SpiderwebNetwork:
         }
 
     def _prune(self) -> None:
-        """Remove the 20% lowest-weight nodes."""
+        """Remove the lowest-weight 20% of nodes."""
         sorted_nodes = sorted(self._nodes.items(), key=lambda x: x[1].weight)
         prune_count = len(self._nodes) // 5
         for concept, _ in sorted_nodes[:prune_count]:
             del self._nodes[concept]
 
 
-# Module-level singleton network
-spiderweb = SpiderwebNetwork()
+# Module-level singleton
+knowledge_graph = KnowledgeGraph()

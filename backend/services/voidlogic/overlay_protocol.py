@@ -1,22 +1,22 @@
 """
-Live Overlay Protocol
-Six named cognitive overlay nodes that modulate how VoidLogic
-processes and responds to input. Each overlay shifts the CNO
-routing priority, CRFE sensitivity, and AI system prompt tone.
+Processing Overlay Protocol
+Six named processing overlays that modulate how the Symbolic Reasoning Engine
+processes and responds to input. Each overlay shifts the ComputeNodeRouter
+routing priority, RecursiveFeedbackEngine sensitivity, and AI system prompt tone.
 
-Overlay Nodes (from the Quantum Cognitive System diagram):
-    INITIATIVE_NODE    — Sets task focus, high-priority routing
-    REFLECTIVE_MIRBOR  — Recursive context recalibration (Mirror Pool)
-    GEOMETRIC_HARMONIOS — Logic-metaphor spatial alignment
-    COO_X_MODE         — Codified Optimization Overlay, streamlines reasoning
-    NEKUM_AFTIRRAD     — Dual-flow ambiguity + divergent synthesis node
-    METATRON_CORE      — Systemic resonance checker, alignment with core principles
+Overlay Modes:
+    FOCUS          — Sets task focus, high-priority routing
+    RECURSIVE      — Recursive context recalibration
+    STRUCTURAL     — Logic and spatial-structure alignment
+    PRECISION      — Codified optimisation, streamlines reasoning
+    DIVERGENT      — Dual-flow ambiguity and divergent synthesis
+    COHERENCE      — Systemic alignment checker, highest-order oversight
 
 Only one overlay is active at a time. The overlay modulates:
-    • The VoidLogic engine's system prompt prefix
-    • The CNO complexity routing bias
-    • The CRFE sensitivity thresholds
-    • The A1 filing confidence baseline
+    • The Symbolic Reasoning Engine's system prompt prefix
+    • The ComputeNodeRouter complexity routing bias
+    • The RecursiveFeedbackEngine sensitivity thresholds
+    • The SymbolicMemoryIndex filing confidence baseline
 """
 from __future__ import annotations
 
@@ -29,82 +29,82 @@ from typing import Any, Dict, List, Optional
 # ---------------------------------------------------------------------------
 
 _OVERLAYS: Dict[str, Dict[str, Any]] = {
-    "INITIATIVE_NODE": {
-        "label":       "Initiative Node",
-        "description": "Sets task focus. Routes all payloads to high-complexity Icosahedral tier. Maximises analytical depth.",
-        "complexity_bias":   0.85,   # pushes routing toward Icosahedral
-        "crfe_sensitivity":  0.6,    # standard CRFE thresholds
-        "a1_confidence":     0.85,   # high filing confidence
+    "FOCUS": {
+        "label":       "Focus Mode",
+        "description": "Sets task focus. Routes all payloads to high-complexity tier. Maximises analytical depth.",
+        "complexity_bias":    0.85,   # pushes routing toward high-complexity tier
+        "crfe_sensitivity":   0.6,    # standard RecursiveFeedbackEngine thresholds
+        "memory_confidence":  0.85,   # high filing confidence
         "system_prompt_modifier": (
-            "⚙️ INITIATIVE NODE ACTIVE — Task focus locked. "
+            "FOCUS MODE ACTIVE — Task focus locked. "
             "Operate with maximum analytical clarity. "
             "Prioritise structured, actionable output."
         ),
     },
-    "REFLECTIVE_MIRBOR": {
-        "label":       "Reflective Mirbor (Mirror Pool)",
+    "RECURSIVE": {
+        "label":       "Recursive Review Mode",
         "description": "Recursive context recalibration. Surfaces contradictions, revisits prior assumptions, deepens self-reference.",
-        "complexity_bias":   0.65,
-        "crfe_sensitivity":  0.4,    # lower threshold — catches more recursion
-        "a1_confidence":     0.75,
+        "complexity_bias":    0.65,
+        "crfe_sensitivity":   0.4,    # lower threshold — catches more recursion
+        "memory_confidence":  0.75,
         "system_prompt_modifier": (
-            "🪞 REFLECTIVE MIRBOR ACTIVE — Mirror Pool engaged. "
+            "RECURSIVE REVIEW MODE ACTIVE — Context recalibration engaged. "
             "Revisit assumptions. Surface contradictions. "
             "Recalibrate against prior context before responding."
         ),
     },
-    "GEOMETRIC_HARMONIOS": {
-        "label":       "Geometric Harmonios",
-        "description": "Aligns logic with spatial/metaphorical structure. Bridges symbolic and rational domains.",
-        "complexity_bias":   0.55,
-        "crfe_sensitivity":  0.5,
-        "a1_confidence":     0.80,
+    "STRUCTURAL": {
+        "label":       "Structural Analysis Mode",
+        "description": "Aligns logic with spatial and structural patterns. Bridges symbolic and rational domains.",
+        "complexity_bias":    0.55,
+        "crfe_sensitivity":   0.5,
+        "memory_confidence":  0.80,
         "system_prompt_modifier": (
-            "🔷 GEOMETRIC HARMONIOS ACTIVE — Spatial logic alignment engaged. "
-            "Ground abstract concepts in geometric or metaphorical structure. "
-            "Bridge the symbolic and the rational in every response."
+            "STRUCTURAL ANALYSIS MODE ACTIVE — Spatial-logic alignment engaged. "
+            "Ground abstract concepts in concrete structural patterns. "
+            "Bridge symbolic and rational framing in every response."
         ),
     },
-    "COO_X_MODE": {
-        "label":       "COO-X Mode (Codified Optimization Overlay)",
+    "PRECISION": {
+        "label":       "Precision Optimisation Mode",
         "description": "Streamlines reasoning. Eliminates redundancy. Optimises output for clarity and speed.",
-        "complexity_bias":   0.45,   # routes toward faster Octahedral tier
-        "crfe_sensitivity":  0.7,    # strict — only strong signals matter
-        "a1_confidence":     0.90,
+        "complexity_bias":    0.45,   # routes toward faster mid-tier
+        "crfe_sensitivity":   0.7,    # strict — only strong signals matter
+        "memory_confidence":  0.90,
         "system_prompt_modifier": (
-            "⚡ COO-X MODE ACTIVE — Codified Optimization Overlay engaged. "
+            "PRECISION MODE ACTIVE — Optimisation overlay engaged. "
             "Be precise. Eliminate redundancy. "
             "Every word earns its place. Optimise for clarity above all."
         ),
     },
-    "NEKUM_AFTIRRAD": {
-        "label":       "Nekum Aftirrad (Dual-Flow Divergent Synthesis)",
+    "DIVERGENT": {
+        "label":       "Divergent Synthesis Mode",
         "description": "Holds two conflicting ideas simultaneously. Synthesises divergent paths. For paradox, ambiguity, and creative leaps.",
-        "complexity_bias":   0.75,
-        "crfe_sensitivity":  0.3,    # very sensitive — detects weak paradoxes
-        "a1_confidence":     0.65,   # lower confidence — divergent terrain
+        "complexity_bias":    0.75,
+        "crfe_sensitivity":   0.3,    # very sensitive — detects weak paradoxes
+        "memory_confidence":  0.65,   # lower confidence — divergent terrain
         "system_prompt_modifier": (
-            "🌀 NEKUM AFTIRRAD ACTIVE — Dual-flow synthesis engaged. "
+            "DIVERGENT SYNTHESIS MODE ACTIVE — Dual-path analysis engaged. "
             "Hold contradictions. Do not collapse ambiguity prematurely. "
-            "Synthesise divergent paths into emergent understanding."
+            "Synthesise divergent paths into integrated understanding."
         ),
     },
-    "METATRON_CORE": {
-        "label":       "Metatron Core (Systemic Resonance Checker)",
-        "description": "Checks alignment with core principles. Highest-tier oversight. Ensures all outputs resonate with foundational values.",
-        "complexity_bias":   0.95,   # always Icosahedral
-        "crfe_sensitivity":  0.5,
-        "a1_confidence":     0.95,   # highest filing confidence
+    "COHERENCE": {
+        "label":       "Coherence Alignment Mode",
+        "description": "Checks alignment with core principles. Highest-tier oversight. Ensures all outputs align with foundational values.",
+        "complexity_bias":    0.95,   # always highest-complexity tier
+        "crfe_sensitivity":   0.5,
+        "memory_confidence":  0.95,   # highest filing confidence
         "system_prompt_modifier": (
-            "💠 METATRON CORE ACTIVE — Systemic resonance engaged. "
+            "COHERENCE MODE ACTIVE — Systemic alignment check engaged. "
             "Align every output with foundational principles. "
-            "Check coherence across all active modules before responding. "
-            "This is the highest-order cognitive layer."
+            "Check consistency across all active context before responding. "
+            "This is the highest-order analytical layer."
         ),
     },
 }
 
-_DEFAULT_OVERLAY = "INITIATIVE_NODE"
+_DEFAULT_OVERLAY = "FOCUS"
 
 
 # ---------------------------------------------------------------------------
@@ -113,8 +113,8 @@ _DEFAULT_OVERLAY = "INITIATIVE_NODE"
 
 class LiveOverlayProtocol:
     """
-    Manages the active cognitive overlay node for VoidLogic.
-    The overlay modulates routing, CRFE sensitivity, and AI prompt tone.
+    Manages the active processing overlay for the Symbolic Reasoning Engine.
+    The overlay modulates routing, RecursiveFeedbackEngine sensitivity, and AI prompt tone.
     """
 
     def __init__(self) -> None:
@@ -128,10 +128,10 @@ class LiveOverlayProtocol:
 
     def activate(self, overlay_name: str) -> Dict[str, Any]:
         """
-        Switch to a named overlay node.
+        Switch to a named overlay mode.
 
         Args:
-            overlay_name: One of the 6 overlay node keys (case-insensitive).
+            overlay_name: One of the 6 overlay keys (case-insensitive).
 
         Returns:
             Activation report with overlay properties and system prompt modifier.
@@ -156,10 +156,10 @@ class LiveOverlayProtocol:
         self._activation_count += 1
 
         entry = {
-            "overlay":    key,
-            "previous":   previous,
+            "overlay":      key,
+            "previous":     previous,
             "activated_at": round(time.time(), 3),
-            "count":      self._activation_count,
+            "count":        self._activation_count,
         }
         self._history = (self._history + [entry])[-50:]
 
@@ -169,7 +169,7 @@ class LiveOverlayProtocol:
             "description":            _OVERLAYS[key]["description"],
             "complexity_bias":        _OVERLAYS[key]["complexity_bias"],
             "crfe_sensitivity":       _OVERLAYS[key]["crfe_sensitivity"],
-            "a1_confidence_baseline": _OVERLAYS[key]["a1_confidence"],
+            "memory_confidence":      _OVERLAYS[key]["memory_confidence"],
             "system_prompt_modifier": _OVERLAYS[key]["system_prompt_modifier"],
             "previous_overlay":       previous,
         }
@@ -183,7 +183,7 @@ class LiveOverlayProtocol:
             "description":            data["description"],
             "complexity_bias":        data["complexity_bias"],
             "crfe_sensitivity":       data["crfe_sensitivity"],
-            "a1_confidence_baseline": data["a1_confidence"],
+            "memory_confidence":      data["memory_confidence"],
             "system_prompt_modifier": data["system_prompt_modifier"],
         }
 
@@ -196,15 +196,15 @@ class LiveOverlayProtocol:
         return _OVERLAYS[self._active]["system_prompt_modifier"]
 
     def get_crfe_sensitivity(self) -> float:
-        """Return the CRFE sensitivity threshold for the current overlay."""
+        """Return the RecursiveFeedbackEngine sensitivity threshold for the current overlay."""
         return _OVERLAYS[self._active]["crfe_sensitivity"]
 
-    def get_a1_confidence(self) -> float:
-        """Return the A1 filing confidence baseline for the current overlay."""
-        return _OVERLAYS[self._active]["a1_confidence"]
+    def get_memory_confidence(self) -> float:
+        """Return the SymbolicMemoryIndex confidence baseline for the current overlay."""
+        return _OVERLAYS[self._active]["memory_confidence"]
 
     def all_overlays(self) -> Dict[str, Any]:
-        """Return descriptions of all 6 overlay nodes."""
+        """Return descriptions of all 6 overlay modes."""
         return {
             k: {
                 "label":       v["label"],
