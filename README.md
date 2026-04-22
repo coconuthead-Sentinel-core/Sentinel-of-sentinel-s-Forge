@@ -1,91 +1,183 @@
-﻿# Sentinel-of-sentinel-s-Forge
+# Sentinel Forge Cognitive AI Orchestration Platform
 
-**AI that processes information using diverse cognitive patterns**
+![CI](https://github.com/coconuthead-Sentinel-core/sentinel-forge-cognitive-orchestrator/workflows/Python%20application/badge.svg)
 
-An enterprise-grade cognitive architecture that processes information using diverse processing modes - making AI systems accessible to diverse thinkers instead of assuming everyone thinks the same way.
+Neurodivergent-aware cognitive orchestration for FastAPI-based chat, symbolic routing, adaptive presentation lenses, and real-time cognitive state streaming.
 
-## ðŸŽ¯ What It Does
+## Mission
+Build an AI orchestration layer that can adapt its output to different cognitive processing styles while keeping the runtime observable, testable, and safe to extend.
 
-Traditional AI assumes everyone thinks the same way. This framework includes specialized processing modes for:
+## Current Status
+- Local validation is green.
+- `python -m pytest -q`: `152 passed`
+- `python scripts/smoke_test.py`: passed on `2026-04-22`
+- Mock AI mode and mock Cosmos persistence both work for local development.
+- Azure-backed identity and live model scoring remain optional integrations.
+- Engineering-build, SDLC, governance, security, and iOS compliance paperwork packets are now routed through `docs/README.md`.
 
-- **Rapid Context-Switching Processing Mode:** Rapid context-switching and dynamic bursts
-- **Precision Pattern Recognition Processing Mode:** Precision pattern recognition and detail focus  
-- **Multi-dimensional Symbol Interpretation Processing Mode:** Multi-dimensional symbol interpretation
-- **Alternative Mathematical Reasoning Processing Mode:** Alternative mathematical reasoning
+## Architecture
+The current codebase is broader than the original published README. The verified runtime centers on these components:
 
-**The Result:** AI systems that adapt to how YOU think, not the other way around.
+- `backend/main.py`: FastAPI app bootstrap and router wiring.
+- `backend/api.py`: REST endpoints for chat, cognition, glyphs, sync, dashboard, status, jobs, profiles, and operational views.
+- `backend/ws_api.py`: WebSocket streams for compatibility sync, cognitive events, and metrics.
+- `backend/services/cognitive_orchestrator.py`: Main adaptive processing layer built on `ChatService`, three-zone memory, symbolic metadata, and lens transforms.
+- `backend/services/adhd_lens.py`: Chunked, action-oriented formatting.
+- `backend/services/autism_lens.py`: Structured detail extraction, definitions, and explicit sectioning.
+- `backend/services/dyslexia_lens.py`: Spatial map formatting for visually anchored summaries.
+- `backend/services/glyph_processor.py`: Symbolic seed matching and metadata generation.
+- `backend/services/glyph_event_bridge.py`: EventBus publication for glyph-driven routing.
+- `backend/services/quantum_nexus.py`: Lattice coordinate and dependency resolver used by tests and symbolic workflows.
+- `backend/eventbus.py`: In-process event transport for dashboards and WebSockets.
+- `backend/infrastructure/cosmos_repo.py`: Cosmos DB repository with mock fallback support for local runs.
+- `quantum_nexus_forge_v5_2_enhanced.py` and related top-level modules: lower-level forge/runtime primitives used by orchestration and simulation flows.
 
-## ðŸ’¡ Why It Matters
+## Project Layout
+```text
+sentinel-forge-cognitive-orchestrator/
+|-- backend/
+|   |-- api.py
+|   |-- main.py
+|   |-- ws_api.py
+|   |-- eventbus.py
+|   |-- services/
+|   |-- infrastructure/
+|   `-- adapters/
+|-- data/
+|-- docs/
+|-- evaluation/
+|-- frontend/
+|-- scripts/
+|-- static/
+|-- templates/
+|-- tests/
+|-- README.md
+|-- requirements.txt
+|-- Dockerfile
+`-- docker-compose.yml
+```
 
-Most AI tools ignore this entirely, creating accessibility barriers. This framework proves AI can be built inclusively from the ground[...]
+## Quick Start
+### Prerequisites
+- Python 3.11+
+- Optional Azure OpenAI and Cosmos DB credentials if you want live cloud integrations
 
-**Potential Applications:** 
-- Accessible knowledge management systems
-- Cognitive-diversity-aware AI assistants  
-- Enterprise tools for diverse teams
-- Research into computational models of different thinking styles
+### Install
+```powershell
+python -m venv .venv
+.\.venv\Scripts\pip install -r requirements.txt
+```
 
-## ðŸš€ Tech Stack
+### Local development
+```powershell
+$env:MOCK_AI = "true"
+uvicorn backend.main:app --reload --port 8000
+```
 
-- **Language:** Python 3.11+
-- **Architecture:** Object-oriented with dataclasses and type hints
-- **Key Features:** Three-zone memory system, symbolic processing, real-time performance monitoring
-- **Code Quality:** 1000+ lines, fully typed, production-ready
+### Verify the build
+```powershell
+.\.venv\Scripts\python.exe scripts\smoke_test.py
+.\.venv\Scripts\python.exe -m pytest -q
+```
 
-## ðŸ“¦ Quick Start
+## Basic Usage
+```python
+import asyncio
+
+from backend.mock_adapter import MockOpenAIAdapter
+from backend.services.cognitive_orchestrator import create_orchestrator
+
+
+async def main():
+    orchestrator = create_orchestrator(MockOpenAIAdapter(), lens="adhd")
+    result = await orchestrator.process_message("Explain how glyph routing works.")
+    print(result["choices"][0]["message"]["content"])
+
+
+asyncio.run(main())
+```
+
+## Verified API Surface
+### REST endpoints
+- `GET /api/status`
+- `GET /api/metrics`
+- `GET /api/healthz`
+- `GET /api/readyz`
+- `GET /api/version`
+- `POST /api/chat`
+- `POST /api/glyphs/interpret`
+- `POST /api/glyphs/pack`
+- `POST /api/glyphs/validate`
+- `POST /api/cog/process`
+- `GET /api/cog/status`
+- `POST /api/activate/{preset}`
+- `POST /api/sync/update`
+- `GET /api/sync/snapshot`
+- `GET /api/sync/trinode`
+- `POST /api/notes/upsert`
+
+### WebSocket endpoints
+- `/ws/sync`: compatibility stream for raw EventBus forwarding
+- `/ws/cognitive`: cognitive and symbolic event stream with initial state snapshot
+- `/ws/metrics`: real-time metrics event stream
+
+## Testing
+The current automated coverage includes:
+- cognitive lens formatting and integration behavior
+- glyph loading, fuzzy matching, and bridge emission
+- quantum nexus coordinate resolution and dependency tracing
+- WebSocket event streaming
+- EventBus delivery behavior
+- firewall output constraints
+- orchestrator symbolic reaction flow
+
+Run the full suite with:
+```powershell
+.\.venv\Scripts\python.exe -m pytest -q
+```
+
+## Configuration
+### Core environment variables
 ```bash
-# Clone the repository
-git clone https://github.com/coconuthead-Sentinel-core/Sentinel-of-sentinel-s-Forge.git
-cd Sentinel-of-sentinel-s-Forge
-
-# Install dependencies  
-pip install -r requirements.txt
-
-# Run the demo
-python quantum_nexus_forge_v5_2_enhanced.py
+MOCK_AI=true
+AOAI_ENDPOINT=https://your-endpoint.openai.azure.com/
+API_KEY=your-guard-key
+COSMOS_ENDPOINT=https://your-account.documents.azure.com/
+COSMOS_KEY=your-key
+PYTHONPATH=/path/to/project
 ```
 
-## âœ¨ Core Features
+### Runtime notes
+- If Azure credentials are absent, local development can still run in mock mode.
+- Cosmos persistence falls back to a mock repository in local validation flows.
+- Some startup paths still emit FastAPI deprecation warnings around `on_event`; these are warnings, not current test blockers.
 
-### Three-Zone Memory System
-- **ðŸŸ¢ Active Processing:** High-entropy real-time data (>0.7 entropy)
-- **ðŸŸ¡ Pattern Emergence:** Mid-entropy pattern recognition (0.3-0.7 entropy)
-- **ðŸ”´ Crystallized Storage:** Low-entropy stable memory (<0.3 entropy)
+## Roadmap
+### Completed
+- Adaptive cognitive lenses
+- Three-zone memory routing
+- Symbolic glyph processing
+- WebSocket state and metrics streams
+- Smoke-testable local development workflow
+- Passing automated validation suite
 
-### Specialized Processing Modes
-- Precision pattern recognition modes
-- Dynamic burst processing modes
-- Multi-dimensional symbol interpretation modes
-- Alternative mathematical reasoning modes
-- Standard baseline (for comparison)
+### In progress
+- Azure live scoring integration
+- deployment hardening and release packaging
+- broader documentation cleanup across legacy top-level artifacts
 
-### Advanced Capabilities
-- **Symbolic Stream Processing:** Interpret emoji sequences as cognitive operations
-- **Performance Monitoring:** Real-time metrics and system health tracking
-- **Spatial Cognition:** 3D coordinate system with cognitive elevation
-- **Geometric Primitives:** Tetrahedron, Cube, Octahedron, Dodecahedron, Icosahedron
+### Future
+- additional cognitive lens contributions
+- stronger dashboard and observability surfaces
+- mobile and voice-facing clients
+- research and enterprise integration layers
 
-## ðŸ“ Project Structure
-```
-Sentinel-of-sentinel-s-Forge/
-â”œâ”€â”€ quantum_nexus_forge_v5_2_enhanced.py  # Main cognitive architecture
-â”œâ”€â”€ demo.py                                # Demonstration script
-â”œâ”€â”€ requirements.txt                       # Python dependencies
-â”œâ”€â”€ __init__.py                            # Package initialization
-â””â”€â”€ README.md                              # This file
-```
+## Contributing
+1. Fork the repository.
+2. Create a branch.
+3. Install dependencies.
+4. Run `python -m pytest -q`.
+5. Submit a pull request with clear validation notes.
 
-## ðŸ‘¤ Author
-
-**Shannon Bryan Kelly**  
-*Neurodivergent AI Architect*
-
-Built in collaboration with Claude AI (Anthropic)
-
-## ðŸ“Š Status
-
-**Production-Ready** | **Version:** 5.2.0 | **Last Updated:** November 2025
-
----
-
-*Making AI accessible to all cognitive styles, one framework at a time.* ðŸ§ âœ¨
+## License
+MIT License. See `LICENSE`.
