@@ -1,0 +1,688 @@
+================================================================================
+SENTINEL FORGE — KPI DASHBOARD DEFINITION DOCUMENT
+================================================================================
+
+Document ID:      SENTINEL-KPI-DASHBOARD-001
+Document Version: v001
+Effective Date:   2026-04-24
+Classification:   ENTERPRISE CONFIDENTIAL — INTERNAL USE ONLY
+Status:           APPROVED — ACTIVE
+Review Cycle:     Monthly (KPI review cadence)
+Next Review:      2026-05-24
+
+Prepared by:      Engineering (Platform Infrastructure)
+Reviewed by:      Engineering Leadership, Product, Operations
+Distribution:     Engineering, Product, Operations, Finance, Executive
+
+Parent Document:  SENTINEL-SDLC-MASTER-001_2026-04-24_v001.txt
+Related:          SENTINEL-COMPLIANCE-001 (NIST AI RMF MEASURE function)
+                  SENTINEL-RISK-REGISTER-001 (Risk thresholds)
+
+================================================================================
+SECTION 1 — KPI FRAMEWORK OVERVIEW
+================================================================================
+
+1.1  Purpose
+
+This document defines the 8 Key Performance Indicators (KPIs) that govern the
+operational and quality measurement of the Sentinel Forge Enterprise Cognitive
+AI Platform. These KPIs serve multiple governance purposes:
+
+  (a) NIST AI RMF 1.0 MEASURE function compliance: demonstrating that the
+      platform actively measures AI system performance and risk indicators
+  (b) SOC 2 Type II Availability and Processing Integrity evidence
+  (c) Executive reporting: monthly dashboard for Shannon Bryan Kelly and
+      stakeholders
+  (d) SLA enforcement: contractual service level agreements for VR Studios
+  (e) Early warning system: threshold-based alerts triggering escalation
+      procedures per the Risk Register
+
+1.2  KPI Categories
+
+  Category               KPIs in Category   Measurement Priority
+  ─────────────────────  ────────────────   ────────────────────
+  Infrastructure         KPI-001            CRITICAL
+  Performance            KPI-002            HIGH
+  Quality/Testing        KPI-003            CRITICAL
+  Reliability            KPI-004            HIGH
+  AI Quality             KPI-005, KPI-006   HIGH
+  Billing                KPI-007            HIGH
+  Security               KPI-008            CRITICAL
+
+1.3  KPI Ownership and Review Governance
+
+  Review Type      Frequency    Owner             Output
+  ──────────────   ──────────   ───────────────   ──────────────────────────
+  Real-time        Continuous   Prometheus/ELK     Automated alerts on breach
+  Daily Snapshot   Daily        Operations         Health check digest
+  Weekly Report    Weekly       Engineering Lead   KPI trend summary
+  Monthly Review   Monthly      Shannon Bryan K.   Full dashboard review;
+                                                   Risk Register update
+  Quarterly        Quarterly    All Stakeholders   Full compliance review
+
+================================================================================
+SECTION 2 — KPI DEFINITIONS
+================================================================================
+
+================================================================================
+KPI-001: API UPTIME SERVICE LEVEL AGREEMENT
+================================================================================
+
+  KPI ID:             KPI-001
+  KPI Name:           API Uptime SLA
+  Category:           Infrastructure / Availability
+  Priority:           CRITICAL
+  Responsible Owner:  Operations Team
+  Review Cadence:     Monthly (computed); real-time monitoring
+
+2.1  Definition
+
+  API Uptime is the percentage of time during a measurement period that the
+  Sentinel Forge platform is operational and responding to health check requests.
+  "Operational" is defined as GET /api/healthz returning HTTP 204.
+
+2.2  Measurement Formula
+
+  API Uptime (%) = ((Total minutes in period - Downtime minutes)
+                    / Total minutes in period) × 100
+
+  Where:
+    Total minutes in period:  Calendar month (30 days = 43,200 minutes;
+                               31 days = 44,640 minutes)
+    Downtime minutes:          Any minute where GET /api/healthz fails to
+                               return 204 within 10 seconds from all
+                               availability zones being probed
+
+2.3  Targets and Thresholds
+
+  Level         Threshold    Classification    Action
+  ──────────   ──────────   ───────────────   ──────────────────────────────
+  TARGET       ≥ 99.9%      ON TARGET         No action; record in dashboard
+  WARNING      99.5-99.9%   BELOW TARGET      Engineering review; identify
+                                              contributing incidents; update
+                                              risk register
+  CRITICAL     < 99.5%      SLA BREACH        P1 incident; engineering all-
+               (>21.6 min                     hands; VR Studios notification;
+               down/month)                    post-mortem required within 48h
+
+2.4  Baseline and Historical Data
+
+  Measurement Period   Uptime %    Notes
+  ──────────────────   ─────────   ────────────────────────────────────────
+  Phase 3 Pilot        99.95%      VR Studios pilot deployment; Azure App
+  (Q1 2026)                        Service; no P1 incidents recorded
+
+2.5  Data Sources
+
+  Primary:    GET /api/healthz (HTTP 204 = healthy; anything else = outage)
+  Secondary:  GET /api/readyz (HTTP 200 + summary for detailed state)
+  External:   Azure App Service availability metrics (Azure Portal)
+  Logging:    Structured JSON logs; request_id, endpoint, duration per probe
+  Alerting:   ELK/CloudWatch alert rule: >60 consecutive seconds without 204
+
+2.6  Visualization Type
+
+  PRIMARY:    Percentage gauge (monthly SLA dial; target = 99.9%)
+  SECONDARY:  Time-series line chart (daily uptime %; 90-day rolling window)
+  TERTIARY:   Incident timeline (bar chart of outage minutes per day)
+
+2.7  Compliance Mapping
+
+  NIST AI RMF:   MEASURE 2.2 (performance measurement)
+  SOC 2:         A1.1 (Availability — capacity monitoring)
+  ISO 27001:     A.8.16 (Monitoring activities)
+  SLA:           VR Studios pilot SLA target: 99.9% monthly
+
+================================================================================
+KPI-002: COGNITIVE PROCESSING LATENCY P95
+================================================================================
+
+  KPI ID:             KPI-002
+  KPI Name:           Cognitive Processing Latency P95
+  Category:           Performance
+  Priority:           HIGH
+  Responsible Owner:  Engineering Team
+  Review Cadence:     Weekly (trend); real-time alerting
+
+2.1  Definition
+
+  The 95th percentile response time for POST /api/cog/process requests.
+  This metric measures how long 95% of cognitive processing requests complete
+  within during the measurement window (excluding the slowest 5%).
+
+  P95 is preferred over average because cognitive processing latency follows
+  a long-tail distribution: most requests are fast, but edge cases involving
+  complex glyphic sequences or large memory lattice queries can be slow.
+
+2.2  Measurement Formula
+
+  P95 Latency (ms) = The value T such that 95% of all /api/cog/process
+                     response times during the measurement window are
+                     ≤ T milliseconds
+
+  Measurement Window: 1-hour rolling window for real-time; 24-hour for daily
+
+2.3  Targets and Thresholds
+
+  Level       Threshold       Classification    Action
+  ─────────   ──────────────  ───────────────   ─────────────────────────────
+  TARGET      < 500ms P95     OPTIMAL           No action required
+  WARNING     500ms–750ms     DEGRADED          Investigate Azure OpenAI
+                                                response times; check rate
+                                                limiter impact; review Cosmos
+                                                DB query performance
+  CRITICAL    750ms–1000ms    SIGNIFICANTLY     Engineering escalation; check
+                              DEGRADED          Azure OpenAI model health;
+                                                consider MOCK_AI mode
+  P1 ALERT    > 1000ms P95    SLA BREACH        Immediate investigation;
+                                                Gradio fallback consideration;
+                                                customer communication if pilot
+                                                SLA impact expected
+
+2.4  Measurement Breakdown (Latency Components)
+
+  Component               Expected Contribution   Notes
+  ──────────────────────  ──────────────────────  ──────────────────────────
+  Rate limiter check      < 1ms                   In-memory token bucket O(1)
+  JWT authentication      1-5ms                   python-jose decoding
+  RBAC check              < 1ms                   In-memory role comparison
+  Cosmos DB read          10-50ms                 Network to Azure + query
+  Azure OpenAI call       200-400ms               Dominant contributor; GPT
+                                                  inference latency
+  Cosmos DB write         10-30ms                 Thread + note persistence
+  Response serialization  < 5ms                   Pydantic model serialization
+  ──────────────────────  ──────────────────────  ──────────────────────────
+  TOTAL (typical)         ~230-490ms              Within target range
+
+2.5  Data Sources
+
+  Primary:  GET /api/metrics → processing_time_ms field
+            GET /api/metrics/prom → qnf_resonance_* metrics
+  Logging:  Structured JSON logs; duration_ms field per /api/cog/process request
+  Computed: 95th percentile computed over measurement window via log aggregation
+  Tools:    Prometheus + Grafana (Phase 4); ELK/CloudWatch (current)
+
+2.6  Visualization Type
+
+  PRIMARY:    Latency percentile chart (P50, P95, P99 over time)
+  SECONDARY:  Histogram of response time distribution
+  TERTIARY:   Azure OpenAI latency contribution (sub-component tracking)
+
+2.7  Compliance Mapping
+
+  NIST AI RMF:   MEASURE 2.5 (AI performance measurement)
+  SOC 2:         PI1.1 (Processing Integrity)
+  Evaluation:    eval_results.json STRESS run documents latency baseline
+
+================================================================================
+KPI-003: TEST SUITE PASS RATE
+================================================================================
+
+  KPI ID:             KPI-003
+  KPI Name:           Test Suite Pass Rate
+  Category:           Quality / Code Integrity
+  Priority:           CRITICAL (non-negotiable quality gate)
+  Responsible Owner:  Engineering Team
+  Review Cadence:     Every commit (CI/CD); daily summary
+
+3.1  Definition
+
+  The percentage of automated test cases in the Sentinel Forge test suite
+  that pass on each CI/CD pipeline run. Any test failure is treated as an
+  immediate blocker regardless of the nature of the failing test.
+
+3.2  Measurement Formula
+
+  Pass Rate (%) = (Passing Tests / Total Tests) × 100
+
+  Current Values:
+    Total Tests:     40
+    Passing Tests:   40
+    Pass Rate:       100% (40/40)
+
+3.3  Targets and Thresholds
+
+  Level       Threshold    Classification    Action
+  ─────────   ──────────   ───────────────   ─────────────────────────────
+  REQUIRED    100%         COMPLIANT         Merges permitted; deployment
+                                            gates cleared
+  ALERT       < 100%       BLOCKER           ALL merges blocked immediately;
+  (any fail)               (immediate)       engineering notified within
+                                            5 minutes; no deployment until
+                                            100% restored and root cause
+                                            documented
+
+  There is NO WARNING level for test pass rate — any single test failure
+  is a CRITICAL blocker with no grace threshold.
+
+3.4  Test Suite Breakdown by File
+
+  Test File                Cases   Coverage Area
+  ──────────────────────   ─────   ─────────────────────────────────────────
+  test_auth.py             8       JWT authentication, bcrypt, token flows
+  test_rbac.py             ~8      4-tier RBAC enforcement
+  test_billing.py          ~8      Stripe billing integration
+  test_migrations.py       6       Database migration framework
+  test_cognition.py        ~5      Cognitive processing endpoints
+  test_stress.py / sec.    ~5      Stress test + security guard tests
+  ──────────────────────   ─────   ─────────────────────────────────────────
+  TOTAL                    40      100% passing
+
+3.5  Data Sources
+
+  Primary:    pytest output: MOCK_AI=true python -m pytest tests/ -v
+  CI/CD:      Pipeline test run logs on each commit to master/main branch
+  Reporting:  pytest exit code (0 = all pass; non-zero = failure)
+  Evidence:   PLATFORM_READINESS_MEMO.md Section V Proof 3
+
+3.6  Verification Command
+
+  MOCK_AI=true python -m pytest tests/ -v --tb=short
+  Expected: "40 passed in X.XXs"
+
+3.7  Visualization Type
+
+  PRIMARY:    Pass/fail badge (green = 100%; red = any failure)
+  SECONDARY:  Trend chart (pass count over last 90 days of CI runs)
+  TERTIARY:   Test file breakdown (per-file pass rate)
+
+3.8  Compliance Mapping
+
+  NIST AI RMF:   MEASURE 2.2, MEASURE 2.5
+  SOC 2:         PI1.1 (Processing Integrity — automated testing)
+  ISO 27001:     A.8.29 (Security Testing in Development and Acceptance)
+  SDLC:          Phase gate requirement; no phase advancement with failures
+
+================================================================================
+KPI-004: WEBSOCKET CONNECTION STABILITY
+================================================================================
+
+  KPI ID:             KPI-004
+  KPI Name:           WebSocket Connection Stability Rate
+  Category:           Reliability / Real-time Sync
+  Priority:           HIGH
+  Responsible Owner:  Engineering / Operations
+  Review Cadence:     Daily; real-time alerting on spikes
+
+4.1  Definition
+
+  The percentage of WebSocket connection attempts to /ws/sync that result
+  in a successfully established and maintained connection. A "successful
+  connection" is defined as: (1) WebSocket handshake completes; (2) API key
+  authentication passes; (3) NDJSON stream begins; (4) connection maintained
+  for at least 5 seconds without error-close.
+
+4.2  Measurement Formula
+
+  WS Stability (%) = (Successful WS Connections / Attempted WS Connections)
+                     × 100
+
+  Where:
+    Attempted:   All WebSocket upgrade requests received at /ws/sync
+    Successful:  Connections that reach NDJSON streaming state
+    Rejected:    Auth failures (401) are excluded from stability calculation
+                 (by design — not an instability event)
+    Failed:      Connections that fail post-handshake (server error, timeout)
+
+4.3  Targets and Thresholds
+
+  Level       Threshold    Classification    Action
+  ─────────   ──────────   ───────────────   ─────────────────────────────
+  TARGET      ≥ 99.5%      HEALTHY           Monitor; no action
+  WARNING     98-99.5%     DEGRADED          Investigate nginx WS proxy
+                                            config; check Cosmos DB latency
+                                            affecting WS message processing
+  CRITICAL    < 98%        UNHEALTHY         Engineering escalation; review
+                                            nginx upstream timeout settings;
+                                            check connection storm mitigation
+
+4.4  Data Sources
+
+  Primary:    /ws/sync connection logs: nginx access log + FastAPI WS handler
+  Metrics:    Application logs: WebSocket upgrade accept/reject counts
+  Real-time:  Prometheus custom metric (Phase 4 implementation planned)
+  Auth:       Separate metric: websocket_auth_failures (401 count — not in
+              stability denominator)
+
+4.5  Visualization Type
+
+  PRIMARY:    Stability percentage gauge (daily)
+  SECONDARY:  Connection volume time-series (attempts vs successful)
+  TERTIARY:   Auth failure rate (401 count separate from stability KPI)
+
+================================================================================
+KPI-005: INTENT CLASSIFICATION ACCURACY
+================================================================================
+
+  KPI ID:             KPI-005
+  KPI Name:           Intent Classification Accuracy
+  Category:           AI Quality
+  Priority:           HIGH
+  Responsible Owner:  Engineering (AI/ML function)
+  Review Cadence:     Weekly (evaluation runs); monthly review
+
+5.1  Definition
+
+  The percentage of user inputs processed by POST /api/cog/process where
+  the cognitive engine assigns the correct intent classification as measured
+  against a labeled evaluation dataset. This KPI directly measures the
+  quality of the Azure OpenAI-powered intent classification.
+
+5.2  Measurement Formula
+
+  Intent Accuracy (%) = (Correctly Classified Intents / Total Intents
+                         Processed in Evaluation Set) × 100
+
+  Evaluation Set: Curated labeled inputs from VR Studios use cases;
+                  evaluated against expected intent tags
+
+5.3  Targets and Thresholds
+
+  Level       Threshold    Classification    Action
+  ─────────   ──────────   ───────────────   ─────────────────────────────
+  TARGET      > 95%        HIGH QUALITY      No action; record baseline
+  WARNING     90-95%       ACCEPTABLE        Investigate prompt tuning;
+                                            review VR Studios-specific
+                                            edge cases; update evaluation
+                                            dataset
+  CRITICAL    < 90%        DEGRADED AI       Engineering review; check Azure
+                           QUALITY           OpenAI model version; assess
+                                            model drift (see RISK-007)
+
+5.4  Measurement Method
+
+  1. Evaluation inputs run through POST /api/cog/process
+  2. Returned intent tags compared against labeled ground truth
+  3. Match/mismatch counted; accuracy percentage calculated
+  4. Results written to /evaluation/eval_results.json (PRECISION run type)
+
+5.5  Data Sources
+
+  Primary:    GET /api/cog/stats → {intents: {...}, topics: {...}}
+  Evaluation: /evaluation/eval_results.json (PRECISION evaluation run)
+  Per-request: metadata.intent field in POST /api/cog/process response
+  Prometheus: qnf_intent_count, qnf_topic_count from /api/metrics/prom
+
+5.6  Visualization Type
+
+  PRIMARY:    Accuracy percentage trend (weekly evaluation runs)
+  SECONDARY:  Intent category breakdown (accuracy by intent class)
+  TERTIARY:   Confusion matrix for top-10 intent classes (Phase 4)
+
+5.7  Compliance Mapping
+
+  NIST AI RMF:   MEASURE 2.5 (AI system performance metrics)
+  NIST AI RMF:   MANAGE 2.4 (model quality management)
+  Evaluation:    eval_results.json PRECISION run documents this metric
+
+================================================================================
+KPI-006: MEMORY LATTICE RETRIEVAL PRECISION
+================================================================================
+
+  KPI ID:             KPI-006
+  KPI Name:           Memory Lattice Retrieval Precision
+  Category:           AI Quality / Cognitive Performance
+  Priority:           HIGH
+  Responsible Owner:  Engineering (AI/ML)
+  Review Cadence:     Weekly (evaluation runs); monthly review
+
+6.1  Definition
+
+  The percentage of memory lattice retrieval results (from GET /api/cog/memory
+  and GET /api/cog/prime) that are semantically relevant to the query context.
+  This KPI measures the quality of the vector embedding-based memory retrieval
+  system.
+
+6.2  Measurement Formula
+
+  Retrieval Precision (%) = (Relevant Retrievals / Total Retrievals in
+                             Evaluation Set) × 100
+
+  "Relevant" definition: A retrieved Note is considered relevant when a human
+  evaluator (or automated relevance classifier) rates it as contextually
+  appropriate to the query that triggered the retrieval.
+
+6.3  Targets and Thresholds
+
+  Level       Threshold    Classification    Action
+  ─────────   ──────────   ───────────────   ─────────────────────────────
+  TARGET      > 90%        HIGH QUALITY      No action; record baseline
+  WARNING     80-90%       ACCEPTABLE        Review embedding model; check
+                                            Cosmos DB vector index config;
+                                            evaluate chunk size settings
+  CRITICAL    < 80%        DEGRADED          Engineering review; vector
+                           QUALITY           embedding quality assessment;
+                                            potential re-indexing required
+
+6.4  Measurement Method
+
+  1. Known-answer queries run against the memory lattice
+  2. Retrieved notes evaluated against expected relevant note set
+  3. Precision@K calculated (typically K=5 top retrievals)
+  4. Results recorded in eval_results.json (BASELINE evaluation run)
+
+6.5  Data Sources
+
+  Primary:    GET /api/cog/memory (full lattice retrieval)
+  Primary:    GET /api/cog/prime (prime metrics including retrieval stats)
+  Evaluation: /evaluation/eval_results.json (BASELINE, PRECISION runs)
+  Per-note:   Note.vector field (List[float]) in domain model
+
+6.6  Visualization Type
+
+  PRIMARY:    Precision@5 trend over evaluation runs
+  SECONDARY:  Retrieval score distribution histogram
+  TERTIARY:   Memory lattice size vs precision correlation
+
+================================================================================
+KPI-007: BILLING TRANSACTION SUCCESS RATE
+================================================================================
+
+  KPI ID:             KPI-007
+  KPI Name:           Billing Transaction Success Rate
+  Category:           Financial / Reliability
+  Priority:           HIGH
+  Responsible Owner:  Engineering + Finance
+  Review Cadence:     Weekly; real-time alerting on failures
+
+7.1  Definition
+
+  The percentage of Stripe billing transactions initiated through the Sentinel
+  Forge platform that complete successfully. Transactions include: checkout
+  session completions, subscription renewals (processed by Stripe), and
+  billing portal actions.
+
+7.2  Measurement Formula
+
+  Transaction Success (%) = (Successful Stripe Transactions / Total Attempted
+                             Transactions) × 100
+
+  Successful:  Stripe confirms payment_intent.succeeded or
+               invoice.payment_succeeded webhook received
+  Attempted:   All POST /api/billing/checkout sessions initiated
+               + all Stripe subscription renewal events
+
+7.3  Targets and Thresholds
+
+  Level       Threshold    Classification    Action
+  ─────────   ──────────   ───────────────   ─────────────────────────────
+  TARGET      ≥ 99.8%      HEALTHY           Record; no action
+  WARNING     99-99.8%     ATTENTION         Review failed transactions in
+                                            Stripe dashboard; check webhook
+                                            delivery success rate
+  CRITICAL    < 99%        REVENUE RISK      Engineering + Finance escalation;
+                                            Stripe support engagement;
+                                            customer communication if
+                                            subscription renewals affected
+
+7.4  Data Sources
+
+  Primary:    Stripe Dashboard (payment_intent.succeeded events)
+  Primary:    POST /api/billing/webhook (Stripe webhook handler)
+  Supporting: GET /api/billing/status (subscription status per user)
+  Supporting: GET /api/billing/history (transaction history)
+  Logging:    Structured JSON logs for /api/billing/* routes
+
+7.5  Stripe Plan Definitions (Reference)
+
+  Plan Name    Price (Monthly)    Stripe Price ID        Target Market
+  ──────────   ───────────────    ──────────────────     ─────────────────────
+  Starter      $29.00 USD         prod_starter_xxx       Individual / Small Team
+  Pro          $99.00 USD         prod_pro_xxx           Professional / SMB
+  Enterprise   $299.00 USD        prod_enterprise_xxx    Enterprise / VR Studios
+
+7.6  Visualization Type
+
+  PRIMARY:    Success rate gauge (monthly)
+  SECONDARY:  Transaction volume by plan tier (stacked bar chart)
+  TERTIARY:   Failed transaction reasons (pie chart by failure code)
+
+================================================================================
+KPI-008: SECURITY INCIDENT RATE
+================================================================================
+
+  KPI ID:             KPI-008
+  KPI Name:           Security Incident Rate
+  Category:           Security / Compliance
+  Priority:           CRITICAL
+  Responsible Owner:  Engineering (Security)
+  Review Cadence:     Monthly; real-time alerting on Critical/High incidents
+
+8.1  Definition
+
+  The count of security incidents per calendar month, categorized by severity.
+  A "security incident" is any confirmed or suspected unauthorized access,
+  data exposure, authentication bypass, privilege escalation attempt, or
+  security policy violation.
+
+8.2  Measurement Formula
+
+  Security Incident Rate = Count of confirmed security incidents in calendar
+                           month, categorized by severity:
+                           - CRITICAL incidents (per month)
+                           - HIGH incidents (per month)
+                           - MEDIUM incidents (per month)
+                           - LOW incidents (per month)
+
+8.3  Targets and Thresholds
+
+  Severity    Target       Warning Threshold    Critical Threshold
+  ─────────   ──────────   ──────────────────   ─────────────────────────────
+  CRITICAL    0/month      Any occurrence is    N/A (1 = immediate P1)
+                           immediate P1
+  HIGH        0/month      Any occurrence is    N/A (1 = same-day escalation)
+                           same-day escalation
+  MEDIUM      < 2/month    2-5/month = review   > 5/month = P2 incident
+  LOW         < 5/month    5-10/month = review  > 10/month = investigation
+
+  Note: CRITICAL and HIGH security incidents have no "acceptable" threshold.
+  Any occurrence triggers the full incident response procedure defined in
+  SENTINEL-SECURITY-PLAN-001 Section 6.
+
+8.4  Incident Categories Monitored
+
+  Category                    Detection Method            Severity Typical
+  ──────────────────────────  ──────────────────────────  ────────────────
+  Authentication failures     Structured log pattern      LOW-MEDIUM
+  (spike above baseline)      (>100 failures/hour)
+  Rate limit exhaustion        qnf_bus_* metrics; 429     LOW-MEDIUM
+  (bulk IP)                   count spike
+  RBAC violation attempts      403 count spike on admin    MEDIUM-HIGH
+                              routes
+  JWT token anomaly            Malformed token patterns    HIGH
+  (suspected forgery)         in auth logs
+  API key presentation error   501 or 401 spike pattern   MEDIUM-HIGH
+  (suspected probing)
+  Stripe webhook failure       Signature verification      MEDIUM
+                              failures
+  Glyphic injection attempt    Sequence validation error   MEDIUM-HIGH
+                              spike on /api/glyphs/*
+  Confirmed credential         Direct report or log        CRITICAL
+  compromise                  evidence
+
+8.5  Data Sources
+
+  Primary:    Structured JSON logs (ELK/CloudWatch) — auth failure patterns
+  Primary:    GET /api/metrics/prom → rate limit 429 count metrics
+  Secondary:  Stripe dashboard — webhook signature failure count
+  Secondary:  Azure App Service logs — abnormal traffic patterns
+  Reporting:  Monthly security summary report (Engineering → Shannon)
+
+8.6  Rate Limit Metrics as Security Proxy
+
+  The Prometheus metrics endpoint exposes rate limiting data that serves as
+  an early warning security indicator:
+
+  qnf_bus_rate_limited_total    Total 429 responses issued (rolling)
+  qnf_bus_auth_rejected_total   Total 401 rejections (rolling)
+
+  Spike patterns in these metrics indicate:
+    - Coordinated credential stuffing attack
+    - Bot-driven API abuse
+    - IP spoofing rate limit bypass attempts
+    - DDoS reconnaissance activity
+
+8.7  Visualization Type
+
+  PRIMARY:    Monthly incident count by severity (stacked bar)
+  SECONDARY:  Rate limit 429 count time-series (attack detection signal)
+  TERTIARY:   Geographic heatmap of failed auth attempts (Phase 4)
+
+8.8  Compliance Mapping
+
+  NIST AI RMF:   MANAGE 3.2 (Risk response and incident management)
+  SOC 2:         CC7.3, CC7.4 (Security incident detection and response)
+  ISO 27001:     A.16 (Information Security Incident Management)
+  Regulatory:    GDPR Article 33 (72-hour breach notification requirement)
+
+================================================================================
+SECTION 3 — KPI DASHBOARD SUMMARY TABLE
+================================================================================
+
+  KPI     Name                      Target           Alert Threshold   Owner
+  ──────  ───────────────────────── ───────────────  ────────────────  ──────────
+  KPI-001 API Uptime SLA            ≥ 99.9%          < 99.5% = P1      Operations
+  KPI-002 Cog. Processing P95       < 500ms          > 1000ms = P1     Engineering
+  KPI-003 Test Suite Pass Rate      100% (40/40)     Any fail = Block  Engineering
+  KPI-004 WebSocket Stability       ≥ 99.5%          < 98% = Escalate  Eng/Ops
+  KPI-005 Intent Classification     > 95% accuracy   < 90% = Review    Engineering
+  KPI-006 Memory Retrieval Prec.    > 90%            < 80% = Review    Engineering
+  KPI-007 Billing Transaction Suc.  ≥ 99.8%          < 99% = Escalate  Eng/Finance
+  KPI-008 Security Incident Rate    0 CRIT/HIGH/mo   1 CRIT = P1       Engineering
+
+================================================================================
+SECTION 4 — KPI MEASUREMENT INFRASTRUCTURE ROADMAP
+================================================================================
+
+4.1  Current State (Phase 3 — IMPLEMENTED)
+
+  - Structured JSON logging: request_id, user_id, endpoint, duration per request
+  - GET /api/metrics: compact JSON for manual KPI extraction
+  - GET /api/metrics/prom: Prometheus text format (qnf_* metrics)
+  - GET /api/healthz: HTTP 204 liveness probe (KPI-001 basis)
+  - Stripe webhooks: billing transaction events (KPI-007 basis)
+  - Test suite: 40/40 automated tests (KPI-003 basis)
+  - eval_results.json: 5-run evaluation framework (KPI-005, KPI-006 basis)
+
+4.2  Phase 4 Planned Enhancements
+
+  - Prometheus + Grafana dashboard: visual KPI monitoring with all 8 KPIs
+  - Azure Monitor integration (SENT-023): Azure-native alerting
+  - Automated load testing suite (SENT-022): KPI-001 and KPI-002 stress validation
+  - ELK stack integration: centralized log aggregation for KPI-008 security
+  - Automated evaluation pipeline: scheduled runs for KPI-005 and KPI-006
+  - WebSocket connection telemetry: dedicated counter for KPI-004
+
+================================================================================
+DOCUMENT FOOTER
+================================================================================
+  Document ID:          SENTINEL-KPI-DASHBOARD-001
+  Version:              v001
+  Classification:       ENTERPRISE CONFIDENTIAL — INTERNAL USE ONLY
+  Effective Date:       2026-04-24
+  Next Review:          2026-05-24 (monthly KPI review cadence)
+  KPIs Defined:         8 (KPI-001 through KPI-008)
+  Compliance Mapping:   NIST AI RMF MEASURE, SOC 2 A1/PI1, ISO 27001 A.8.16
+================================================================================
+                         END OF DOCUMENT
+================================================================================

@@ -1,0 +1,723 @@
+================================================================================
+SENTINEL FORGE — FORMAL SECURITY PLAN
+================================================================================
+
+Document ID:      SENTINEL-SECURITY-PLAN-001
+Document Version: v001
+Effective Date:   2026-04-24
+Classification:   ENTERPRISE CONFIDENTIAL — SECURITY SENSITIVE
+Status:           APPROVED — ACTIVE
+Review Cycle:     Quarterly
+Next Review:      2026-07-24
+
+Prepared by:      Engineering (Platform Infrastructure)
+Reviewed by:      Engineering Leadership
+Distribution:     Engineering, Operations, Legal/Compliance
+                  [RESTRICTED — Do not distribute outside approved list]
+
+Parent Document:  SENTINEL-SDLC-MASTER-001_2026-04-24_v001.txt
+
+================================================================================
+SECTION 1 — SECURITY ARCHITECTURE OVERVIEW
+================================================================================
+
+1.1  Security Philosophy
+
+Sentinel Forge is designed under a defense-in-depth security philosophy.
+Security controls are layered at multiple levels — transport, application,
+authentication, authorization, and data — such that the failure of any single
+control does not result in a complete security breach. The platform moved
+from a CRITICAL security posture (hardcoded API keys, open CORS, no auth) to
+a HARDENED security posture through a focused security sprint delivering
+28 file changes and 2,181 lines of security-focused code additions.
+
+1.2  Security Architecture — Text Diagram
+
+The following diagram shows the security control layers from external access
+to core data systems:
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │                        EXTERNAL CLIENTS                                 │
+  │             (VR Studios App, Browser, API Consumers)                    │
+  └───────────────────────────┬─────────────────────────────────────────────┘
+                              │
+                              │  HTTPS only (TLS 1.2/1.3)
+                              │  HTTP → HTTPS redirect enforced
+                              │
+  ┌───────────────────────────▼─────────────────────────────────────────────┐
+  │                      LAYER 1: nginx REVERSE PROXY                       │
+  │  Controls:                                                              │
+  │  - TLS 1.2/1.3 termination (SSL certificate mounted)                   │
+  │  - HSTS (Strict-Transport-Security: max-age=31536000)                   │
+  │  - CSP (Content-Security-Policy: restrictive policy)                    │
+  │  - X-Frame-Options: DENY                                                │
+  │  - X-XSS-Protection: 1; mode=block                                      │
+  │  - X-Content-Type-Options: nosniff                                      │
+  │  - Route: /api/* → FastAPI; /ws/* → WebSocket; /legal/* → static       │
+  └───────────────────────────┬─────────────────────────────────────────────┘
+                              │
+                              │  Internal Docker network (plaintext OK)
+                              │
+  ┌───────────────────────────▼─────────────────────────────────────────────┐
+  │                   LAYER 2: RATE LIMITING (IP-based)                     │
+  │  Controls:                                                              │
+  │  - Token bucket algorithm per client IP                                 │
+  │  - Configurable RPM (RATE_LIMIT_RPM setting)                            │
+  │  - Configurable burst (RATE_LIMIT_BURST setting)                        │
+  │  - HTTP 429 returned on exhaustion; no request forwarded                │
+  │  - Enabled flag (RATE_LIMIT_ENABLED) for emergency disable              │
+  └───────────────────────────┬─────────────────────────────────────────────┘
+                              │
+  ┌───────────────────────────▼─────────────────────────────────────────────┐
+  │               LAYER 3: AUTHENTICATION (JWT + API Key)                   │
+  │  REST Routes:                                                           │
+  │  - Bearer JWT token required (Authorization: Bearer <token>)            │
+  │  - JWT decoded via python-jose; HS256 algorithm; expiry enforced        │
+  │  - get_current_user() FastAPI dependency on all protected routes        │
+  │                                                                         │
+  │  API Key Routes:                                                        │
+  │  - X-API-Key header required (api_key_guard dependency)                 │
+  │  - admin_guard for destructive/admin operations                         │
+  │                                                                         │
+  │  WebSocket:                                                             │
+  │  - websocket_require_api_key() checks header or query param             │
+  │  - /ws/sync requires valid API key before connection accepted            │
+  └───────────────────────────┬─────────────────────────────────────────────┘
+                              │
+  ┌───────────────────────────▼─────────────────────────────────────────────┐
+  │              LAYER 4: AUTHORIZATION (4-Tier RBAC)                       │
+  │  Hierarchy: Viewer < User < Operator < Admin                            │
+  │  - FastAPI dependency injection per route                               │
+  │  - JWT claims carry user role; role validated against route requirement  │
+  │  - No horizontal privilege escalation possible between roles            │
+  │  - Admin routes require both JWT AND API key (dual control)             │
+  └───────────────────────────┬─────────────────────────────────────────────┘
+                              │
+  ┌───────────────────────────▼─────────────────────────────────────────────┐
+  │              LAYER 5: INPUT VALIDATION (Pydantic)                       │
+  │  - All request bodies validated against typed Pydantic schemas          │
+  │  - Type mismatches return HTTP 422 (Unprocessable Entity)               │
+  │  - Glyphic sequence validation on /api/glyphs/* endpoints               │
+  │  - Parameterized Cosmos DB queries (no query injection)                 │
+  └───────────────────────────┬─────────────────────────────────────────────┘
+                              │
+  ┌───────────────────────────▼─────────────────────────────────────────────┐
+  │              LAYER 6: DATA STORES (Azure-secured)                       │
+  │  Azure Cosmos DB:                                                       │
+  │  - AES-256 encryption at rest (Microsoft-managed)                       │
+  │  - Access via application service identity only                         │
+  │  - No direct public internet access to database                         │
+  │                                                                         │
+  │  Azure OpenAI:                                                          │
+  │  - API key stored in environment variable only                          │
+  │  - Traffic encrypted via HTTPS/TLS                                      │
+  │  - Governed by Azure data processing agreement                          │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+================================================================================
+SECTION 2 — THREAT MODEL (STRIDE)
+================================================================================
+
+2.1  STRIDE Methodology
+
+The STRIDE threat model classifies threats into six categories:
+  S — Spoofing (impersonating another entity)
+  T — Tampering (modifying data or code)
+  R — Repudiation (denying having performed an action)
+  I — Information Disclosure (exposing information to unauthorized parties)
+  D — Denial of Service (making service unavailable)
+  E — Elevation of Privilege (gaining unauthorized access levels)
+
+2.2  Threat Identification and Control Mapping
+
+  Threat                          STRIDE  Likelihood  Impact  Control(s)
+  ------------------------------  ------  ----------  ------  ------------------
+  JWT token forgery               S       LOW         HIGH    HS256 signing with
+                                                              server-side secret;
+                                                              expiry enforcement
+  API key theft/reuse             S       LOW         HIGH    Key rotation plan;
+                                                              HTTPS only (no
+                                                              plaintext exposure)
+  User credential theft           S       MEDIUM      HIGH    bcrypt hashing;
+                                                              tokens not stored
+                                                              server-side
+  WebSocket session hijacking     S       LOW         MEDIUM  websocket_require_
+                                                              api_key(); TLS
+  Cosmos DB query manipulation    T       LOW         HIGH    Parameterized
+                                                              queries; Pydantic
+                                                              input validation
+  Glyphic sequence injection      T       LOW         MEDIUM  Input validation;
+                                                              schema enforcement
+                                                              on glyph endpoints
+  Log tampering                   T       LOW         MEDIUM  Azure App Service
+                                                              log storage (append
+                                                              only); structured
+                                                              format
+  Session repudiation             R       LOW         LOW     Structured logs
+                                                              include request_id,
+                                                              user_id per request
+  Audit trail gaps                R       MEDIUM      MEDIUM  JSON logging on all
+                                                              requests; log
+                                                              forwarding to ELK/
+                                                              CloudWatch
+  JWT payload exposure            I       MEDIUM      MEDIUM  JWT payload base64-
+                                                              encoded but not
+                                                              encrypted; sensitive
+                                                              claims minimized
+  Log PII leakage                 I       LOW         HIGH    No PII fields in
+                                                              log schema; request
+                                                              context filter
+  Cosmos DB unauthorized read     I       LOW         HIGH    App identity access
+                                                              only; no public
+                                                              endpoint
+  Request flooding (DDoS)         D       MEDIUM      HIGH    Token bucket rate
+                                                              limiter per IP;
+                                                              HTTP 429 cutoff
+  Azure OpenAI quota exhaustion   D       MEDIUM      HIGH    Rate limiter caps
+                                                              per-IP token use;
+                                                              Gradio fallback
+  WebSocket connection storms     D       MEDIUM      HIGH    Rate limiter;
+                                                              WebSocket auth
+                                                              requirement
+  RBAC privilege escalation       E       LOW         CRITICAL 4-tier enforced
+                                                              as FastAPI deps;
+                                                              admin requires
+                                                              dual control
+  Stripe webhook replay           E       LOW         HIGH    Idempotency keys;
+                                                              Stripe signature
+                                                              verification
+  Admin route unauthorized        E       LOW         CRITICAL admin_guard()
+  access                                                      requires API key
+                                                              even with JWT
+
+2.3  Threat Risk Heatmap Summary
+
+  Likelihood vs Impact Matrix:
+                    LOW Impact   MEDIUM Impact   HIGH Impact   CRITICAL Impact
+  HIGH Likelihood       —         Log tampering   DDoS           —
+                                  Audit gaps      OpenAI quota
+  MEDIUM Likelihood     —         JWT payload     Credential     —
+                                  exposure        theft
+  LOW Likelihood        Repud.    Glyph inject    JWT forgery    RBAC escalation
+                                  Session         API key theft  Admin access
+                                  hijacking       DB query
+
+================================================================================
+SECTION 3 — AUTHENTICATION FLOWS
+================================================================================
+
+3.1  REST API Authentication — JWT Bearer Token
+
+  Step 1: Registration
+    Client → POST /api/auth/signup
+    Body: { "email": "user@domain.com", "password": "secure123",
+            "display_name": "User Name" }
+    Server: Validates email uniqueness, bcrypt-hashes password,
+            stores user record in Cosmos DB
+    Response: { "access_token": "...", "refresh_token": "...",
+                "token_type": "bearer", "user": {...} }
+
+  Step 2: Login
+    Client → POST /api/auth/login
+    Body: { "email": "user@domain.com", "password": "secure123" }
+    Server: Fetches user by email (case-insensitive), bcrypt.verify(),
+            issues new JWT pair
+    Response: { "access_token": "...", "refresh_token": "...",
+                "token_type": "bearer" }
+
+  Step 3: Authenticated Request
+    Client → GET /api/auth/me
+    Headers: Authorization: Bearer <access_token>
+    Server: get_current_user() dependency decodes JWT via python-jose,
+            validates signature and expiry, loads user from DB
+    Response: { "user_id": "...", "email": "...", "role": "user", ... }
+
+  Step 4: Token Refresh
+    Client → POST /api/auth/refresh
+    Body: { "refresh_token": "..." }
+    Server: Validates refresh_token, issues new access_token
+    Response: { "access_token": "...", "token_type": "bearer" }
+
+3.2  API Key Authentication
+
+  Applicable To:  Operational endpoints requiring machine-to-machine auth
+                  (cognition, sync, glyphs, stress test endpoints)
+
+  Flow:
+    Client → Any protected route
+    Headers: X-API-Key: <configured_api_key>
+    Server: api_key_guard() dependency validates against settings.API_KEY
+    On success: Request proceeds
+    On failure: HTTP 401 "Invalid or missing API key"
+
+  Admin Flow:
+    Client → Admin-tier route
+    Headers: Authorization: Bearer <admin_jwt>
+             X-API-Key: <configured_api_key>
+    Server: admin_guard() verifies API key; RBAC verifies admin role
+    Both checks must pass for request to proceed
+
+3.3  WebSocket Authentication
+
+  WebSocket Endpoint: /ws/sync
+
+  Authentication Priority Order:
+    1. Header: x-api-key (preferred for server-to-server)
+    2. Query Parameter: ?api_key=<key> (for browser clients unable to set
+       custom headers on WebSocket upgrade)
+
+  Flow:
+    Client → WebSocket upgrade request to /ws/sync
+    Server: websocket_require_api_key() called before connection accepted
+    If API key valid: WebSocket connection accepted; NDJSON stream begins
+    If API key invalid/missing: HTTP 401 returned; connection rejected
+    If production and key not configured: HTTP 401 "API key required"
+
+  Post-Connection Message Format:
+    { "type": "cog.intent",   "data": { ... } }   — cognitive intent update
+    { "type": "sync.update",  "data": { ... } }   — tri-node state update
+
+3.4  Token Security Properties
+
+  Property                Value/Implementation
+  ----------------------  --------------------------------------------------
+  Algorithm               HS256 (HMAC SHA-256) via python-jose
+  Secret storage          Environment variable; never in source code;
+                          validated to be set in production mode
+  Access token lifetime   Configurable via settings; default: short (hours)
+  Refresh token lifetime  Configurable via settings; default: longer (days)
+  Token payload claims    user_id, email, role, exp, iat
+  Revocation              Stateless JWT; revocation via expiry or key
+                          rotation (key rotation procedure: Section 5.3)
+  Storage guidance        JWT stored in memory by client; NOT localStorage
+                          (XSS risk); guidance in USER_GUIDE.md
+
+================================================================================
+SECTION 4 — AUTHORIZATION MATRIX
+================================================================================
+
+4.1  4-Tier RBAC Role Definitions
+
+  Role        Numeric Tier   Description
+  ----------  ------------   -----------------------------------------------
+  Viewer      1              Read-only access to public platform data
+  User        2              Standard authenticated user; full cognitive API
+  Operator    3              Operational management; rule and memory mgmt
+  Admin       4              Full administrative access; all routes
+
+4.2  Route Authorization Matrix
+
+  Route Category             Path Pattern           Viewer  User  Operator  Admin
+  -------------------------  ---------------------  ------  ----  --------  -----
+  Health / Readiness         GET /api/healthz        YES    YES   YES       YES
+                             GET /api/readyz          YES    YES   YES       YES
+  Platform Status            GET /api/status          YES    YES   YES       YES
+                             GET /api/metrics         YES    YES   YES       YES
+                             GET /api/metrics/prom    YES    YES   YES       YES
+  Authentication             POST /api/auth/signup   OPEN   OPEN  OPEN      OPEN
+                             POST /api/auth/login    OPEN   OPEN  OPEN      OPEN
+                             POST /api/auth/refresh  OPEN   OPEN  OPEN      OPEN
+                             GET /api/auth/me        YES    YES   YES       YES
+  Cognitive Processing       POST /api/cog/process   NO     YES   YES       YES
+                             GET /api/cog/status     YES    YES   YES       YES
+                             GET /api/cog/memory     NO     YES   YES       YES
+                             DELETE /api/cog/memory  NO     NO    YES       YES
+                             GET /api/cog/prime       YES    YES   YES       YES
+  Rule Management            GET /api/cog/rules      YES    YES   YES       YES
+                             PUT /api/cog/rules      NO     NO    YES       YES
+                             GET /api/cog/suggest    YES    YES   YES       YES
+  Thread Management          GET /api/cog/threads    YES    YES   YES       YES
+                             GET /api/cog/threads/id YES    YES   YES       YES
+                             GET /api/cog/stats      YES    YES   YES       YES
+  Seed Management            GET /api/cog/seeds      YES    YES   YES       YES
+                             POST /api/cog/seeds     NO     YES   YES       YES
+  Glyph Operations           GET /api/glyphs/aliases YES    YES   YES       YES
+                             POST /api/glyphs/pack   NO     NO    YES       YES
+                             POST /api/glyphs/interp NO     YES   YES       YES
+                             POST /api/glyphs/valid  YES    YES   YES       YES
+                             GET /api/glyphs/boot    YES    YES   YES       YES
+  Sync Protocol              POST /api/sync/update   NO     YES   YES       YES
+                             GET /api/sync/snapshot  YES    YES   YES       YES
+                             GET /api/sync/trinode   YES    YES   YES       YES
+  Matrix / Cognitive Graph   GET /api/cog/matrix     YES    YES   YES       YES
+  Stress Testing             POST /api/stress        NO     NO    NO        YES
+                             GET /api/jobs/{id}      NO     NO    YES       YES
+  Billing                    POST /api/billing/*     NO     YES   YES       YES
+                             GET /api/billing/*      YES    YES   YES       YES
+  WebSocket                  /ws/sync                NO     YES   YES       YES
+  Legal / Static             /legal/*                OPEN   OPEN  OPEN      OPEN
+
+Legend: YES = permitted, NO = access denied (403 Forbidden), OPEN = no auth required
+
+4.3  RBAC Implementation Details
+
+  The RBAC system is implemented as FastAPI dependency injection:
+
+  # Example: User-tier route
+  @router.post("/cog/process")
+  async def process(
+      data: ProcessRequest,
+      user: User = Depends(require_role("user"))  # Tier 2 minimum
+  ):
+
+  # Example: Admin-tier route with dual control
+  @router.post("/stress")
+  async def stress(
+      params: StressRequest,
+      _: None = Depends(admin_guard),              # API key required
+      user: User = Depends(require_role("admin"))  # Admin JWT required
+  ):
+
+  The require_role() dependency:
+    1. Extracts Bearer token from Authorization header
+    2. Decodes JWT via python-jose (HS256)
+    3. Validates expiry (exp claim)
+    4. Loads user from Cosmos DB via user_id claim
+    5. Checks user.role >= required_role threshold
+    6. Returns User object to route handler (or raises HTTP 403)
+
+================================================================================
+SECTION 5 — DATA PROTECTION
+================================================================================
+
+5.1  Data Classification
+
+  Classification       Examples                          Handling
+  -------------------  --------------------------------  -----------------------
+  CRITICAL             bcrypt password hashes, JWT        Never logged; never
+                       signing secret, Azure API keys,    transmitted in response
+                       Stripe secret keys                  bodies; env vars only
+  HIGH                 User email addresses, JWT tokens   Minimize log exposure;
+                       (in transit), cognitive thread      TLS mandatory; no
+                       contents, seed data                 plaintext storage
+  MEDIUM               Subscription tier, user roles,     Standard controls;
+                       request IDs, processing latencies   included in structured
+                                                          logs (non-PII fields)
+  LOW                  Aggregate metrics, health status,   Standard controls;
+                       API route patterns, error codes     publicly readable
+
+5.2  Data at Rest
+
+  Data Store           Encryption Standard     Key Management
+  -------------------  ----------------------  -------------------------------
+  Azure Cosmos DB      AES-256 at rest         Microsoft-managed keys
+                       (service-level)          (Azure Key Vault option
+                                               for Phase 4 BYOK)
+  User passwords       bcrypt with cost factor  No key management needed;
+                       (one-way hash)           bcrypt is self-salting
+  Docker image         Not encrypted at build   Azure Container Registry
+                       time; no secrets in      storage encryption at rest
+                       image layers
+
+5.3  Data in Transit
+
+  Connection                Encryption        Protocol     Notes
+  ------------------------  ----------------  -----------  -------------------
+  Client to nginx           TLS 1.2/1.3       HTTPS        Certificate
+                                                           mounted via Docker
+                                                           volume
+  nginx to FastAPI          Plaintext          HTTP         Internal Docker
+  (internal)                (acceptable)                   network; not
+                                                           exposed externally
+  FastAPI to Azure Cosmos   TLS (Azure SDK)   HTTPS        Azure SDK enforces
+  DB                                                       TLS automatically
+  FastAPI to Azure OpenAI   TLS (Azure SDK)   HTTPS        Azure SDK enforces
+                                                           TLS automatically
+  FastAPI to Stripe API     TLS (HTTPS)       HTTPS        Stripe SDK enforces
+                                                           TLS automatically
+  WebSocket upgrade         TLS 1.2/1.3       WSS (via     nginx proxies WS
+                                              nginx)       over TLS
+
+5.4  Secret Management
+
+  Secret Type              Storage Method        Access Pattern
+  -----------------------  --------------------  ------------------------------
+  JWT signing secret       Environment variable  settings.JWT_SECRET_KEY;
+                           (JWT_SECRET_KEY)      never in source; prod
+                                                 requires non-empty value
+  Azure OpenAI API key     Environment variable  settings.AZURE_OPENAI_KEY;
+                           (AZURE_OPENAI_KEY)    injected at deployment time
+  Azure Cosmos DB key      Environment variable  settings.COSMOS_KEY;
+                           (COSMOS_KEY)          injected at deployment time
+  Sentinel API key         Environment variable  settings.API_KEY; enforced
+                           (API_KEY)             by api_key_guard()
+  Stripe secret key        Environment variable  settings.STRIPE_SECRET_KEY;
+                           (STRIPE_SECRET_KEY)   mock mode when not set
+
+  Rotation Policy:
+    - JWT signing secret: Rotate quarterly or immediately upon suspected
+      compromise; all existing tokens invalidated on rotation
+    - Azure API keys: Follow Azure key rotation recommendations; typically
+      annual or on personnel change
+    - Sentinel API key: Rotate quarterly or on suspected exposure
+    - All secrets: Incident-triggered rotation within 1 hour of confirmed
+      or suspected compromise
+
+================================================================================
+SECTION 6 — INCIDENT RESPONSE PROCEDURES
+================================================================================
+
+6.1  Incident Classification
+
+  Severity    Definition                              Response SLA
+  ----------  ------------------------------------    --------------------
+  CRITICAL    Active breach, data exfiltration,       15 minutes to initial
+              credential compromise, privilege        response; 1 hour to
+              escalation confirmed                    containment
+  HIGH        Suspected breach, auth bypass           1 hour to initial
+              attempt, significant availability       response; 4 hours to
+              impact (>30min outage)                  resolution
+  MEDIUM      Security anomaly detected, rate         4 hours to initial
+              limit exhaustion, suspected             response; 24 hours to
+              credential stuffing                     root cause
+  LOW         Security warning, minor config          24 hours to initial
+              deviation, failed auth spike            response; 72 hours
+                                                     to resolution
+
+6.2  Incident Response Process
+
+  PHASE 1 — DETECTION AND TRIAGE (0-15 minutes)
+    1. Incident identified via:
+       - Automated alert (ELK/CloudWatch rule on log patterns)
+       - Security anomaly in Prometheus metrics
+       - Customer report via VR Studios contact
+       - Internal team discovery
+    2. Initial severity classification (see 6.1)
+    3. Incident ticket created; on-call engineering notified
+    4. Incident Commander designated for CRITICAL/HIGH incidents
+
+  PHASE 2 — CONTAINMENT (15 minutes - 4 hours)
+    Security Incident:
+      - If credential compromise: Rotate affected secrets immediately
+      - If API key exposure: Revoke and reissue API key; update all deployments
+      - If JWT signing secret exposed: Rotate secret; all tokens invalidated
+      - If active exploit: Rate limit or block offending IPs
+    Availability Incident:
+      - Assess health endpoints (GET /api/healthz, GET /api/readyz)
+      - Activate Gradio fallback if cognitive services unavailable
+      - Enable MOCK_AI=true for degraded operation if Azure OpenAI offline
+      - Scale Azure App Service if resource exhaustion confirmed
+
+  PHASE 3 — INVESTIGATION (During/after containment)
+    1. Review structured JSON logs for affected time window
+    2. Identify affected request_ids, user_ids, and endpoints
+    3. Determine attack vector or failure cause
+    4. Assess data exposure scope (was PII accessed? billing data? credentials?)
+    5. Preserve log evidence before rotation
+
+  PHASE 4 — RECOVERY
+    1. Restore service to normal operation
+    2. Verify 40/40 test suite passes post-recovery
+    3. Confirm health endpoints return healthy status
+    4. Monitor metrics for 2 hours post-recovery for anomaly recurrence
+
+  PHASE 5 — POST-MORTEM (within 48 hours for CRITICAL, 1 week for others)
+    1. Timeline of events documented
+    2. Root cause analysis completed
+    3. Control gaps identified
+    4. Remediation actions assigned with owners and due dates
+    5. Post-mortem document stored in compliance evidence repository
+    6. Risk register updated if new risk identified
+
+6.3  Contact and Escalation
+
+  Role                    Responsibility
+  ----------------------  ---------------------------------------------------
+  On-Call Engineer        First responder; initial containment
+  Engineering Lead        Escalated for CRITICAL/HIGH incidents
+  Operations              Infrastructure access; Azure Portal actions
+  Legal/Compliance        Notification for data breach incidents (GDPR/CCPA
+                          72-hour notification requirement)
+  Customer Success        VR Studios customer communication if service impact
+
+================================================================================
+SECTION 7 — SECURITY TESTING EVIDENCE
+================================================================================
+
+7.1  Security Test Coverage
+
+  The 40-test automated test suite includes dedicated security test coverage
+  across multiple test files.
+
+  Test File          Tests   Security Coverage
+  -----------------  -----   -------------------------------------------------------
+  test_auth.py       8       - User creation with bcrypt password hashing
+                             - Duplicate email prevention (user enumeration defense)
+                             - Successful authentication flow (JWT issuance)
+                             - Failed authentication rejection
+                             - Token creation and decoding (HS256 validation)
+                             - Case-insensitive email (prevents case-variation bypass)
+                             - User lookup by ID
+                             - Invalid token handling
+
+  test_rbac.py       8       - Viewer tier access: read-only routes permitted
+                             - Viewer tier access: write routes rejected (HTTP 403)
+                             - User tier access: standard routes permitted
+                             - User tier access: operator routes rejected
+                             - Operator tier access: management routes permitted
+                             - Operator tier access: admin routes rejected
+                             - Admin tier access: all routes permitted
+                             - Admin guard: API key required regardless of JWT role
+
+  test_security.py   ~5      - Rate limiter: requests within limit permitted
+                             - Rate limiter: requests exceeding limit return 429
+                             - API key guard: valid key accepted
+                             - API key guard: invalid/missing key returns 401
+                             - API key guard: production + no key = 503
+                             - WebSocket auth: valid key permits connection
+                             - WebSocket auth: invalid key rejects connection
+
+  TOTAL SECURITY     ~21     Comprehensive authentication, authorization,
+  TEST COVERAGE              and access control validation
+
+7.2  Security Audit History
+
+  Audit Date        Scope                        Findings          Resolution
+  ----------------  ---------------------------  ----------------  ---------------
+  Q1 2026 (Sprint   Full code audit: 60 files,   20 items total,   19/20 resolved
+  1, 2, 3)          8,217 LOC                    including:        in 3 sprints
+                                                 - CRITICAL: hard-  Security posture
+                                                   coded API key     upgraded from
+                                                 - CRITICAL: open   CRITICAL to
+                                                   CORS             HARDENED
+                                                 - HIGH: no auth
+                                                 - HIGH: no JWT
+                                                 - MEDIUM: no
+                                                   rate limiting
+
+  Evidence commits: e0ab4ab, 44a184e, 6b5c990
+  Branch: claude/review-repo-readiness-uYYzN
+
+7.3  Penetration Testing Plan
+
+  Status:     PLANNED (Phase 4)
+  Target:     Q3 2026
+
+  Scope of Planned Penetration Test:
+    - External black-box testing of all 76 API endpoints
+    - Authentication bypass attempts (JWT, API key)
+    - Authorization escalation testing (RBAC tier bypass)
+    - Injection testing: Pydantic bypass, Cosmos DB, glyphic sequences
+    - Rate limiter bypass testing
+    - WebSocket security testing
+    - TLS configuration validation (supported ciphers, certificate chain)
+    - Security header validation
+    - Stripe webhook replay attack testing
+    - Session management testing (JWT expiry, refresh token security)
+
+  Expected Deliverable: Penetration test report with CVSS scores;
+  remediation actions tracked in Risk Register
+
+================================================================================
+SECTION 8 — NGINX SECURITY CONFIGURATION REFERENCE
+================================================================================
+
+8.1  TLS Configuration
+
+  TLS Versions Supported:     TLS 1.2, TLS 1.3
+  TLS Versions Rejected:      TLS 1.0, TLS 1.1, SSLv3 (all disabled)
+
+  Cipher Suites (TLS 1.2):
+    - ECDHE-ECDSA-AES128-GCM-SHA256
+    - ECDHE-RSA-AES128-GCM-SHA256
+    - ECDHE-ECDSA-AES256-GCM-SHA384
+    - ECDHE-RSA-AES256-GCM-SHA384
+    (RC4, DES, 3DES, NULL, EXPORT ciphers disabled)
+
+  TLS 1.3 Cipher Suites:
+    - TLS_AES_128_GCM_SHA256
+    - TLS_AES_256_GCM_SHA384
+    - TLS_CHACHA20_POLY1305_SHA256
+
+  Certificate:    SSL certificate mounted via Docker volume at nginx startup
+                  (swap in production: Let's Encrypt or Azure Managed Cert)
+
+8.2  Security Headers
+
+  Header                        Value                           Purpose
+  ----------------------------  ------------------------------  -----------------
+  Strict-Transport-Security     max-age=31536000;               Force HTTPS for
+                                includeSubDomains               1 year
+  Content-Security-Policy       default-src 'self';             XSS / data
+                                script-src 'self';              injection
+                                style-src 'self' 'unsafe-inline' prevention
+                                img-src 'self' data:;
+                                connect-src 'self' wss:
+  X-Frame-Options               DENY                            Clickjacking
+                                                                prevention
+  X-XSS-Protection              1; mode=block                  Legacy XSS
+                                                                filter
+  X-Content-Type-Options        nosniff                         MIME sniffing
+                                                                prevention
+  Referrer-Policy               no-referrer-when-downgrade      Privacy
+  Permissions-Policy            camera=(), microphone=(),       Feature
+                                geolocation=()                  restriction
+
+8.3  WebSocket Proxy Security
+
+  nginx WebSocket proxy configuration for /ws/*:
+    - Passes Upgrade and Connection headers for WebSocket upgrade
+    - Proxies to FastAPI backend on internal Docker network
+    - TLS termination at nginx (WSS externally → WS internally)
+    - websocket_require_api_key() called by FastAPI before accepting connection
+
+================================================================================
+SECTION 9 — RATE LIMITER SPECIFICATION
+================================================================================
+
+9.1  Implementation Reference
+
+  File:       /backend/core/security.py
+  Class:      RateLimiter
+  Algorithm:  Token Bucket
+
+9.2  Token Bucket Algorithm Detail
+
+  The RateLimiter class implements a token bucket per client IP address:
+
+  Initialization:
+    - bucket[ip] initialized with tokens = BURST (full bucket)
+    - timestamp set to current time
+
+  Per-Request Processing:
+    1. Compute elapsed time since last request for this IP
+    2. Calculate refill: elapsed_seconds × (RPM / 60) tokens added
+    3. Cap tokens at BURST maximum
+    4. If tokens < 1.0: raise HTTP 429 "Rate limit exceeded"
+    5. Decrement tokens by 1.0
+    6. Update bucket timestamp
+
+  Parameters:
+    RATE_LIMIT_ENABLED    Boolean; if False, limiter bypassed entirely
+    RATE_LIMIT_RPM        Requests per minute sustained rate
+    RATE_LIMIT_BURST      Maximum burst token count (allows short spikes)
+
+  Storage:
+    In-memory dict (self._buckets) indexed by IP string
+    Note: Shared state within single process; does not persist across
+    restarts or scale-out instances. For multi-instance deployment (Phase 4),
+    replace with Redis-backed distributed rate limiter.
+
+9.3  Rate Limiter Configuration Recommendations
+
+  Environment     RPM    Burst   Notes
+  -------------   ----   -----   ------------------------------------------
+  Development     Off    Off     RATE_LIMIT_ENABLED=false for unrestricted
+                                 local testing
+  Staging         120    20      Moderate limits for integration testing
+  Production      60     10      Conservative; prevents Azure OpenAI quota
+  (VR Studios                    exhaustion from single user; adjust based
+  pilot)                         on VR Studios usage patterns post-pilot
+
+================================================================================
+DOCUMENT FOOTER
+================================================================================
+  Document ID:          SENTINEL-SECURITY-PLAN-001
+  Version:              v001
+  Classification:       ENTERPRISE CONFIDENTIAL — SECURITY SENSITIVE
+  Effective Date:       2026-04-24
+  Next Review:          2026-07-24
+  Total Controls:       Layer 1-6 defense-in-depth + IR procedures
+================================================================================
+                         END OF DOCUMENT
+================================================================================

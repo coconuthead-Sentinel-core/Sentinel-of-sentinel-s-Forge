@@ -20,3 +20,10 @@ node_modules/
 .env
 .env.local
 .env.*.local
+
+# Publication hygiene
+*.accdb
+*.lock
+_runtime/
+.claude/
+~/.claude/

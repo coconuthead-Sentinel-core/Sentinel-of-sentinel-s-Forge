@@ -1,0 +1,761 @@
+================================================================================
+SENTINEL FORGE — COMPLIANCE FRAMEWORK DOCUMENT
+NIST AI RMF 1.0 | SOC 2 TYPE II | ISO 27001
+================================================================================
+
+Document ID:      SENTINEL-COMPLIANCE-001
+Document Version: v001
+Effective Date:   2026-04-24
+Classification:   ENTERPRISE CONFIDENTIAL — COMPLIANCE SENSITIVE
+Status:           APPROVED — ACTIVE
+Review Cycle:     Semi-Annual (AI RMF) / Annual (SOC 2, ISO 27001)
+Next Review:      2026-10-24 (AI RMF) / 2027-04-24 (SOC 2, ISO 27001)
+
+Prepared by:      Engineering (Platform Infrastructure)
+Reviewed by:      Engineering Leadership, Legal/Compliance
+Distribution:     Engineering Leadership, Legal, Compliance, External Auditors
+
+Parent Document:  SENTINEL-SDLC-MASTER-001_2026-04-24_v001.txt
+
+================================================================================
+SECTION 1 — DOCUMENT PURPOSE AND SCOPE
+================================================================================
+
+1.1  Purpose
+
+This document provides a formal mapping of the Sentinel Forge Enterprise
+Cognitive AI Platform to three major compliance frameworks:
+
+  1. NIST AI Risk Management Framework (AI RMF) 1.0
+     Published by the National Institute of Standards and Technology, January
+     2023. Applicable to the AI-powered cognitive processing components of
+     Sentinel Forge.
+
+  2. SOC 2 Type II (System and Organization Controls)
+     AICPA Trust Service Criteria framework. Applicable to Sentinel Forge's
+     cloud-hosted infrastructure, security controls, and data handling
+     practices.
+
+  3. ISO/IEC 27001:2022 Information Security Management System
+     International standard for information security management. Applicable
+     to the information security posture of the platform and its operations.
+
+1.2  Scope of Coverage
+
+This compliance document covers:
+  - Sentinel Forge backend platform (60 files, 8,217 lines of code)
+  - 76 API routes (REST + WebSocket)
+  - Azure cloud infrastructure (Azure App Service, Azure OpenAI, Azure Cosmos DB)
+  - nginx reverse proxy and TLS configuration
+  - Authentication and authorization subsystems (JWT, bcrypt, RBAC)
+  - Rate limiting controls (token bucket, IP-based)
+  - Billing subsystem (Stripe integration)
+  - Glyphic protocol and cognitive processing engine
+  - WebSocket real-time synchronization
+
+1.3  Compliance Posture Summary
+
+  Framework          Assessment Status    Maturity Level
+  -----------------  -------------------  ---------------------------
+  NIST AI RMF 1.0    Substantially Align  Level 3 (Defined) — progressing
+                     (all 4 functions     to Level 4 with Phase 4
+                     addressed)           monitoring implementation
+  SOC 2 Type II      Aligned (design)     Controls designed; Type II
+                                          audit readiness: ~85%
+  ISO 27001          Substantially        Key domains covered; formal
+                     Aligned              ISMS documentation in progress
+
+================================================================================
+SECTION 2 — NIST AI RISK MANAGEMENT FRAMEWORK 1.0
+================================================================================
+
+The NIST AI RMF 1.0 organizes AI risk management into four core functions:
+GOVERN, MAP, MEASURE, and MANAGE. The following sections provide detailed
+mapping of Sentinel Forge controls and practices to each function.
+
+--------------------------------------------------------------------------------
+2.1  GOVERN — Establishing Accountability and Policies
+--------------------------------------------------------------------------------
+
+The GOVERN function establishes organizational accountability for AI risk
+management, creates policies and procedures, and ensures that AI risk
+considerations are embedded in the organization's culture and practices.
+
+2.1.1  Organizational Accountability Structure
+
+  GOVERN 1.1 — Policies, Processes, Procedures, and Practices
+
+  Sentinel Forge implements organizational accountability through the following
+  structures:
+
+  (a) Engineering Governance
+      The Engineering team maintains ownership of all technical controls,
+      security architecture, and AI model integration decisions. The Master
+      SDLC document (SENTINEL-SDLC-MASTER-001) establishes the formal
+      governance framework.
+
+  (b) Phase Gate Reviews
+      Each major development phase includes a formal gate review assessing
+      AI risk, security posture, and quality before advancement. Phase 1, 2,
+      and 3 have each completed gate reviews with 100% test pass requirements.
+
+  (c) Documented AI Use Policy
+      The platform's Terms of Service (/legal/terms.html) includes 16 sections
+      defining acceptable use of the AI cognitive platform, intellectual
+      property provisions, and user accountability for AI-generated outputs.
+
+  GOVERN 1.2 — Accountability and Roles
+
+  Role                    AI Accountability
+  ----------------------  ------------------------------------------------------
+  Engineering Lead        Owns AI model selection, integration architecture,
+                          Azure OpenAI configuration, and prompt design
+  Operations              Owns AI infrastructure uptime, monitoring, and
+                          incident response for AI-related outages
+  Product                 Owns AI feature roadmap, pilot customer requirements,
+                          and evaluation of AI output quality
+  Legal/Compliance        Owns AI use policy, data processing agreements with
+                          Azure (data processor), and regulatory alignment
+
+  GOVERN 2.1 — Organizational Risk Tolerance
+
+  Sentinel Forge's AI risk tolerance is classified as MODERATE. The platform:
+    - Uses Azure OpenAI (Microsoft-managed model) rather than custom-trained
+      models, reducing model development risks
+    - Implements Gradio fallback UI for degraded-mode operation when AI
+      processing is unavailable
+    - Limits AI processing scope to: cognition, intent classification,
+      memory retrieval, and glyphic sequence interpretation
+    - Does not use AI for high-stakes autonomous decisions (medical, legal,
+      financial determinations)
+
+  GOVERN 3.1 — Organizational Teams Are Committed to Risk Management
+
+  Evidence of commitment:
+    - 3 engineering sprints delivered to harden platform from prototype to
+      production (28 files changed, 2,181 lines added)
+    - Security posture elevated from CRITICAL gaps to HARDENED state
+    - 22 new tests added to support security and compliance controls
+    - Formal documentation suite created (7 enterprise documents)
+
+2.1.2  4-Tier Role-Based Access Control
+
+The platform implements a 4-tier RBAC system as a primary GOVERN control,
+enforcing the principle of least privilege across all API access.
+
+  Tier        Role        Description                    Access Level
+  ----------  ----------  ----------------------------   -------------------
+  Tier 1      Viewer      Read-only access to public     Lowest; read-only
+                          platform data and metrics
+  Tier 2      User        Standard authenticated user    Standard cognitive
+                          operations; chat, threads,     API access
+                          seeds, glyphs
+  Tier 3      Operator    Enhanced access for            Elevated; rule
+                          operational management;        management, memory
+                          cognitive rule management      operations
+  Tier 4      Admin       Full administrative access;    Highest; all routes
+                          user management, system        including destructive
+                          configuration, destructive     operations
+                          operations
+
+  Implementation:
+    - RBAC tiers are enforced as FastAPI dependency injection on each route
+    - admin_guard() in security.py enforces API key requirement for Admin
+      operations regardless of JWT claim
+    - All 76 routes have RBAC requirements explicitly applied
+    - 8 automated tests in test_rbac.py verify RBAC enforcement
+
+--------------------------------------------------------------------------------
+2.2  MAP — Identifying and Classifying AI Risks
+--------------------------------------------------------------------------------
+
+The MAP function identifies and classifies AI risks in the context of the
+organization's mission, technology, and deployment environment.
+
+2.2.1  AI System Context
+
+  Platform Type:    Enterprise cognitive AI backend
+  Deployment:       Cloud-hosted (Azure App Service); VR Studios pilot
+  AI Provider:      Microsoft Azure OpenAI (external AI dependency)
+  AI Usage:         Cognitive processing, intent classification, memory
+                    retrieval, response generation
+  User Population:  VR Studios operators and end users (initial pilot)
+  Risk Category:    MEDIUM — enterprise AI backend with human oversight;
+                    no autonomous high-stakes decisions
+
+2.2.2  Cognitive Processing Risk Identification
+
+  Risk ID    Risk Name                        Category       Likelihood   Impact
+  ---------  -------------------------------  -------------  -----------  ------
+  AI-R-001   Azure OpenAI API outage          Availability   HIGH         HIGH
+  AI-R-002   Cognitive model drift/           Quality        MEDIUM       MEDIUM
+             degradation over time
+  AI-R-003   Prompt injection via glyphic     Security       LOW          HIGH
+             sequence endpoints
+  AI-R-004   Personally identifiable          Privacy        LOW          HIGH
+             information in cognitive data
+  AI-R-005   Biased or inappropriate AI       Quality/       LOW          MEDIUM
+             outputs                          Ethics
+  AI-R-006   Azure OpenAI terms violation     Legal          LOW          HIGH
+             (prohibited use cases)
+
+2.2.3  External AI Dependency Risk — Azure OpenAI
+
+Sentinel Forge is critically dependent on Azure OpenAI for its cognitive
+processing capability. This dependency is mapped as follows:
+
+  Dependency Component    Risk Implication          Mitigation
+  ----------------------  ------------------------  ----------------------------
+  Azure OpenAI API        Service outage stops      Gradio fallback UI; MOCK_AI
+  availability            cognitive processing      flag for degraded operation
+  Azure OpenAI model      Model behavior changes    Evaluation framework tracks
+  versioning              may affect outputs         output quality over time
+  Azure OpenAI quota      Token quota exhaustion     Rate limiter prevents quota
+  limits                  causes 429 errors          overrun from single user
+  Azure data processing   PII sent to Azure for     Privacy Policy discloses
+  agreement               AI processing             Azure as data processor
+
+2.2.4  Glyphic Protocol Risk Map
+
+The glyphic communication protocol (APEX->CORE->EMIT sequences) introduces
+specific AI attack surface concerns:
+
+  Threat Vector              Description                    Control
+  -------------------------  ----------------------------   -------------------
+  Sequence injection         Malformed glyph sequences      Input validation on
+                             designed to manipulate          /api/glyphs/interpret
+                             cognitive processing            and /api/glyphs/pack
+  Alias poisoning            Malicious alias registrations  Operator/Admin RBAC
+                             via /api/glyphs/aliases         required for alias
+                             overwriting legitimate          modification
+                             routing paths
+  Intent flooding            High-volume intent             Token bucket rate
+                             submissions overwhelming        limiter (per IP)
+                             cognitive processor
+  Seed injection             Malicious seed data            User RBAC minimum
+                             embedded via /api/cog/seeds     for seed operations;
+                             affecting downstream            input schema
+                             cognitive state                 validation
+
+2.2.5  Data Residency and Privacy Risk
+
+  Data Type               Residency               Privacy Concern
+  ----------------------  ----------------------  --------------------------------
+  User accounts (email,   Azure App Service /     GDPR Article 6 lawful basis;
+  hashed password)        Cosmos DB               CCPA disclosure
+  Cognitive threads       Azure Cosmos DB          Data retention per Privacy
+  and memory              (Azure region)           Policy; subject to data
+                                                  subject deletion rights
+  AI-processed content    Azure OpenAI (sent       Azure data processing
+                          to Microsoft)            agreement; Privacy Policy
+                                                  disclosure required
+  Billing data            Stripe (US)              Stripe DPA; Sentinel stores
+                                                  only subscription status
+
+--------------------------------------------------------------------------------
+2.3  MEASURE — Evaluating and Monitoring AI Risks
+--------------------------------------------------------------------------------
+
+The MEASURE function establishes metrics, evaluation processes, and monitoring
+practices to assess AI system performance and risk realization.
+
+2.3.1  AI Quality KPIs
+
+  KPI                          Target       Measurement Method
+  ---------------------------  -----------  ------------------------------------
+  Intent Classification        >95%         Evaluation framework comparison
+  Accuracy                                  of AI intent tags against expected
+  Cognitive Processing         <500ms P95   /api/cog/process response times
+  Latency                                   logged per request
+  Memory Retrieval Precision   >90%         Evaluation queries against known
+                                            Cosmos DB corpus
+  Glyph Sequence               >99%         /api/glyphs/validate pass rate
+  Validation Rate                           tracking
+  AI Uptime (Azure OpenAI)     >99%         /api/cog/status monitoring;
+                                            health probe alerts
+
+2.3.2  Test Coverage as Quality Measure
+
+  Test Category           Tests    Coverage                Pass Rate
+  ----------------------  -----    -----------------------  ----------
+  Authentication tests    8        JWT signup, login,        100%
+                                   refresh, token decode,
+                                   email case, user lookup
+  RBAC tests              8        4-tier enforcement,       100%
+                                   guard dependencies,
+                                   admin route protection
+  Billing tests           ~8       Stripe checkout,          100%
+                                   webhooks, subscription,
+                                   billing portal
+  Migration tests         6        MigrationRunner, 4        100%
+                                   baseline migrations,
+                                   upgrade-on-read
+  Cognition tests         ~5       Process, memory,          100%
+                                   rules, prime metrics
+  Security tests          ~5       Rate limiter, API key     100%
+                                   guard, WebSocket auth
+  TOTAL                   40       Multi-domain coverage     100%
+
+2.3.3  Prometheus Metrics Exposure
+
+  The platform exposes real-time AI and system metrics at:
+    GET /api/metrics/prom  (Prometheus text format)
+    GET /api/metrics       (compact JSON format)
+
+  Exposed Metrics:
+    qnf_bus_*              Message bus telemetry
+    qnf_intent_count       Total intents processed
+    qnf_topic_count        Active topic count
+    qnf_threads_total      Total thread count
+    qnf_resonance_*        Cognitive resonance measurements
+
+  These metrics enable:
+    - Integration with Prometheus + Grafana for dashboarding (Phase 4)
+    - CloudWatch or Datadog custom metric ingestion
+    - Alert rule creation on intent volume anomalies
+    - Historical trending for model drift detection
+
+2.3.4  Evaluation Framework
+
+  The evaluation framework (baseline infrastructure in /evaluation/ directory)
+  provides structured AI output quality assessment:
+
+  Evaluation Type         Purpose
+  ----------------------  -------------------------------------------------
+  Intent accuracy         Compare AI-classified intents against labeled
+  evaluation              ground truth for VR Studios use cases
+  Response quality        Measure response relevance, coherence, and
+  evaluation              safety for glyphic protocol outputs
+  Latency benchmarking    Track P50/P95/P99 processing times against SLA
+  Regression evaluation   Detect model drift when Azure OpenAI model
+                          version changes
+
+--------------------------------------------------------------------------------
+2.4  MANAGE — Responding to and Recovering from AI Risks
+--------------------------------------------------------------------------------
+
+The MANAGE function implements controls to respond to and recover from
+identified AI risks.
+
+2.4.1  Incident Response for AI Events
+
+  Incident Type           Response Procedure
+  ----------------------  --------------------------------------------------
+  Azure OpenAI outage     1. Automated health probe detects /api/cog/status
+                             failure within 60 seconds
+                          2. On-call operations notified via structured log
+                             alert (ELK/CloudWatch rule)
+                          3. Gradio fallback UI activated (degraded mode)
+                          4. MOCK_AI=true flag set for continued operation
+                          5. Azure status page monitored for recovery ETA
+                          6. Full restoration tested before fallback removed
+
+  AI output quality       1. Anomalous output detected via evaluation
+  degradation event          framework or customer report
+                          2. Engineering reviews evaluation metrics and
+                             Prometheus intent/resonance data
+                          3. Azure OpenAI model version checked against
+                             last known good configuration
+                          4. If model version changed: document delta and
+                             update evaluation baselines
+                          5. If persistent degradation: engage Azure support
+
+  Glyphic injection       1. Security alert triggered by WAF or log pattern
+  attempt detected           matching on /api/glyphs/* routes
+                          2. Offending IP rate-limited or blocked
+                          3. Security review of injection patterns
+                          4. Input validation rules updated if new pattern
+                             identified
+                          5. Incident documented in security log
+
+2.4.2  Rate Limiting as AI Availability Control
+
+  The token bucket rate limiter in security.py (class RateLimiter) directly
+  manages the risk of AI availability disruption from request flooding:
+
+  Control Parameter       Configuration               Effect
+  ----------------------  --------------------------  -------------------------
+  settings.RATE_LIMIT_RPM  Requests Per Minute limit   Prevents Azure OpenAI
+                           (configurable via env)      quota exhaustion per IP
+  settings.RATE_LIMIT_BURST Burst token allowance      Permits legitimate
+                           (configurable via env)      traffic spikes without
+                                                       triggering limits
+  settings.RATE_LIMIT_ENABLED On/off flag              Allows emergency
+                           (production: always on)     disable if needed
+
+  When rate limit is exceeded:
+    HTTP 429 "Rate limit exceeded" returned immediately
+    No Azure OpenAI call is made (token preserved)
+    IP bucket resets at configured RPM rate
+
+2.4.3  API Key Guard as Access Control
+
+  The api_key_guard() function in security.py implements the primary API
+  access control for non-JWT routes:
+
+  Scenario                    Behavior
+  --------------------------  ------------------------------------------------
+  Production + key set +      Request ALLOWED
+  valid X-API-Key header
+  Production + key set +      HTTP 401 "Invalid or missing API key"
+  invalid/missing key
+  Production + key NOT set    HTTP 503 "Server misconfigured" (security fail-
+                              safe; does not allow unauthenticated access)
+  Development + key NOT set   Request ALLOWED (developer convenience mode)
+
+================================================================================
+SECTION 3 — SOC 2 TYPE II ALIGNMENT
+================================================================================
+
+3.1  SOC 2 Trust Service Criteria Overview
+
+SOC 2 is organized around five Trust Service Criteria. The following sections
+document Sentinel Forge's alignment to each criterion.
+
+--------------------------------------------------------------------------------
+3.1.1  Security (CC6 — Logical and Physical Access Controls)
+--------------------------------------------------------------------------------
+
+  CC6.1 — Logical access security software, infrastructure, and architectures
+  have been implemented to support (1) identification and authentication of
+  authorized internal and external users; (2) restriction of authorized
+  internal user access; and (3) prevention and detection of unauthorized access.
+
+  Sentinel Forge Controls:
+
+  Control                     Implementation
+  --------------------------  --------------------------------------------------
+  User Identification         Email-based identity; enforced unique email
+                              registration via POST /api/auth/signup
+  Authentication              JWT HS256 tokens via python-jose library;
+                              access_token + refresh_token issued on login;
+                              Bearer token required on all protected routes
+  Password Security           bcrypt hashing (salt factor configurable);
+                              passwords never stored in plain text; never logged
+  Token Expiry                JWT access tokens have configurable expiry;
+                              refresh tokens support rotation
+  API Key Authentication      X-API-Key header enforcement on operational
+                              endpoints; admin_guard() for destructive routes
+  WebSocket Authentication    websocket_require_api_key() enforces API key
+                              via header (x-api-key) or query param (api_key)
+                              for all WebSocket connections
+  4-Tier RBAC                 Role-based access restricts unauthorized
+                              elevation; each route has explicit role
+                              requirement enforced as FastAPI dependency
+
+  CC6.6 — The entity implements logical access security measures to protect
+  against threats from sources outside its system boundaries.
+
+  Control                     Implementation
+  --------------------------  --------------------------------------------------
+  TLS 1.2/1.3                 All traffic encrypted in transit via nginx;
+                              older TLS versions rejected
+  CORS lockdown               Allowlist-only CORS configuration; open CORS
+                              was identified and closed during security audit
+  Security headers            nginx injects: HSTS (max-age 31536000),
+                              CSP (restrictive), X-Frame-Options DENY,
+                              X-XSS-Protection, X-Content-Type-Options
+  Rate limiting               Token bucket per IP; HTTP 429 returned on
+                              excess; protects against external abuse
+
+  CC6.7 — The entity restricts the transmission, movement, and removal of
+  information to authorized internal and external users.
+
+  Control                     Implementation
+  --------------------------  --------------------------------------------------
+  Data in transit             TLS 1.2/1.3 mandatory; no plaintext HTTP
+  Data at rest                Azure Cosmos DB encryption at rest (AES-256,
+                              Microsoft-managed keys)
+  JWT scope control           Tokens scoped to authenticated user identity;
+                              no cross-user data access possible
+
+  CC6.8 — The entity implements controls to prevent or detect and act upon
+  the introduction of unauthorized or malicious software.
+
+  Control                     Implementation
+  --------------------------  --------------------------------------------------
+  Dependency management       requirements.txt pins dependencies; no wildcard
+                              version specifications for security packages
+  Input validation            Pydantic schema validation on all request bodies;
+                              type enforcement prevents injection via inputs
+  No eval/exec usage          No dynamic code execution in application code
+
+--------------------------------------------------------------------------------
+3.1.2  Availability (A1 — Availability)
+--------------------------------------------------------------------------------
+
+  A1.1 — The entity maintains, monitors, and evaluates current processing
+  capacity and use of system components to manage capacity demand.
+
+  Control                     Implementation
+  --------------------------  --------------------------------------------------
+  Health endpoints            GET /api/healthz → 204 (Kubernetes liveness)
+                              GET /api/readyz → 200 + summary (readiness)
+  Capacity metrics            GET /api/metrics and /api/metrics/prom provide
+                              real-time processing capacity visibility
+  Rate limiting               Token bucket prevents single-IP capacity abuse;
+                              protects shared capacity for all users
+  Azure SLA                   Azure App Service and Azure Cosmos DB provide
+                              99.9% uptime SLA from Microsoft
+
+  A1.2 — The entity authorizes, designs, develops or acquires, implements,
+  operates, approves, maintains, and monitors environmental protections,
+  software, data back-up processes, and recovery infrastructure.
+
+  Control                     Implementation
+  --------------------------  --------------------------------------------------
+  Container recovery          Docker containerization enables rapid redeployment
+                              (<15 minutes) to alternate Azure App Service slot
+  AI fallback                 Gradio fallback UI + MOCK_AI mode provides
+                              degraded-mode operation during Azure OpenAI outage
+  Monitoring                  Structured JSON logging compatible with
+                              ELK/CloudWatch/Datadog/Splunk for alert rules
+  Database redundancy         Azure Cosmos DB provides geo-redundant storage
+                              with automatic failover (Azure-managed)
+
+--------------------------------------------------------------------------------
+3.1.3  Confidentiality (C1 — Confidentiality)
+--------------------------------------------------------------------------------
+
+  C1.1 — The entity identifies and maintains confidential information to meet
+  the entity's objectives related to confidentiality.
+
+  Control                     Implementation
+  --------------------------  --------------------------------------------------
+  Credential handling         bcrypt hashed passwords; JWT tokens not stored
+                              server-side (stateless); no PII in log fields
+  API key protection          API keys in environment variables only; not in
+                              source code (cleared during security audit)
+  Cognitive data access       Cosmos DB access restricted to application
+                              service identity; no direct public access
+  Billing data                Raw payment card data never touches Sentinel
+                              servers; Stripe PCI-DSS Level 1 certified
+  Data classification         ENTERPRISE CONFIDENTIAL classification on
+                              all platform documentation
+
+--------------------------------------------------------------------------------
+3.1.4  Processing Integrity (PI1)
+--------------------------------------------------------------------------------
+
+  PI1.1 — The entity obtains or generates, uses, and communicates relevant,
+  quality information to support the functioning of internal control.
+
+  Control                     Implementation
+  --------------------------  --------------------------------------------------
+  Input validation            All 76 route inputs validated via Pydantic;
+                              type errors return HTTP 422 with field detail
+  Schema versioning           Database migration framework with 4 baseline
+                              migrations; upgrade-on-read pattern for Cosmos DB
+  Automated testing           40/40 tests provide continuous quality assertion
+  API response typing         All responses use typed Pydantic models
+                              ensuring consistent output structure
+
+--------------------------------------------------------------------------------
+3.1.5  Privacy (P1-P8)
+--------------------------------------------------------------------------------
+
+  Privacy Criterion           Implementation
+  --------------------------  --------------------------------------------------
+  P1 — Privacy Notice         Privacy Policy at /legal/privacy.html; 12-section
+                              GDPR/CCPA compliant template; data retention
+                              table; cookie disclosure
+  P3 — Consistent Use         AI processing limited to stated purposes;
+                              no secondary use without disclosure
+  P4 — Data Retention         Retention policy in Privacy Policy; Cosmos DB
+                              TTL configurable per document type
+  P5 — Data Subject Rights    Data deletion and access rights framework
+                              (template; operational procedures in progress)
+  P6 — Data Disclosure        Azure disclosed as AI data processor in
+                              Privacy Policy; Stripe as payment processor
+
+================================================================================
+SECTION 4 — ISO 27001:2022 CONTROL MAPPING
+================================================================================
+
+4.1  Organizational Controls (Clause 5)
+
+  ISO Control        Control Title                 Sentinel Forge Implementation
+  -----------------  ---------------------------   -----------------------------
+  A.5.1              Policies for information       Master SDLC document;
+                     security                       Security Plan document;
+                                                   Compliance document (this)
+  A.5.2              Information security roles     Engineering accountability
+                     and responsibilities           charter in SDLC master
+  A.5.3              Segregation of duties          4-tier RBAC separates
+                                                   viewer, user, operator,
+                                                   admin access levels
+  A.5.10             Acceptable use of info         Terms of Service defines
+                     and assets                    acceptable AI platform use
+  A.5.14             Information transfer           TLS 1.2/1.3 mandatory;
+                                                   HSTS enforced
+
+4.2  People Controls (Clause 6)
+
+  ISO Control        Control Title                 Sentinel Forge Implementation
+  -----------------  ---------------------------   -----------------------------
+  A.6.1              Screening                      API key registration system
+                                                   gates operator/admin access
+  A.6.3              Information security           Security audit process;
+                     awareness, education           platform readiness memo
+                     and training                   serves as internal record
+
+4.3  Physical Controls (Clause 7)
+
+  ISO Control        Control Title                 Sentinel Forge Implementation
+  -----------------  ---------------------------   -----------------------------
+  A.7.1              Physical security perimeters  Azure data center physical
+                                                   security (Microsoft-managed)
+  A.7.9              Security of assets off-       Docker images in Azure
+                     premises                      Container Registry
+
+4.4  Technological Controls (Clause 8)
+
+  ISO Control        Control Title                 Sentinel Forge Implementation
+  -----------------  ---------------------------   -----------------------------
+  A.8.2              Privileged access rights      admin_guard() dependency
+                                                   enforces API key for all
+                                                   admin-tier operations
+  A.8.3              Information access            JWT Bearer token required;
+                     restriction                   RBAC dependency injection
+                                                   on all protected routes
+  A.8.5              Secure authentication         JWT HS256 tokens; bcrypt
+                                                   password hashing; token
+                                                   expiry controls
+  A.8.7              Protection against malware    Input validation via Pydantic;
+                                                   no dynamic code execution
+  A.8.8              Management of technical       requirements.txt dependency
+                     vulnerabilities               management; security audit
+                                                   completed (CRITICAL gaps
+                                                   resolved)
+  A.8.9              Configuration management      Environment-driven config
+                                                   via config.py/Pydantic
+                                                   Settings; no hardcoded
+                                                   secrets
+  A.8.12             Data leakage prevention       No PII in logs; JWT tokens
+                                                   not logged; API keys in
+                                                   env variables only
+  A.8.15             Logging                       Structured JSON logging;
+                                                   request_id, user_id,
+                                                   endpoint, duration per
+                                                   request; ELK/CloudWatch
+                                                   compatible
+  A.8.16             Monitoring activities         Health endpoints; Prometheus
+                                                   metrics; GET /api/status
+  A.8.20             Networks security             nginx TLS; CORS lockdown;
+                                                   security headers
+  A.8.21             Security of network           TLS 1.2/1.3; HSTS with
+                     services                      max-age 31536000;
+                                                   WebSocket authentication
+  A.8.24             Use of cryptography           TLS 1.2/1.3 (transport);
+                                                   bcrypt (password storage);
+                                                   HS256 (JWT signing);
+                                                   Azure AES-256 (at rest)
+  A.8.25             Secure development life       Phase gate reviews;
+                     cycle                         automated test suite;
+                                                   security review gates
+  A.8.26             Application security          Input validation; RBAC;
+                     requirements                  rate limiting; auth guards
+  A.8.28             Secure coding                 No hardcoded secrets;
+                                                   Pydantic validation;
+                                                   parameterized queries
+  A.8.29             Security testing              40/40 test suite; security
+  in development                                   test coverage for auth/authz
+  and acceptance
+  A.8.34             Protection of information     bcrypt (passwords); TLS
+                     systems during audit           (data in transit); Cosmos DB
+                     testing                       encryption (at rest)
+
+================================================================================
+SECTION 5 — COMPLIANCE GAP ANALYSIS AND REMEDIATION PLAN
+================================================================================
+
+5.1  Current Compliance Gaps
+
+  Gap ID    Framework     Control Area              Gap Description
+  --------  ----------    ----------------------    ----------------------------
+  GAP-001   NIST AI RMF   MEASURE 2.5              Formal AI bias evaluation
+            (MEASURE)     Bias testing              not yet implemented; eval
+                                                   framework in place but
+                                                   bias-specific tests not
+                                                   authored
+  GAP-002   NIST AI RMF   GOVERN 1.4               Third-party AI risk
+            (GOVERN)      Supply chain risk         assessment for Azure OpenAI
+                                                   not formally documented
+  GAP-003   SOC 2 Type II PI1.3                    Formal load testing not
+            (Availability) Performance testing      completed; planned for
+                                                   Phase 4
+  GAP-004   SOC 2 Type II P5 Data Subject           Operational data subject
+            (Privacy)      Rights Procedures        rights procedures (delete,
+                                                   access) not yet implemented
+  GAP-005   ISO 27001      A.8.8 Vulnerability      Formal CVE scanning not
+                           Management               automated; manual review
+                                                   currently performed
+  GAP-006   All frameworks Penetration Testing      External penetration test
+                                                   not yet completed; planned
+                                                   for Phase 4
+
+5.2  Remediation Plan
+
+  Gap ID    Target Date   Remediation Action
+  --------  -----------   -------------------------------------------------
+  GAP-001   2026-07-24    Author bias evaluation test suite in /evaluation/;
+                          integrate with CI pipeline
+  GAP-002   2026-06-24    Document Azure OpenAI data processing agreement;
+                          review Azure AI use terms; add to supply chain risk
+                          section of Risk Register
+  GAP-003   2026-07-24    Execute load testing sprint (Phase 4); document
+                          results as SOC 2 performance evidence
+  GAP-004   2026-07-24    Implement data subject rights endpoints
+                          (DELETE /api/users/{id}, GET /api/users/{id}/export)
+  GAP-005   2026-06-24    Integrate pip-audit or Dependabot into CI pipeline
+  GAP-006   2026-09-24    Engage external penetration testing firm;
+                          remediate findings; document results
+
+================================================================================
+SECTION 6 — COMPLIANCE MONITORING AND REPORTING
+================================================================================
+
+6.1  Ongoing Compliance Monitoring
+
+  Activity                    Frequency     Owner            Output
+  --------------------------  -----------   ---------------  -------------------
+  Automated test suite run    Every commit  CI pipeline      Pass/fail report
+  Security dependency scan    Weekly        Engineering      CVE alert list
+  (manual currently)
+  API coverage audit          Monthly       Engineering      Route coverage %
+  Access control review       Quarterly     Engineering      RBAC effectiveness
+  AI RMF review               Semi-annual   Engineering +    Updated AI RMF doc
+                                           Compliance
+  SOC 2 readiness review      Annual        Engineering +    SOC 2 evidence
+                                           Compliance        package
+  ISO 27001 review            Annual        Engineering +    ISMS update
+                                           Compliance
+
+6.2  Compliance Evidence Repository
+
+  All compliance evidence is maintained in the following locations:
+
+  Evidence Type               Location
+  --------------------------  -------------------------------------------------
+  Test results                pytest output; CI/CD pipeline logs
+  Security audit records      Commit history (e0ab4ab, 44a184e, 6b5c990);
+                              PLATFORM_READINESS_MEMO.md
+  API documentation           /docs/api.md (76 routes documented)
+  Legal compliance            /legal/terms.html, /legal/privacy.html
+  Configuration evidence      /backend/core/config.py; nginx.conf;
+                              docker-compose.yml
+  Security implementation     /backend/core/security.py; test_auth.py;
+                              test_rbac.py; test_security.py
+
+================================================================================
+DOCUMENT FOOTER
+================================================================================
+  Document ID:          SENTINEL-COMPLIANCE-001
+  Version:              v001
+  Classification:       ENTERPRISE CONFIDENTIAL — COMPLIANCE SENSITIVE
+  Effective Date:       2026-04-24
+  Next Review:          2026-10-24 (AI RMF) / 2027-04-24 (SOC 2, ISO 27001)
+  Frameworks Covered:   NIST AI RMF 1.0, SOC 2 Type II, ISO 27001:2022
+================================================================================
+                         END OF DOCUMENT
+================================================================================

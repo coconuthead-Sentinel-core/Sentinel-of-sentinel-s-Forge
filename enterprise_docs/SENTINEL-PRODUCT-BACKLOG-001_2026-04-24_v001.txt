@@ -1,0 +1,1098 @@
+================================================================================
+SENTINEL FORGE — PRODUCT BACKLOG
+EPICS, STORIES, ACCEPTANCE CRITERIA, AND SPRINT TRACKING
+================================================================================
+
+Document ID:      SENTINEL-PRODUCT-BACKLOG-001
+Document Version: v001
+Effective Date:   2026-04-24
+Classification:   ENTERPRISE CONFIDENTIAL — INTERNAL USE ONLY
+Status:           APPROVED — ACTIVE (Living Document)
+Review Cycle:     Bi-weekly (sprint cadence)
+Next Review:      2026-05-08 (next sprint review)
+
+Prepared by:      Engineering (Platform Infrastructure)
+Reviewed by:      Engineering Leadership, Product
+Distribution:     Engineering, Product, Operations
+
+Parent Document:  SENTINEL-SDLC-MASTER-001_2026-04-24_v001.txt
+
+================================================================================
+SECTION 1 — BACKLOG OVERVIEW
+================================================================================
+
+1.1  Story Point Scale
+
+  Points   Complexity         Estimated Duration
+  ──────   ──────────────     ──────────────────────
+  1        Trivial             < 1 hour
+  2        Very Small          1-2 hours
+  3        Small               Half day
+  5        Medium              1 day
+  8        Large               2-3 days
+  13       Very Large          1 week
+  21       Epic-scale          2+ weeks (consider splitting)
+
+1.2  Status Definitions
+
+  DONE:         Story fully implemented, tested, reviewed, and deployed
+  IN PROGRESS:  Active development; work in current sprint
+  PLANNED:      Approved for future sprint; not yet started
+  BACKLOG:      Identified; not yet sized or scheduled
+  BLOCKED:      Work cannot proceed; dependency unresolved
+
+1.3  Portfolio Summary
+
+  Epic     Name                          Status        Total SP  Completed SP
+  ──────   ──────────────────────────── ─────────────  ────────  ────────────
+  EPIC-001 Platform Core Foundation      DONE          29        29
+  EPIC-002 Cognitive Engine              DONE          55        55
+  EPIC-003 VR Studios Pilot              DONE          47        47
+  EPIC-004 Production Hardening          IN PROGRESS   39        10
+  EPIC-005 Multi-Tenant Expansion        PLANNED       63        0
+  ──────   ──────────────────────────── ─────────────  ────────  ────────────
+  TOTALS                                               233       141 (60%)
+
+================================================================================
+SECTION 2 — EPIC-001: PLATFORM CORE FOUNDATION
+================================================================================
+
+  Epic ID:      EPIC-001
+  Epic Name:    Platform Core Foundation
+  Phase:        Phase 1 — The Engine
+  Status:       DONE
+  Total SP:     29 story points
+  Completed SP: 29 (100%)
+  Sprint:       Sprint 1-2 (Q1 2026)
+  Description:  Establish the foundational architecture, configuration,
+                security controls, and development tooling for the Sentinel
+                Forge platform. All infrastructure that other features build
+                upon.
+
+────────────────────────────────────────────────────────────────────────────────
+STORY: SENT-001
+────────────────────────────────────────────────────────────────────────────────
+  Story ID:     SENT-001
+  Title:        FastAPI Application Scaffold with Lifespan, CORS, and Static
+                File Serving
+  Epic:         EPIC-001
+  Status:       DONE
+  Story Points: 5
+  Sprint:       Sprint 1
+  Priority:     CRITICAL (blocking all other stories)
+
+  Description:
+    As an engineering team, I need a FastAPI application entry point (main.py)
+    that initialises the application lifecycle, configures CORS middleware for
+    security, mounts static files for frontend serving, and provides a foundation
+    for router registration.
+
+  Acceptance Criteria:
+    AC-001-1: FastAPI application instantiated with lifespan context manager;
+              startup and shutdown events properly handled
+    AC-001-2: CORS middleware configured with allowlist-only origins (no
+              wildcard * origins in production configuration)
+    AC-001-3: Static file mounting configured for /frontend/ and /legal/
+              directories at appropriate URL paths
+    AC-001-4: setup_logging() called during startup; JSONFormatter used in
+              production; human-readable format in development
+    AC-001-5: Azure AAD token warmup executed during lifespan startup for
+              Azure OpenAI authentication pre-warming
+    AC-001-6: Application starts without errors in both MOCK_AI=true and
+              production modes
+
+  Definition of Done:
+    - Code merged to master branch
+    - No test failures introduced
+    - GET /api/healthz returns 204 on running instance
+
+────────────────────────────────────────────────────────────────────────────────
+STORY: SENT-002
+────────────────────────────────────────────────────────────────────────────────
+  Story ID:     SENT-002
+  Title:        JWT Authentication System with python-jose and bcrypt
+  Epic:         EPIC-001
+  Status:       DONE
+  Story Points: 8
+  Sprint:       Sprint 1
+  Priority:     CRITICAL
+
+  Description:
+    As a platform user, I need to register an account, log in with my
+    credentials, and receive JWT tokens that I can use to authenticate
+    subsequent API requests. As an operator, I need passwords hashed
+    securely and tokens to expire.
+
+  Acceptance Criteria:
+    AC-002-1: POST /api/auth/signup accepts {email, password, display_name};
+              creates user record; returns access_token and refresh_token pair
+    AC-002-2: Passwords hashed with bcrypt before storage; plain text password
+              never stored or logged anywhere in the system
+    AC-002-3: POST /api/auth/login accepts {email, password}; verifies bcrypt
+              hash; returns new JWT token pair on success; returns HTTP 401
+              on invalid credentials
+    AC-002-4: JWT tokens use HS256 algorithm via python-jose library; signing
+              secret read from environment variable (JWT_SECRET_KEY)
+    AC-002-5: POST /api/auth/refresh accepts refresh_token; returns new
+              access_token; refresh token rotated
+    AC-002-6: GET /api/auth/me requires valid Bearer token; returns user
+              profile (user_id, email, role, display_name)
+    AC-002-7: Email uniqueness enforced; duplicate signup returns appropriate
+              error (not HTTP 500)
+    AC-002-8: All 8 test cases in test_auth.py pass: user creation, duplicate
+              prevention, login success, login failure, token creation,
+              token decoding, case-insensitive email, user lookup
+
+  Definition of Done:
+    - 8 test_auth.py tests passing
+    - No secrets hardcoded
+    - Code merged and test suite at 100%
+
+────────────────────────────────────────────────────────────────────────────────
+STORY: SENT-003
+────────────────────────────────────────────────────────────────────────────────
+  Story ID:     SENT-003
+  Title:        4-Tier RBAC Middleware — Viewer/User/Operator/Admin
+  Epic:         EPIC-001
+  Status:       DONE
+  Story Points: 8
+  Sprint:       Sprint 2
+  Priority:     CRITICAL
+
+  Description:
+    As a security architect, I need role-based access control enforced at
+    the API layer via FastAPI dependency injection, with four distinct tiers
+    (Viewer, User, Operator, Admin) that restrict access to routes based on
+    authenticated user role.
+
+  Acceptance Criteria:
+    AC-003-1: Four role tiers defined: Viewer (1), User (2), Operator (3),
+              Admin (4); tier hierarchy enforced numerically
+    AC-003-2: require_role() FastAPI dependency verifiable: extracts JWT,
+              decodes role claim, compares against required minimum tier;
+              returns HTTP 403 on insufficient role
+    AC-003-3: Viewer tier: permitted to read /api/status, /api/metrics,
+              /api/cog/threads, /api/cog/stats, /api/cog/rules (GET),
+              /api/glyphs/aliases, /api/sync/snapshot, /api/glyphs/boot
+    AC-003-4: User tier: additionally permitted POST /api/cog/process,
+              GET /api/cog/memory, POST /api/cog/seeds, POST /api/glyphs/
+              interpret, POST /api/sync/update, /ws/sync
+    AC-003-5: Operator tier: additionally permitted PUT /api/cog/rules,
+              DELETE /api/cog/memory, POST /api/glyphs/pack,
+              GET /api/jobs/{id}
+    AC-003-6: Admin tier: additionally permitted POST /api/stress and all
+              remaining routes; admin_guard dual-control enforced
+    AC-003-7: API key registration system implemented for machine-to-machine
+              auth separate from JWT user auth
+    AC-003-8: All 8 test cases in test_rbac.py pass; each tier boundary
+              verified with accept and reject tests
+
+  Definition of Done:
+    - 8 test_rbac.py tests passing
+    - All 76 routes have RBAC requirements applied
+    - Code merged; full test suite at 100%
+
+────────────────────────────────────────────────────────────────────────────────
+STORY: SENT-004
+────────────────────────────────────────────────────────────────────────────────
+  Story ID:     SENT-004
+  Title:        Token Bucket Rate Limiter with Per-IP Tracking
+  Epic:         EPIC-001
+  Status:       DONE
+  Story Points: 5
+  Sprint:       Sprint 2
+  Priority:     HIGH
+
+  Description:
+    As an operations engineer, I need an in-memory token bucket rate limiter
+    that limits requests per client IP address to protect against abuse,
+    prevent Azure OpenAI quota exhaustion, and maintain platform availability
+    for all users.
+
+  Acceptance Criteria:
+    AC-004-1: RateLimiter class implemented in backend/core/security.py;
+              token bucket algorithm with per-IP state tracking
+    AC-004-2: Configurable via environment variables: RATE_LIMIT_ENABLED
+              (bool), RATE_LIMIT_RPM (int), RATE_LIMIT_BURST (int)
+    AC-004-3: Requests within token allowance proceed normally; no latency
+              impact on successful requests
+    AC-004-4: Requests exceeding token budget return HTTP 429 "Rate limit
+              exceeded"; no downstream service calls made on 429
+    AC-004-5: Token refill rate: RPM / 60 tokens per second; capped at
+              BURST maximum
+    AC-004-6: RATE_LIMIT_ENABLED=false disables limiter entirely (dev/test
+              convenience)
+    AC-004-7: Rate limiter registered as global FastAPI dependency in main.py;
+              applies to all routes
+
+  Definition of Done:
+    - Rate limiter tests passing
+    - Integration test: sustained request flood triggers 429
+    - Code merged; full test suite at 100%
+
+────────────────────────────────────────────────────────────────────────────────
+STORY: SENT-005
+────────────────────────────────────────────────────────────────────────────────
+  Story ID:     SENT-005
+  Title:        Environment-Driven Configuration with is_production Flag
+  Epic:         EPIC-001
+  Status:       DONE
+  Story Points: 3
+  Sprint:       Sprint 1
+  Priority:     HIGH
+
+  Description:
+    As a platform engineer, I need all application configuration read from
+    environment variables via a centralised Pydantic Settings class, with
+    an is_production flag that drives security enforcement differences
+    between development and production modes.
+
+  Acceptance Criteria:
+    AC-005-1: config.py implements Pydantic BaseSettings class with all
+              required environment variable fields
+    AC-005-2: is_production bool property derived from environment; drives
+              security guard behavior in security.py
+    AC-005-3: In production mode (is_production=True): missing API_KEY
+              returns HTTP 503; strict auth enforcement
+    AC-005-4: In development mode (is_production=False): missing API_KEY
+              allows all requests through (developer convenience)
+    AC-005-5: MOCK_AI=true flag activates mock AI adapter; no Azure OpenAI
+              calls made; all 40 tests runnable without credentials
+    AC-005-6: All secret fields (API keys, JWT secret) validated to be
+              non-empty in production mode; startup fails loudly rather
+              than running silently misconfigured
+
+  Definition of Done:
+    - Configuration validation tested
+    - MOCK_AI=true verified to enable zero-credential test execution
+    - Code merged; full test suite at 100%
+
+================================================================================
+SECTION 3 — EPIC-002: COGNITIVE ENGINE
+================================================================================
+
+  Epic ID:      EPIC-002
+  Epic Name:    Cognitive Engine
+  Phase:        Phase 2 — The Wiring
+  Status:       DONE
+  Total SP:     55 story points
+  Completed SP: 55 (100%)
+  Sprint:       Sprint 3-5 (Q1 2026)
+  Description:  Implement the full cognitive processing pipeline including
+                intent classification, thread management, memory lattice,
+                glyphic protocol, and real-time WebSocket synchronization.
+
+────────────────────────────────────────────────────────────────────────────────
+STORY: SENT-006
+────────────────────────────────────────────────────────────────────────────────
+  Story ID:     SENT-006
+  Title:        Cognitive Processing Endpoint POST /api/cog/process
+  Epic:         EPIC-002
+  Status:       DONE
+  Story Points: 13
+  Sprint:       Sprint 3
+  Priority:     CRITICAL (core platform value)
+
+  Description:
+    As a VR Studios user, I need to submit data to the cognitive processing
+    engine and receive a structured response including the AI-processed output,
+    intent classification, processing metadata, and performance timing.
+
+  Acceptance Criteria:
+    AC-006-1: POST /api/cog/process accepts {data: any} request body;
+              processes through CognitiveOrchestrator pipeline
+    AC-006-2: Response schema: {input, output, processing_time, metadata}
+              where metadata includes intent, topic, thread_id
+    AC-006-3: In MOCK_AI mode: structured mock response returned without
+              Azure OpenAI call; consistent schema maintained
+    AC-006-4: In production mode: input routed through Azure OpenAI GPT
+              deployment with VR Studios system prompt
+    AC-006-5: Processing time measured and returned in milliseconds;
+              P95 target < 500ms (KPI-002)
+    AC-006-6: Successful processing updates cognitive thread in Cosmos DB;
+              intent count incremented in metrics
+    AC-006-7: User+ RBAC tier required; Viewer receives HTTP 403
+    AC-006-8: Errors from Azure OpenAI returned as HTTP 503 with detail;
+              no unhandled exceptions exposed to caller
+
+  Definition of Done:
+    - test_cognition.py: process endpoint tests passing
+    - P95 latency measured in staging; within target
+    - Code merged; full test suite at 100%
+
+────────────────────────────────────────────────────────────────────────────────
+STORY: SENT-007
+────────────────────────────────────────────────────────────────────────────────
+  Story ID:     SENT-007
+  Title:        Thread and Intent Management — GET /api/cog/threads and /stats
+  Epic:         EPIC-002
+  Status:       DONE
+  Story Points: 8
+  Sprint:       Sprint 3
+  Priority:     HIGH
+
+  Description:
+    As a platform user, I need to view my cognitive conversation threads,
+    retrieve thread details with message history, and access aggregate
+    statistics on intents and topics processed by the platform.
+
+  Acceptance Criteria:
+    AC-007-1: GET /api/cog/threads returns list of threads; optional ?topic=x
+              filter by topic; Viewer+ access
+    AC-007-2: GET /api/cog/threads/{id} returns thread detail with message
+              history; optional ?limit=50 parameter; Viewer+ access
+    AC-007-3: GET /api/cog/stats returns {intents: {...}, topics: {...}}
+              aggregate counts; matches Prometheus qnf_intent_count and
+              qnf_topic_count metrics
+    AC-007-4: Thread records persist in Azure Cosmos DB across sessions
+    AC-007-5: Thread list paginates correctly for large thread counts
+    AC-007-6: GET /api/cog/matrix returns token matrix per topic with
+              optional ?top_k=20 parameter
+
+  Definition of Done:
+    - Cognition tests covering thread retrieval passing
+    - Code merged; full test suite at 100%
+
+────────────────────────────────────────────────────────────────────────────────
+STORY: SENT-008
+────────────────────────────────────────────────────────────────────────────────
+  Story ID:     SENT-008
+  Title:        Seed and Glyph System — Aliases and Bulk Pack
+  Epic:         EPIC-002
+  Status:       DONE
+  Story Points: 8
+  Sprint:       Sprint 4
+  Priority:     HIGH
+
+  Description:
+    As a cognitive platform operator, I need to manage seeds (context
+    injection artifacts) and glyphs (symbolic aliases) for the cognitive
+    processing system, including bulk pack operations for rapid configuration.
+
+  Acceptance Criteria:
+    AC-008-1: GET /api/cog/seeds returns current seed list: {seeds: [...]}
+    AC-008-2: POST /api/cog/seeds accepts {items: [...]} for upsert of
+              seed records; User+ access
+    AC-008-3: GET /api/glyphs/aliases returns full alias map
+    AC-008-4: POST /api/glyphs/pack accepts {shapes: {...}} for bulk
+              registration of seeds, rules, and aliases; Operator+ access
+    AC-008-5: Seed and alias data persisted in Azure Cosmos DB; survives
+              application restart
+    AC-008-6: Bulk pack operation is atomic; partial failures roll back
+
+  Definition of Done:
+    - Seed and glyph CRUD tests passing
+    - Code merged; full test suite at 100%
+
+────────────────────────────────────────────────────────────────────────────────
+STORY: SENT-009
+────────────────────────────────────────────────────────────────────────────────
+  Story ID:     SENT-009
+  Title:        Glyphic Sequence Interpreter POST /api/glyphs/interpret
+  Epic:         EPIC-002
+  Status:       DONE
+  Story Points: 5
+  Sprint:       Sprint 4
+  Priority:     HIGH
+
+  Description:
+    As a platform developer, I need an endpoint that interprets glyphic
+    sequences (e.g., "APEX->CORE->EMIT") and returns the resolved tokens,
+    topics, and routing path for use in cognitive orchestration.
+
+  Acceptance Criteria:
+    AC-009-1: POST /api/glyphs/interpret accepts {sequence: "APEX->CORE->EMIT"};
+              User+ access
+    AC-009-2: Response: {tokens: [...], topics: [...], route: "..."}
+    AC-009-3: Sequence parsed by -> delimiter; each token looked up in alias
+              and seed registries
+    AC-009-4: Unknown tokens handled gracefully; partial interpretation returned
+              with unknown token flagged
+    AC-009-5: POST /api/glyphs/validate accepts {sequence: [...]} and returns
+              validity status; Viewer+ access
+    AC-009-6: GET /api/glyphs/boot returns boot steps for glyphic system
+              initialization
+    AC-009-7: Input validation via Pydantic; invalid sequence formats return
+              HTTP 422 not HTTP 500
+
+  Definition of Done:
+    - Glyphic interpreter tests passing
+    - Input validation verified for edge cases
+    - Code merged; full test suite at 100%
+
+────────────────────────────────────────────────────────────────────────────────
+STORY: SENT-010
+────────────────────────────────────────────────────────────────────────────────
+  Story ID:     SENT-010
+  Title:        WebSocket Real-Time Sync /ws/sync with NDJSON Stream
+  Epic:         EPIC-002
+  Status:       DONE
+  Story Points: 13
+  Sprint:       Sprint 5
+  Priority:     HIGH
+
+  Description:
+    As a VR Studios frontend application, I need a persistent WebSocket
+    connection that streams real-time cognitive events and state updates in
+    NDJSON format, enabling the application to react to cognitive processing
+    results and tri-node state changes without polling.
+
+  Acceptance Criteria:
+    AC-010-1: /ws/sync WebSocket endpoint accepts upgrade requests
+    AC-010-2: websocket_require_api_key() enforces auth before connection
+              accepted; invalid key rejects with HTTP 401
+    AC-010-3: Auth accepts X-API-Key header OR ?api_key= query parameter
+    AC-010-4: NDJSON stream: each JSON object on a new line (no array wrapper)
+    AC-010-5: Message type "cog.intent": emitted on each cognitive processing
+              event; includes intent classification, topic, thread_id
+    AC-010-6: Message type "sync.update": emitted on tri-node state changes
+    AC-010-7: POST /api/sync/update {agent, state:{...}} updates tri-node
+              state; User+ access
+    AC-010-8: GET /api/sync/snapshot returns current session snapshot; Viewer+
+    AC-010-9: GET /api/sync/trinode returns roles and presence; Viewer+
+    AC-010-10: Connection maintained until client closes; reconnection handled
+               gracefully without state loss
+
+  Definition of Done:
+    - WebSocket connection test passing (connect, receive message, disconnect)
+    - Auth rejection test passing (invalid key returns 401)
+    - Code merged; full test suite at 100%
+
+────────────────────────────────────────────────────────────────────────────────
+STORY: SENT-011
+────────────────────────────────────────────────────────────────────────────────
+  Story ID:     SENT-011
+  Title:        Memory Lattice with Vector Storage
+  Epic:         EPIC-002
+  Status:       DONE
+  Story Points: 8
+  Sprint:       Sprint 4
+  Priority:     HIGH
+
+  Description:
+    As a cognitive platform user, I need the system to maintain a persistent
+    memory lattice of Notes with vector embeddings, enabling semantic retrieval
+    of relevant context for cognitive processing (RAG pattern).
+
+  Acceptance Criteria:
+    AC-011-1: Note domain model: Entity base + text, tag, vector(Optional
+              List[float]), metadata(Dict[str,Any]); persisted to Cosmos DB
+    AC-011-2: GET /api/cog/memory returns lattice contents; User+ access
+    AC-011-3: DELETE /api/cog/memory clears entire lattice; Operator+ access
+    AC-011-4: GET /api/cog/prime returns prime cognitive metrics including
+              lattice statistics; Viewer+ access
+    AC-011-5: MemorySnapshot entity captures summary, active_nodes, and
+              entropy_level at point in time
+    AC-011-6: Vector embeddings generated via Azure OpenAI embeddings API
+              in production; mock vectors in MOCK_AI mode
+    AC-011-7: Memory retrieval precision target: >90% (KPI-006)
+    AC-011-8: Memory lattice accessible across sessions (Cosmos DB persistence)
+
+  Definition of Done:
+    - Memory CRUD tests passing
+    - Vector field correctly typed (List[float] or None)
+    - Code merged; full test suite at 100%
+
+================================================================================
+SECTION 4 — EPIC-003: VR STUDIOS PILOT
+================================================================================
+
+  Epic ID:      EPIC-003
+  Epic Name:    VR Studios Pilot
+  Phase:        Phase 3 — The Pilot
+  Status:       DONE
+  Total SP:     47 story points
+  Completed SP: 47 (100%)
+  Sprint:       Sprint 6-8 (Q1 2026)
+  Description:  Deliver all components required for the VR Studios pilot
+                deployment on Azure App Service, including production
+                infrastructure, security hardening, billing, and legal
+                compliance.
+
+────────────────────────────────────────────────────────────────────────────────
+STORY: SENT-012
+────────────────────────────────────────────────────────────────────────────────
+  Story ID:     SENT-012
+  Title:        Gradio Frontend Integration for Dev/Fallback
+  Epic:         EPIC-003
+  Status:       DONE
+  Story Points: 5
+  Sprint:       Sprint 6
+  Priority:     MEDIUM
+
+  Description:
+    As a VR Studios pilot user and as a developer, I need a Gradio-based
+    interface connected to the Sentinel API for development access and as
+    a fallback when the production SPA is unavailable.
+
+  Acceptance Criteria:
+    AC-012-1: Gradio interface integrated and mounted in FastAPI app
+    AC-012-2: All core Sentinel API operations accessible via Gradio UI
+    AC-012-3: Gradio interface usable as fallback during Azure OpenAI outage
+              when MOCK_AI=true is activated
+    AC-012-4: Gradio available at development endpoint; not exposed as
+              primary production interface
+    AC-012-5: dashboard.html scaffold created in /frontend/ for production
+              SPA placeholder
+
+  Definition of Done:
+    - Gradio interface renders and calls API correctly
+    - Code merged; full test suite at 100%
+
+────────────────────────────────────────────────────────────────────────────────
+STORY: SENT-013
+────────────────────────────────────────────────────────────────────────────────
+  Story ID:     SENT-013
+  Title:        Azure OpenAI Adapter with AAD Token Warmup
+  Epic:         EPIC-003
+  Status:       DONE
+  Story Points: 8
+  Sprint:       Sprint 6
+  Priority:     CRITICAL
+
+  Description:
+    As a production deployment engineer, I need the Azure OpenAI adapter
+    to authenticate via Azure Active Directory credentials and pre-warm
+    the AAD token during application startup to eliminate cold-start
+    authentication latency.
+
+  Acceptance Criteria:
+    AC-013-1: Azure OpenAI adapter reads AZURE_OPENAI_KEY, AZURE_OPENAI_
+              ENDPOINT, and deployment name from environment configuration
+    AC-013-2: AAD token warmup executed in FastAPI lifespan startup event;
+              token pre-acquired before first request
+    AC-013-3: MOCK_AI=true flag bypasses all Azure OpenAI calls; returns
+              structured mock responses with correct schema
+    AC-013-4: Azure OpenAI errors caught and returned as HTTP 503 with detail
+    AC-013-5: VR Studios system prompt configurable via environment variable;
+              persona tuning without code changes
+
+  Definition of Done:
+    - AAD warmup verified in staging with real Azure credentials
+    - MOCK_AI mode verified in test suite (40/40 passing)
+    - Code merged; full test suite at 100%
+
+────────────────────────────────────────────────────────────────────────────────
+STORY: SENT-014
+────────────────────────────────────────────────────────────────────────────────
+  Story ID:     SENT-014
+  Title:        Azure Cosmos DB Repository Layer
+  Epic:         EPIC-003
+  Status:       DONE
+  Story Points: 8
+  Sprint:       Sprint 6
+  Priority:     CRITICAL
+
+  Description:
+    As a platform engineer, I need a repository abstraction layer over Azure
+    Cosmos DB that implements the repository pattern, provides typed entity
+    access, runs migrations on read, and isolates all Cosmos SDK usage
+    from the service layer.
+
+  Acceptance Criteria:
+    AC-014-1: CosmosRepository class implements get, upsert, delete, list,
+              and query operations against Azure Cosmos DB
+    AC-014-2: Repository pattern: service layer accesses data only via
+              repository interface; no direct Cosmos SDK calls in services
+    AC-014-3: Upgrade-on-read: MigrationRunner.upgrade() called on every
+              entity read; entities returned in current schema version
+    AC-014-4: 4 baseline migrations registered and applied: tag, vector,
+              metadata, timestamp fields
+    AC-014-5: 6 migration tests in test_migrations.py passing (100%)
+    AC-014-6: Connection pooling via azure-cosmos SDK; retry logic for
+              transient failures
+
+  Definition of Done:
+    - 6 test_migrations.py tests passing
+    - Cosmos DB repository functional in staging environment
+    - Code merged; full test suite at 100%
+
+────────────────────────────────────────────────────────────────────────────────
+STORY: SENT-015
+────────────────────────────────────────────────────────────────────────────────
+  Story ID:     SENT-015
+  Title:        Docker + nginx Production Deployment with TLS
+  Epic:         EPIC-003
+  Status:       DONE
+  Story Points: 8
+  Sprint:       Sprint 7
+  Priority:     CRITICAL
+
+  Description:
+    As an operations engineer, I need a production-ready Docker and nginx
+    configuration that enforces TLS 1.2/1.3, injects security headers,
+    proxies WebSocket connections, and runs via docker-compose on Azure
+    App Service.
+
+  Acceptance Criteria:
+    AC-015-1: Dockerfile builds successfully; Python app runs under
+              Gunicorn + Uvicorn worker class
+    AC-015-2: docker-compose.yml defines sentinel and nginx services;
+              nginx depends on sentinel; internal Docker network isolated
+    AC-015-3: nginx.conf: TLS 1.2/1.3 only (TLSv1.0/1.1 disabled)
+    AC-015-4: nginx injects: HSTS, CSP, X-Frame-Options, X-XSS-Protection,
+              X-Content-Type-Options headers on all responses
+    AC-015-5: nginx routes /api/* to FastAPI; /ws/* to WebSocket with
+              correct Upgrade/Connection headers
+    AC-015-6: SSL certificate mounted via Docker volume; certificate path
+              configurable without Dockerfile change
+    AC-015-7: docker-compose up launches full production stack; GET /api/
+              healthz returns 204 after startup
+
+  Definition of Done:
+    - docker-compose up succeeds in staging
+    - SSL certificate correctly loaded; HTTPS access verified
+    - Security headers verified via curl -I
+    - Code merged; full test suite at 100%
+
+────────────────────────────────────────────────────────────────────────────────
+STORY: SENT-016
+────────────────────────────────────────────────────────────────────────────────
+  Story ID:     SENT-016
+  Title:        Stripe Billing Integration — 3-Tier Pricing
+  Epic:         EPIC-003
+  Status:       DONE
+  Story Points: 13
+  Sprint:       Sprint 7-8
+  Priority:     HIGH
+
+  Description:
+    As a business owner, I need Stripe payment integration with three pricing
+    tiers (Starter $29/Pro $99/Enterprise $299), checkout sessions, webhook
+    handling, subscription management, and a billing portal for customers.
+
+  Acceptance Criteria:
+    AC-016-1: Three plans defined: Starter $29/mo, Pro $99/mo, Enterprise
+              $299/mo; plan definitions include features list per tier
+    AC-016-2: POST /api/billing/checkout creates Stripe checkout session;
+              returns redirect URL; User+ access
+    AC-016-3: POST /api/billing/webhook verifies Stripe-Signature header;
+              processes payment_intent.succeeded and invoice events
+    AC-016-4: GET /api/billing/status returns current subscription tier
+              and status for authenticated user
+    AC-016-5: GET /api/billing/plans returns plan definitions to unauthenticated
+              callers (for pricing page display)
+    AC-016-6: POST /api/billing/portal creates Stripe billing portal session
+              for subscription management
+    AC-016-7: Mock mode: when STRIPE_SECRET_KEY not configured, mock responses
+              returned; platform functional without live Stripe keys
+    AC-016-8: All billing tests in test_billing.py passing (~8 tests)
+
+  Definition of Done:
+    - test_billing.py tests passing
+    - Stripe integration tested with Stripe test keys in staging
+    - Webhook signature verification confirmed
+    - Code merged; full test suite at 100%
+
+────────────────────────────────────────────────────────────────────────────────
+STORY: SENT-017
+────────────────────────────────────────────────────────────────────────────────
+  Story ID:     SENT-017
+  Title:        Azure App Service Deployment Pipeline
+  Epic:         EPIC-003
+  Status:       DONE
+  Story Points: 5
+  Sprint:       Sprint 8
+  Priority:     HIGH
+
+  Description:
+    As an operations engineer, I need a repeatable Azure App Service deployment
+    pipeline that delivers the containerized Sentinel Forge platform to
+    production with correct environment variable configuration.
+
+  Acceptance Criteria:
+    AC-017-1: Azure App Service deployment documented and reproducible
+    AC-017-2: Environment variables injectable via Azure App Service
+              configuration settings (not baked into Docker image)
+    AC-017-3: POST-deployment smoke test: GET /api/healthz returns 204;
+              GET /api/readyz returns 200
+    AC-017-4: VR Studios pilot deployment active and serving traffic
+    AC-017-5: Deployment rollback procedure documented
+
+  Definition of Done:
+    - VR Studios pilot deployment live on Azure App Service
+    - Health checks passing post-deployment
+    - Code merged; full test suite at 100%
+
+================================================================================
+SECTION 5 — EPIC-004: PRODUCTION HARDENING
+================================================================================
+
+  Epic ID:      EPIC-004
+  Epic Name:    Production Hardening
+  Phase:        Phase 4 (partial) — Current sprint focus
+  Status:       IN PROGRESS
+  Total SP:     39 story points
+  Completed SP: 10 (26%)
+  Sprint:       Sprint 9-11 (Q2 2026)
+  Description:  Harden the platform for full production readiness beyond the
+                VR Studios pilot, including monitoring, load testing, and
+                completing the evaluation framework.
+
+────────────────────────────────────────────────────────────────────────────────
+STORY: SENT-018
+────────────────────────────────────────────────────────────────────────────────
+  Story ID:     SENT-018
+  Title:        Production SPA Frontend — React + Tailwind
+  Epic:         EPIC-004
+  Status:       IN PROGRESS
+  Story Points: 13
+  Sprint:       Sprint 9-10
+  Priority:     HIGH
+
+  Description:
+    As a VR Studios end user, I need a polished production single-page
+    application with authentication, dashboard, billing management, settings,
+    and a chat interface that consumes the Sentinel Forge API.
+
+  Acceptance Criteria:
+    AC-018-1: React + Vite project scaffolded in /frontend-app/; Tailwind CSS
+              and Shadcn/UI component library configured
+    AC-018-2: Login page: calls POST /api/auth/login; stores JWT in memory
+              (not localStorage); redirects to dashboard on success
+    AC-018-3: Signup page: calls POST /api/auth/signup; redirects to onboarding
+    AC-018-4: Dashboard: displays GET /api/metrics and GET /api/cog/stats data;
+              real-time WebSocket updates via /ws/sync
+    AC-018-5: Billing page: displays subscription status; links to Stripe
+              billing portal; plan upgrade flow
+    AC-018-6: Settings page: profile management via GET/PUT /api/auth/me
+    AC-018-7: Chat interface: production-quality UI for POST /api/cog/process
+    AC-018-8: Responsive design: works on desktop and tablet viewports
+    AC-018-9: Build toolchain: Vite build produces optimized bundle;
+              served by nginx from /frontend/ directory
+
+  Estimated Effort: ~9.5 dev-days across 2 sprints
+
+  Definition of Done:
+    - Login → Dashboard flow functional end-to-end
+    - Billing integration functional with Stripe test mode
+    - Production build deployed and served by nginx
+    - All existing API tests still passing (40/40)
+
+────────────────────────────────────────────────────────────────────────────────
+STORY: SENT-019
+────────────────────────────────────────────────────────────────────────────────
+  Story ID:     SENT-019
+  Title:        Evaluation Framework Data Population
+  Epic:         EPIC-004
+  Status:       IN PROGRESS
+  Story Points: 3
+  Sprint:       Sprint 9
+  Priority:     MEDIUM
+
+  Description:
+    As a compliance engineer, I need the evaluation framework
+    (eval_results.json) populated with actual evaluation run data for
+    all 5 run types (BASELINE, PRECISION, SYMBOLIC, MATHEMATICAL, STRESS)
+    to satisfy the NIST AI RMF MEASURE function requirements.
+
+  Acceptance Criteria:
+    AC-019-1: BASELINE evaluation run: standard cognitive processing quality
+              assessment; results written to eval_results.json
+    AC-019-2: PRECISION evaluation run: intent classification accuracy measured
+              against labeled VR Studios use case dataset
+    AC-019-3: SYMBOLIC evaluation run: glyphic sequence interpretation
+              accuracy for representative sequences
+    AC-019-4: MATHEMATICAL evaluation run: numerical/structured data processing
+    AC-019-5: STRESS evaluation run: P50/P95/P99 latency under simulated load
+    AC-019-6: All 5 runs documented with: run_id, run_type, timestamp,
+              model_version, results including accuracy/precision metrics
+
+  Definition of Done:
+    - eval_results.json populated with all 5 run type records
+    - Results formatted consistently; parseable by evaluation tooling
+    - Code merged; full test suite at 100%
+
+────────────────────────────────────────────────────────────────────────────────
+STORY: SENT-020
+────────────────────────────────────────────────────────────────────────────────
+  Story ID:     SENT-020
+  Title:        Prometheus Metrics Endpoint /api/metrics/prom
+  Epic:         EPIC-004
+  Status:       DONE
+  Story Points: 5
+  Sprint:       Sprint 8
+  Priority:     HIGH
+
+  Description:
+    As an operations engineer, I need a Prometheus-compatible metrics endpoint
+    that exposes platform telemetry in text format for integration with
+    monitoring infrastructure.
+
+  Acceptance Criteria:
+    AC-020-1: GET /api/metrics/prom returns Prometheus text format (Content-Type:
+              text/plain; version=0.0.4)
+    AC-020-2: Exposes: qnf_bus_* (message bus telemetry), qnf_intent_count,
+              qnf_topic_count, qnf_threads_total, qnf_resonance_*
+    AC-020-3: Metrics update in real-time as cognitive operations occur
+    AC-020-4: GET /api/metrics returns same data in compact JSON format
+    AC-020-5: Endpoint accessible to Viewer+ role; no auth required for
+              health check consumers
+
+  Status:       DONE (Sprint 8)
+
+────────────────────────────────────────────────────────────────────────────────
+STORY: SENT-021
+────────────────────────────────────────────────────────────────────────────────
+  Story ID:     SENT-021
+  Title:        Stress Testing Endpoint with Async Job Tracking
+  Epic:         EPIC-004
+  Status:       DONE
+  Story Points: 5
+  Sprint:       Sprint 8
+  Priority:     MEDIUM
+
+  Description:
+    As an engineering QA lead, I need a stress testing endpoint that executes
+    configurable load tests against the cognitive processing pipeline, supports
+    async mode with job tracking, and returns structured performance results.
+
+  Acceptance Criteria:
+    AC-021-1: POST /api/stress accepts {iterations: int, concurrent: bool,
+              async_mode: bool}; Admin+ access required
+    AC-021-2: Synchronous mode: executes iterations and returns StressResult
+              directly in response
+    AC-021-3: Async mode: returns {job_id: "..."} immediately; test runs in
+              background
+    AC-021-4: GET /api/jobs/{job_id} returns job status: pending, running,
+              complete, or failed; Operator+ access
+    AC-021-5: StressResult includes: iterations_completed, success_rate,
+              p50_ms, p95_ms, p99_ms, errors
+    AC-021-6: Concurrent mode executes iterations in parallel; measures
+              concurrent processing capacity
+
+  Status:       DONE (Sprint 8)
+
+────────────────────────────────────────────────────────────────────────────────
+STORY: SENT-022
+────────────────────────────────────────────────────────────────────────────────
+  Story ID:     SENT-022
+  Title:        Automated Load Testing Suite
+  Epic:         EPIC-004
+  Status:       PLANNED
+  Story Points: 8
+  Sprint:       Sprint 11
+  Priority:     MEDIUM
+
+  Description:
+    Automated load testing that validates KPI-001 (uptime) and KPI-002
+    (latency) under realistic VR Studios traffic patterns.
+
+  Acceptance Criteria:
+    AC-022-1: Load test scenarios defined for representative VR Studios
+              usage patterns (concurrent cognitive processing, WebSocket
+              connections, memory lattice operations)
+    AC-022-2: Load test framework selected and configured (Locust or k6)
+    AC-022-3: Test results document P95 latency at 10x, 50x, 100x nominal load
+    AC-022-4: Results feed into KPI-002 baseline documentation
+    AC-022-5: Load test runbook documented for repeatable execution
+
+────────────────────────────────────────────────────────────────────────────────
+STORY: SENT-023
+────────────────────────────────────────────────────────────────────────────────
+  Story ID:     SENT-023
+  Title:        Azure Monitor Integration
+  Epic:         EPIC-004
+  Status:       PLANNED
+  Story Points: 5
+  Sprint:       Sprint 10
+  Priority:     MEDIUM
+
+  Description:
+    Integrate Sentinel Forge structured JSON logs with Azure Monitor for
+    centralized log aggregation, alerting, and KPI dashboard automation.
+
+  Acceptance Criteria:
+    AC-023-1: Structured JSON logs forwarded to Azure Monitor Log Analytics
+    AC-023-2: Alert rules configured for KPI breach thresholds (all 8 KPIs)
+    AC-023-3: Azure Monitor dashboard created showing all 8 KPI gauges
+    AC-023-4: Slack/email notifications configured for CRITICAL and HIGH alerts
+    AC-023-5: Log retention policy configured per Privacy Policy requirements
+
+================================================================================
+SECTION 6 — EPIC-005: MULTI-TENANT EXPANSION (PHASE 4)
+================================================================================
+
+  Epic ID:      EPIC-005
+  Epic Name:    Multi-Tenant Expansion
+  Phase:        Phase 4 — Post-Pilot
+  Status:       PLANNED
+  Total SP:     63 story points
+  Completed SP: 0 (not started)
+  Sprint:       Sprint 12+ (Q3 2026)
+  Description:  Evolve the platform from single-tenant (VR Studios) to a
+                full multi-tenant architecture capable of serving multiple
+                enterprise clients simultaneously with isolation, per-tenant
+                billing, agent swarms, and white-label configuration.
+
+────────────────────────────────────────────────────────────────────────────────
+STORY: SENT-024
+────────────────────────────────────────────────────────────────────────────────
+  Story ID:     SENT-024
+  Title:        Tenant Isolation Layer with Per-Tenant Cosmos DB Containers
+  Epic:         EPIC-005
+  Status:       PLANNED
+  Story Points: 13
+  Sprint:       Sprint 12
+  Priority:     CRITICAL (blocking all other EPIC-005 stories)
+
+  Description:
+    As a platform architect, I need per-tenant data isolation so that
+    multiple enterprise clients can run on the same platform infrastructure
+    without data leakage between tenants.
+
+  Acceptance Criteria:
+    AC-024-1: Tenant ID introduced as first-class entity; all data scoped
+              to tenant_id
+    AC-024-2: Per-tenant Cosmos DB containers OR partition key-based
+              isolation implemented; no cross-tenant data access possible
+    AC-024-3: JWT claims extended to include tenant_id; RBAC enforces
+              tenant scope on all data operations
+    AC-024-4: Tenant provisioning API: POST /api/admin/tenants (Admin only)
+    AC-024-5: Existing VR Studios data migrated to tenant_id scope without
+              data loss
+    AC-024-6: Tenant isolation verified by security test: tenant A cannot
+              access tenant B data
+
+────────────────────────────────────────────────────────────────────────────────
+STORY: SENT-025
+────────────────────────────────────────────────────────────────────────────────
+  Story ID:     SENT-025
+  Title:        Per-Tenant Billing Configuration via Stripe
+  Epic:         EPIC-005
+  Status:       PLANNED
+  Story Points: 8
+  Sprint:       Sprint 12
+  Priority:     HIGH
+
+  Description:
+    As a business operator, I need each tenant to have their own Stripe
+    billing configuration, subscription management, and usage metering
+    so that the platform can serve multiple paying enterprise clients.
+
+  Acceptance Criteria:
+    AC-025-1: Per-tenant Stripe customer ID stored and managed
+    AC-025-2: Subscription status scoped per-tenant; one tenant's subscription
+              change does not affect others
+    AC-025-3: Per-tenant usage metering for API calls and cognitive processing
+    AC-025-4: Billing portal scoped to tenant; users see only their own billing
+    AC-025-5: Multi-tenant billing reports for platform operator
+
+────────────────────────────────────────────────────────────────────────────────
+STORY: SENT-026
+────────────────────────────────────────────────────────────────────────────────
+  Story ID:     SENT-026
+  Title:        Agent Swarm Orchestration Framework
+  Epic:         EPIC-005
+  Status:       PLANNED
+  Story Points: 21
+  Sprint:       Sprint 13-14
+  Priority:     MEDIUM
+
+  Description:
+    As a platform engineer, I need an agent swarm orchestration framework
+    that coordinates multiple specialized AI sub-agents, routes tasks based
+    on intent classification, and aggregates results through the cognitive
+    processing pipeline.
+
+  Acceptance Criteria:
+    AC-026-1: Agent registry: POST /api/agents/register; GET /api/agents/list
+    AC-026-2: Task routing: intent classification from /api/cog/process
+              directs tasks to appropriate specialist agent
+    AC-026-3: Agent swarm execution: POST /api/swarm/execute orchestrates
+              multi-agent workflow; returns aggregated result
+    AC-026-4: Cross-agent memory sharing via memory lattice (shared Note
+              entities within tenant scope)
+    AC-026-5: Swarm execution tracked as async jobs via /api/jobs/{job_id}
+    AC-026-6: Agent isolation: one agent's failure does not block swarm result
+    AC-026-7: Swarm performance: P95 latency < 2000ms for 3-agent swarms
+
+────────────────────────────────────────────────────────────────────────────────
+STORY: SENT-027
+────────────────────────────────────────────────────────────────────────────────
+  Story ID:     SENT-027
+  Title:        White-Label Configuration Per Tenant
+  Epic:         EPIC-005
+  Status:       PLANNED
+  Story Points: 8
+  Sprint:       Sprint 13
+  Priority:     LOW
+
+  Description:
+    As a tenant administrator, I need to configure branding, persona,
+    and feature flags for my tenant's Sentinel Forge deployment without
+    code changes.
+
+  Acceptance Criteria:
+    AC-027-1: Per-tenant configuration: logo URL, primary color, platform name
+    AC-027-2: Per-tenant AI persona: system prompt configurable per tenant
+    AC-027-3: Feature flags per tenant: enable/disable glyphic protocol,
+              memory lattice, stress testing
+    AC-027-4: Configuration stored in Cosmos DB tenant config container
+    AC-027-5: Configuration API: GET/PUT /api/admin/tenants/{id}/config (Admin)
+
+────────────────────────────────────────────────────────────────────────────────
+STORY: SENT-028
+────────────────────────────────────────────────────────────────────────────────
+  Story ID:     SENT-028
+  Title:        Multi-Tenant Admin Dashboard
+  Epic:         EPIC-005
+  Status:       PLANNED
+  Story Points: 13
+  Sprint:       Sprint 14
+  Priority:     MEDIUM
+
+  Description:
+    As a platform operator, I need an admin dashboard that provides visibility
+    across all tenants: usage statistics, billing status, user counts, and
+    health metrics per tenant.
+
+  Acceptance Criteria:
+    AC-028-1: Admin dashboard accessible at /admin/ (Admin role only)
+    AC-028-2: Tenant list with: name, plan tier, active users, API calls
+              in current period, subscription status
+    AC-028-3: Per-tenant drill-down: usage trends, cognitive processing volume,
+              memory lattice size, error rates
+    AC-028-4: Tenant management actions: provision, suspend, configure,
+              billing override (platform Admin only)
+    AC-028-5: Real-time dashboard: WebSocket updates for live tenant metrics
+
+================================================================================
+SECTION 7 — VELOCITY TRACKING
+================================================================================
+
+  Sprint    Stories Completed   SP Completed   Notes
+  ──────   ─────────────────   ────────────   ─────────────────────────────
+  Sprint 1  SENT-001,SENT-005  8              App scaffold + config
+  Sprint 2  SENT-002,SENT-003  16             JWT auth + RBAC (8 tests each)
+            SENT-004           5              Rate limiter (added mid-sprint)
+  Sprint 3  SENT-006,SENT-007  21             Cognitive processing + threads
+  Sprint 4  SENT-008,SENT-009  13             Seeds, glyphs, interpreter
+            SENT-011           8              Memory lattice
+  Sprint 5  SENT-010           13             WebSocket /ws/sync
+  Sprint 6  SENT-012,SENT-013  13             Gradio + Azure OpenAI adapter
+            SENT-014           8              Cosmos DB repository + migrations
+  Sprint 7  SENT-015,SENT-016  21             Docker+nginx+TLS + Stripe billing
+  Sprint 8  SENT-017,SENT-020  10             Azure App Service + Prometheus
+            SENT-021           5              Stress testing endpoint
+  ──────   ─────────────────   ────────────   ─────────────────────────────
+  TOTAL     Phases 1-3 + part    141 SP       100% of committed work complete
+            Phase 4                           All 40 tests passing
+
+================================================================================
+DOCUMENT FOOTER
+================================================================================
+  Document ID:          SENTINEL-PRODUCT-BACKLOG-001
+  Version:              v001
+  Classification:       ENTERPRISE CONFIDENTIAL — INTERNAL USE ONLY
+  Effective Date:       2026-04-24
+  Next Review:          2026-05-08 (bi-weekly sprint cadence)
+  Total Epics:          5 (EPIC-001 through EPIC-005)
+  Total Stories:        28 (SENT-001 through SENT-028)
+  Total Story Points:   233
+  Completed SP:         141 (60% — Phases 1-3 + partial Phase 4)
+  In Progress SP:       16 (SENT-018, SENT-019)
+  Planned SP:           76 (SENT-022 through SENT-028)
+================================================================================
+                         END OF DOCUMENT
+================================================================================

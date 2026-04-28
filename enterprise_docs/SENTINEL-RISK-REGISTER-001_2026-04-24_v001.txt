@@ -1,0 +1,782 @@
+================================================================================
+SENTINEL FORGE — ENTERPRISE RISK REGISTER
+================================================================================
+
+Document ID:      SENTINEL-RISK-REGISTER-001
+Document Version: v001
+Effective Date:   2026-04-24
+Classification:   ENTERPRISE CONFIDENTIAL — RISK SENSITIVE
+Status:           APPROVED — ACTIVE
+Review Cycle:     Monthly (risk register review); immediate update on new risk
+Next Review:      2026-05-24
+
+Prepared by:      Engineering (Platform Infrastructure)
+Reviewed by:      Engineering Leadership, Operations, Legal/Compliance
+Distribution:     Engineering, Operations, Legal, Executive (Shannon Bryan Kelly)
+
+Parent Document:  SENTINEL-SDLC-MASTER-001_2026-04-24_v001.txt
+Related:          SENTINEL-SECURITY-PLAN-001 (security controls detail)
+                  SENTINEL-COMPLIANCE-001 (compliance control mapping)
+                  SENTINEL-KPI-DASHBOARD-001 (KPI alert thresholds)
+
+================================================================================
+SECTION 1 — RISK MANAGEMENT FRAMEWORK
+================================================================================
+
+1.1  Risk Scoring Methodology
+
+  Probability Scale (1-5):
+    1 = Rare          (<5% likelihood in 12 months)
+    2 = Unlikely      (5-20% likelihood)
+    3 = Possible      (21-50% likelihood)
+    4 = Likely        (51-80% likelihood)
+    5 = Almost Certain (>80% likelihood)
+
+  Impact Scale (1-5):
+    1 = Negligible    (minimal operational disruption; no customer impact)
+    2 = Minor         (brief service degradation; low customer visibility)
+    3 = Moderate      (measurable service impact; customer notification needed)
+    4 = Significant   (prolonged outage or data exposure; SLA breach)
+    5 = Catastrophic  (complete service loss, data breach, regulatory action)
+
+  Risk Score = Probability × Impact
+
+  Risk Score Bands:
+    1-4    LOW          Accept and monitor
+    5-9    MEDIUM       Mitigate; monitor monthly
+    10-15  HIGH         Mitigate immediately; escalate to Engineering Lead
+    16-25  CRITICAL     Escalate to Executive; immediate remediation
+
+1.2  Risk Register Summary
+
+  Risk ID    Title                              Score   Level   Status
+  ─────────  ───────────────────────────────── ──────  ──────  ──────────────
+  RISK-001   Azure OpenAI API Outage            15      HIGH    MITIGATED
+  RISK-002   Cosmos DB Connection Exhaustion    8       MEDIUM  MITIGATED
+  RISK-003   JWT Token Compromise               5       MEDIUM  MITIGATED
+  RISK-004   WebSocket Connection Storm         9       MEDIUM  MITIGATED
+  RISK-005   Stripe Webhook Replay Attack        4       LOW     MITIGATED
+  RISK-006   RBAC Privilege Escalation          5       MEDIUM  MITIGATED
+  RISK-007   Cognitive Model Drift              9       MEDIUM  MONITORED
+  RISK-008   Data Residency Non-Compliance      8       MEDIUM  MONITORED
+  RISK-009   Rate Limit Bypass via IP Spoofing  4       LOW     MITIGATED
+  RISK-010   Glyphic Sequence Injection         6       MEDIUM  MITIGATED
+
+1.3  NIST AI RMF MAP Function Coverage
+
+  This Risk Register satisfies the NIST AI RMF MAP function requirements by:
+    - Identifying and classifying AI-specific risks (RISK-007, RISK-010)
+    - Mapping vendor dependency risks (RISK-001, RISK-002)
+    - Addressing data residency and privacy risks (RISK-008)
+    - Documenting security risks with probability/impact (all risks)
+    - Maintaining residual risk tracking with current controls
+
+================================================================================
+SECTION 2 — RISK REGISTER (DETAILED)
+================================================================================
+
+================================================================================
+RISK-001: AZURE OPENAI API OUTAGE
+================================================================================
+
+  Risk ID:              RISK-001
+  Risk Title:           Azure OpenAI API Outage
+  Category:             Vendor / Availability
+  NIST AI RMF Category: Third-party AI Risk (MAP function)
+  Owner:                Operations Team
+  Review Date:          2026-05-24
+  Status:               ACTIVE — MITIGATED
+
+  ─────────────────────────────────────────────────────────────────────────────
+  INHERENT RISK (before controls)
+  ─────────────────────────────────────────────────────────────────────────────
+  Probability:     3 (Possible — Azure OpenAI has had periodic service
+                   disruptions historically; Azure regional outages occur
+                   several times per year across the Azure service catalog)
+  Impact:          5 (Catastrophic — Sentinel Forge's core cognitive processing
+                   (POST /api/cog/process), intent classification, memory
+                   embedding, and ChatService all depend on Azure OpenAI;
+                   outage renders the platform's primary value proposition
+                   completely unavailable)
+  Inherent Score:  15 — HIGH RISK
+
+  Risk Description:
+    Azure OpenAI is a third-party managed AI service operated by Microsoft.
+    Any disruption to Azure OpenAI's API availability — whether due to Azure
+    regional outage, Azure OpenAI-specific incident, quota exhaustion,
+    API version deprecation, or network connectivity issues between Azure
+    App Service and Azure OpenAI — will prevent the Sentinel Forge cognitive
+    processing engine from functioning. This directly impacts:
+      - POST /api/cog/process (complete failure)
+      - GET /api/cog/stats and /threads (data becomes stale)
+      - Memory embedding generation (Note.vector not updated)
+      - WebSocket /ws/sync NDJSON stream (no new cognitive events)
+
+  ─────────────────────────────────────────────────────────────────────────────
+  CURRENT CONTROLS
+  ─────────────────────────────────────────────────────────────────────────────
+  Control 1: Gradio Fallback UI
+    Description:  Gradio interface remains operational during Azure OpenAI
+                  outage, providing pilot users (VR Studios) with a degraded
+                  but functional interface
+    Effectiveness: MEDIUM — users can still access the platform but without
+                   live cognitive processing
+
+  Control 2: MOCK_AI Mode
+    Description:  MOCK_AI=true flag in config.py activates mock AI adapter,
+                  which returns structured mock responses without calling
+                  Azure OpenAI; platform remains functional in degraded mode
+    Effectiveness: HIGH — platform continues to serve API requests; responses
+                   are predetermined mocks, not live AI reasoning
+
+  Control 3: Graceful Error Handling
+    Description:  Azure OpenAI errors are caught and returned as structured
+                  HTTP 503 responses with appropriate error detail rather
+                  than unhandled exceptions
+    Effectiveness: MEDIUM — preserves platform stability during outage
+
+  Control 4: Health Monitoring
+    Description:  GET /api/cog/status endpoint monitors orchestrator health;
+                  structured JSON logs enable ELK/CloudWatch alerting on
+                  Azure OpenAI error patterns
+    Effectiveness: HIGH — rapid detection enables rapid response
+
+  ─────────────────────────────────────────────────────────────────────────────
+  RESIDUAL RISK (after controls)
+  ─────────────────────────────────────────────────────────────────────────────
+  Residual Probability:  2 (Unlikely — controls reduce effective impact;
+                         MOCK_AI mode and Gradio fallback provide continuity)
+  Residual Impact:       3 (Moderate — degraded service rather than total
+                         outage; VR Studios must be notified of degraded mode)
+  Residual Score:        6 — MEDIUM RISK
+
+  Planned Enhancements (Phase 4):
+    - Circuit breaker pattern implementation around Azure OpenAI calls
+    - Response caching for frequent cognitive requests
+    - Multi-region Azure OpenAI deployment consideration
+    - Automated MOCK_AI activation on consecutive Azure OpenAI failures
+
+================================================================================
+RISK-002: COSMOS DB CONNECTION EXHAUSTION
+================================================================================
+
+  Risk ID:              RISK-002
+  Risk Title:           Azure Cosmos DB Connection Exhaustion
+  Category:             Infrastructure
+  Owner:                Operations / Engineering
+  Review Date:          2026-05-24
+  Status:               ACTIVE — MITIGATED
+
+  ─────────────────────────────────────────────────────────────────────────────
+  INHERENT RISK
+  ─────────────────────────────────────────────────────────────────────────────
+  Probability:     2 (Unlikely — connection pooling is implemented; requires
+                   sustained high-concurrency traffic exceeding pool limits)
+  Impact:          4 (Significant — Cosmos DB unavailability stops all data
+                   persistence and retrieval; platform becomes stateless
+                   and unable to serve threads, memory, or user accounts)
+  Inherent Score:  8 — MEDIUM-HIGH RISK
+
+  Risk Description:
+    Azure Cosmos DB is the primary persistence layer for all Sentinel Forge
+    data: user accounts, cognitive threads, memory lattice notes, seeds,
+    glyphs, and aliases. Connection exhaustion can occur when concurrent
+    request volume exceeds the Cosmos DB SDK connection pool size, or when
+    network conditions cause connections to be held without release. This
+    risk is compounded during high-traffic periods at VR Studios.
+
+  ─────────────────────────────────────────────────────────────────────────────
+  CURRENT CONTROLS
+  ─────────────────────────────────────────────────────────────────────────────
+  Control 1: Azure Cosmos DB SDK Connection Pooling
+    Description:  azure-cosmos SDK manages connection pooling with automatic
+                  retry logic for transient connection failures
+    Effectiveness: HIGH — SDK handles most transient failures automatically
+
+  Control 2: Health Check Endpoint
+    Description:  GET /api/readyz performs a Cosmos DB connectivity check;
+                  failure visible before customer-facing impact
+    Effectiveness: MEDIUM — enables proactive detection
+
+  Control 3: Rate Limiting
+    Description:  Token bucket rate limiter prevents a single IP from
+                  generating sufficient concurrent requests to exhaust
+                  the connection pool
+    Effectiveness: MEDIUM — prevents abuse-driven exhaustion
+
+  ─────────────────────────────────────────────────────────────────────────────
+  RESIDUAL RISK
+  ─────────────────────────────────────────────────────────────────────────────
+  Residual Probability:  2
+  Residual Impact:       3
+  Residual Score:        6 — MEDIUM RISK
+
+================================================================================
+RISK-003: JWT TOKEN COMPROMISE
+================================================================================
+
+  Risk ID:              RISK-003
+  Risk Title:           JWT Signing Secret or Token Compromise
+  Category:             Security — Authentication
+  Owner:                Engineering (Security)
+  Review Date:          2026-05-24
+  Status:               ACTIVE — MITIGATED
+
+  ─────────────────────────────────────────────────────────────────────────────
+  INHERENT RISK
+  ─────────────────────────────────────────────────────────────────────────────
+  Probability:     1 (Rare — strong controls in place; compromise requires
+                   access to environment variables or memory)
+  Impact:          5 (Catastrophic — JWT signing secret compromise allows
+                   arbitrary token forgery; attacker can impersonate any user
+                   including Admin-tier accounts; complete authentication
+                   bypass)
+  Inherent Score:  5 — MEDIUM (low probability, catastrophic impact)
+
+  Risk Description:
+    The JWT HS256 signing secret (settings.JWT_SECRET_KEY) is the cryptographic
+    root of trust for all authentication in Sentinel Forge. If this secret is
+    exposed — via environment variable leak, source code commit, log capture,
+    or infrastructure compromise — an attacker can forge valid JWT tokens for
+    any user role including Admin. This would bypass all RBAC controls.
+
+    Secondary risk: Individual JWT tokens intercepted in transit could be
+    replayed until expiry. Stateless JWTs cannot be revoked without key rotation.
+
+  ─────────────────────────────────────────────────────────────────────────────
+  CURRENT CONTROLS
+  ─────────────────────────────────────────────────────────────────────────────
+  Control 1: Secret in Environment Variable (Not Source Code)
+    Description:  JWT_SECRET_KEY stored as environment variable only;
+                  security audit confirmed no hardcoded secrets in source
+    Effectiveness: HIGH — prevents source code exposure
+
+  Control 2: HS256 Signing with python-jose
+    Description:  JWT signed with HS256 (HMAC-SHA256); requires secret
+                  knowledge to forge; signature verified on every request
+    Effectiveness: HIGH — cryptographically sound for current threat model
+
+  Control 3: bcrypt Password Hashing
+    Description:  User passwords hashed with bcrypt (one-way); even database
+                  compromise does not expose plaintext passwords
+    Effectiveness: HIGH — removes password-based token forgery vector
+
+  Control 4: Token Expiry
+    Description:  Access tokens have configurable expiry (short duration);
+                  refresh tokens rotate on use
+    Effectiveness: MEDIUM — limits window of replayed token exploitation
+
+  Control 5: Key Rotation Plan
+    Description:  Documented rotation procedure: rotate quarterly or on
+                  suspected compromise; all tokens invalidated on rotation
+    Effectiveness: MEDIUM — operational procedure documented
+
+  ─────────────────────────────────────────────────────────────────────────────
+  RESIDUAL RISK
+  ─────────────────────────────────────────────────────────────────────────────
+  Residual Probability:  1
+  Residual Impact:       3 (reduced from 5 due to short expiry limiting window)
+  Residual Score:        3 — LOW RISK
+
+  Planned Enhancements:
+    - Azure Key Vault integration for secret storage (Phase 4)
+    - Automated key rotation pipeline
+
+================================================================================
+RISK-004: WEBSOCKET CONNECTION STORM
+================================================================================
+
+  Risk ID:              RISK-004
+  Risk Title:           WebSocket Connection Storm
+  Category:             Availability / Denial of Service
+  Owner:                Engineering / Operations
+  Review Date:          2026-05-24
+  Status:               ACTIVE — MITIGATED
+
+  ─────────────────────────────────────────────────────────────────────────────
+  INHERENT RISK
+  ─────────────────────────────────────────────────────────────────────────────
+  Probability:     3 (Possible — WebSocket endpoints are attractive targets
+                   for connection storms; VR Studios multi-user scenarios
+                   could organically generate high WS connection volume)
+  Impact:          3 (Moderate — connection storms exhaust server file
+                   descriptors and connection pool; affects all users;
+                   likely triggers Azure App Service auto-restart)
+  Inherent Score:  9 — MEDIUM-HIGH RISK
+
+  Risk Description:
+    The /ws/sync WebSocket endpoint maintains persistent bidirectional
+    connections for real-time synchronization. A connection storm — either
+    from a malicious actor or from legitimate users reconnecting rapidly
+    after a brief outage — can exhaust server connection limits. Unlike
+    HTTP requests that complete quickly, WebSocket connections persist
+    indefinitely, compounding the resource impact.
+
+  ─────────────────────────────────────────────────────────────────────────────
+  CURRENT CONTROLS
+  ─────────────────────────────────────────────────────────────────────────────
+  Control 1: Token Bucket Rate Limiter (IP-based)
+    Description:  RateLimiter in security.py applies to WebSocket upgrade
+                  requests; prevents a single IP from opening connections
+                  at excessive rate
+    Effectiveness: HIGH — primary defence against single-IP storms
+
+  Control 2: WebSocket Authentication Enforcement
+    Description:  websocket_require_api_key() rejects unauthenticated
+                  connections before they are established in the application
+                  layer; reduces resource consumption for unauthorized attempts
+    Effectiveness: MEDIUM — eliminates anonymous connection storm vectors
+
+  Control 3: nginx Connection Limits
+    Description:  nginx limit_conn configuration restricts simultaneous
+                  connections per IP at the proxy layer
+    Effectiveness: HIGH — network-layer protection before application hit
+
+  ─────────────────────────────────────────────────────────────────────────────
+  RESIDUAL RISK
+  ─────────────────────────────────────────────────────────────────────────────
+  Residual Probability:  2
+  Residual Impact:       3
+  Residual Score:        6 — MEDIUM RISK
+
+================================================================================
+RISK-005: STRIPE WEBHOOK REPLAY ATTACK
+================================================================================
+
+  Risk ID:              RISK-005
+  Risk Title:           Stripe Webhook Replay Attack
+  Category:             Security / Financial
+  Owner:                Engineering
+  Review Date:          2026-05-24
+  Status:               ACTIVE — MITIGATED
+
+  ─────────────────────────────────────────────────────────────────────────────
+  INHERENT RISK
+  ─────────────────────────────────────────────────────────────────────────────
+  Probability:     1 (Rare — requires interception of Stripe webhook
+                   traffic; HTTPS and Stripe signature prevent most
+                   replay attempts)
+  Impact:          4 (Significant — successful replay could grant
+                   subscription access without payment or trigger
+                   fraudulent subscription state changes)
+  Inherent Score:  4 — LOW RISK
+
+  Risk Description:
+    Stripe sends webhook events to POST /api/billing/webhook when subscription
+    events occur (payment succeeded, subscription created, etc.). A replay attack
+    involves an adversary capturing a legitimate webhook payload and re-sending
+    it to trigger the event handler a second time — potentially upgrading a
+    subscription tier without payment.
+
+  ─────────────────────────────────────────────────────────────────────────────
+  CURRENT CONTROLS
+  ─────────────────────────────────────────────────────────────────────────────
+  Control 1: Stripe Webhook Signature Verification
+    Description:  Stripe signs each webhook with a signing secret;
+                  /api/billing/webhook verifies the Stripe-Signature header
+                  using stripe.Webhook.construct_event()
+    Effectiveness: HIGH — cryptographic signature prevents forgery
+
+  Control 2: Timestamp Validation
+    Description:  Stripe includes a timestamp in webhook payloads; Stripe
+                  SDK rejects payloads older than 5 minutes (300 seconds)
+    Effectiveness: HIGH — prevents delayed replay attacks
+
+  Control 3: Idempotency Keys
+    Description:  Stripe event IDs are unique; handler logs processed
+                  event IDs to prevent duplicate processing of the same
+                  legitimate event
+    Effectiveness: MEDIUM — prevents same-event duplicate processing
+
+  ─────────────────────────────────────────────────────────────────────────────
+  RESIDUAL RISK
+  ─────────────────────────────────────────────────────────────────────────────
+  Residual Probability:  1
+  Residual Impact:       2
+  Residual Score:        2 — LOW RISK
+
+================================================================================
+RISK-006: RBAC PRIVILEGE ESCALATION
+================================================================================
+
+  Risk ID:              RISK-006
+  Risk Title:           RBAC Privilege Escalation
+  Category:             Security — Authorization
+  Owner:                Engineering (Security)
+  Review Date:          2026-05-24
+  Status:               ACTIVE — MITIGATED
+
+  ─────────────────────────────────────────────────────────────────────────────
+  INHERENT RISK
+  ─────────────────────────────────────────────────────────────────────────────
+  Probability:     1 (Rare — 4-tier RBAC enforced server-side via FastAPI
+                   dependency injection; no client-side authorization decisions)
+  Impact:          5 (Catastrophic — Admin tier access allows user management,
+                   system configuration, destructive operations, and billing
+                   admin; full platform compromise)
+  Inherent Score:  5 — MEDIUM (low probability, catastrophic if realized)
+
+  Risk Description:
+    Privilege escalation occurs when a lower-tier user (Viewer, User, or
+    Operator) gains access to routes or capabilities reserved for a higher
+    tier. In Sentinel Forge, this would mean a User-tier account accessing
+    Admin-tier operations such as DELETE /api/cog/memory, POST /api/stress,
+    or billing administration routes.
+
+    Attack vectors:
+    - JWT role claim tampering (mitigated by HS256 signing)
+    - RBAC dependency bypass via route discovery
+    - Horizontal escalation between same-tier users
+
+  ─────────────────────────────────────────────────────────────────────────────
+  CURRENT CONTROLS
+  ─────────────────────────────────────────────────────────────────────────────
+  Control 1: Server-side RBAC via FastAPI Dependency Injection
+    Description:  All role requirements enforced as FastAPI Depends() on
+                  each route; no client-side role decisions; role extracted
+                  from JWT claim and verified against required minimum tier
+    Effectiveness: HIGH — server-side enforcement eliminates client bypass
+
+  Control 2: Admin Dual-Control (JWT + API Key)
+    Description:  Admin-tier routes require both valid JWT (admin role) AND
+                  valid X-API-Key header (admin_guard); dual independent
+                  controls must both pass
+    Effectiveness: HIGH — independent controls at different layers
+
+  Control 3: JWT Signature Integrity
+    Description:  Role claim in JWT is protected by HS256 signature;
+                  tampering with the role claim invalidates the signature
+    Effectiveness: HIGH — cryptographic protection of role claims
+
+  Control 4: 8-Test RBAC Test Suite
+    Description:  test_rbac.py verifies 4-tier enforcement with 8 tests;
+                  run on every commit via CI/CD
+    Effectiveness: HIGH — continuous verification of RBAC correctness
+
+  ─────────────────────────────────────────────────────────────────────────────
+  RESIDUAL RISK
+  ─────────────────────────────────────────────────────────────────────────────
+  Residual Probability:  1
+  Residual Impact:       2 (reduced from 5; remaining impact is horizontal
+                          escalation between same-tier users)
+  Residual Score:        2 — LOW RISK
+
+================================================================================
+RISK-007: COGNITIVE MODEL DRIFT
+================================================================================
+
+  Risk ID:              RISK-007
+  Risk Title:           Cognitive Model Drift (AI Quality Degradation)
+  Category:             AI Quality / NIST AI RMF Risk
+  NIST AI RMF Category: MEASURE → MAP (model performance risk)
+  Owner:                Engineering (AI/ML)
+  Review Date:          2026-05-24
+  Status:               ACTIVE — MONITORED
+
+  ─────────────────────────────────────────────────────────────────────────────
+  INHERENT RISK
+  ─────────────────────────────────────────────────────────────────────────────
+  Probability:     3 (Possible — Azure OpenAI model versions change on
+                   Microsoft's schedule; Sentinel Forge uses a specific
+                   deployment but underlying model weights may update)
+  Impact:          3 (Moderate — model drift affects intent classification
+                   accuracy and cognitive output quality; VR Studios users
+                   experience degraded AI responses; trust impact)
+  Inherent Score:  9 — MEDIUM-HIGH RISK
+
+  Risk Description:
+    Cognitive model drift refers to a degradation in the quality or
+    consistency of AI outputs over time, even when no code changes have
+    been made to Sentinel Forge. This can occur when:
+    - Microsoft updates the underlying GPT model weights for the Azure
+      OpenAI deployment used by Sentinel Forge
+    - The VR Studios use case domain evolves beyond the training data
+      distribution of the model
+    - Accumulated cognitive state in threads and memory shifts the
+      effective prompt context over time
+
+    Impact areas:
+    - Intent classification accuracy (KPI-005): accurate intents → misclassification
+    - Memory lattice retrieval precision (KPI-006): relevant notes → irrelevant
+    - Glyphic sequence interpretation quality: routing correctness degraded
+
+  ─────────────────────────────────────────────────────────────────────────────
+  CURRENT CONTROLS
+  ─────────────────────────────────────────────────────────────────────────────
+  Control 1: Evaluation Framework (5 Evaluation Runs)
+    Description:  /evaluation/eval_results.json tracks 5 evaluation run types:
+                  BASELINE, PRECISION, SYMBOLIC, MATHEMATICAL, STRESS;
+                  structured evaluation enables drift detection by comparing
+                  current results against established baselines
+    Effectiveness: MEDIUM — framework established; population in progress
+
+  Control 2: KPI Monitoring (KPI-005, KPI-006)
+    Description:  Intent classification accuracy (KPI-005 target >95%) and
+                  memory retrieval precision (KPI-006 target >90%) measured
+                  on weekly evaluation cadence; decline triggers investigation
+    Effectiveness: MEDIUM — quantified thresholds enable drift detection
+
+  Control 3: Structured Evaluation Test Cases
+    Description:  Known-answer evaluation queries with expected outputs;
+                  enables objective comparison across model versions
+    Effectiveness: MEDIUM — methodology established; execution ongoing
+
+  ─────────────────────────────────────────────────────────────────────────────
+  RESIDUAL RISK
+  ─────────────────────────────────────────────────────────────────────────────
+  Residual Probability:  2
+  Residual Impact:       3
+  Residual Score:        6 — MEDIUM RISK
+
+  Planned Enhancements:
+    - Automated evaluation pipeline (scheduled daily runs)
+    - Azure OpenAI model version pinning (specific deployment version)
+    - Alerting on KPI-005 or KPI-006 breach thresholds
+
+================================================================================
+RISK-008: DATA RESIDENCY NON-COMPLIANCE
+================================================================================
+
+  Risk ID:              RISK-008
+  Risk Title:           Data Residency Non-Compliance
+  Category:             Compliance / Privacy
+  Owner:                Legal / Engineering
+  Review Date:          2026-05-24
+  Status:               ACTIVE — MONITORED
+
+  ─────────────────────────────────────────────────────────────────────────────
+  INHERENT RISK
+  ─────────────────────────────────────────────────────────────────────────────
+  Probability:     2 (Unlikely — Azure provides strong data residency
+                   controls; risk is misconfigurations or VR Studios
+                   cross-regional data requirements not captured)
+  Impact:          4 (Significant — GDPR/CCPA violations carry financial
+                   penalties; potential regulatory enforcement action;
+                   VR Studios contract breach)
+  Inherent Score:  8 — MEDIUM-HIGH RISK
+
+  Risk Description:
+    Sentinel Forge processes and stores personal data (user email addresses,
+    cognitive thread contents, and potentially VR Studios end-user data)
+    in Azure Cosmos DB and Azure OpenAI. Data residency compliance requires
+    that this data is stored and processed within contractually agreed
+    geographic regions. GDPR requires personal data of EU subjects to remain
+    in the EU unless appropriate safeguards are in place.
+
+    Key data flows with residency implications:
+    - User email + hashed password: stored in Azure Cosmos DB (Azure region)
+    - Cognitive thread contents: stored in Cosmos DB; processed via Azure OpenAI
+    - Azure OpenAI inference: data sent to Microsoft AI services (US or
+      configured region)
+
+  ─────────────────────────────────────────────────────────────────────────────
+  CURRENT CONTROLS
+  ─────────────────────────────────────────────────────────────────────────────
+  Control 1: Azure Region Selection
+    Description:  Azure App Service and Cosmos DB deployed in specific
+                  Azure region; region selection drives data residency;
+                  documented in deployment configuration
+    Effectiveness: HIGH — primary control; Azure guarantees data stored in
+                   specified region
+
+  Control 2: Azure Data Processing Agreement
+    Description:  Microsoft Azure's standard DPA covers GDPR compliance for
+                  data processed in Azure services; applicable to Cosmos DB
+                  and Azure OpenAI
+    Effectiveness: MEDIUM — legal coverage established; operational
+                   verification required
+
+  Control 3: Privacy Policy Disclosure
+    Description:  Privacy Policy (/legal/privacy.html) discloses Azure as
+                  data processor and geographic storage location
+    Effectiveness: MEDIUM — legal transparency; does not prevent residency
+                   breach but satisfies disclosure requirements
+
+  ─────────────────────────────────────────────────────────────────────────────
+  RESIDUAL RISK
+  ─────────────────────────────────────────────────────────────────────────────
+  Residual Probability:  1
+  Residual Impact:       4
+  Residual Score:        4 — LOW RISK (controls effective; monitoring required)
+
+================================================================================
+RISK-009: RATE LIMIT BYPASS VIA IP SPOOFING
+================================================================================
+
+  Risk ID:              RISK-009
+  Risk Title:           Rate Limit Bypass via IP Spoofing or Header Manipulation
+  Category:             Security
+  Owner:                Engineering / Operations
+  Review Date:          2026-05-24
+  Status:               ACTIVE — MITIGATED
+
+  ─────────────────────────────────────────────────────────────────────────────
+  INHERENT RISK
+  ─────────────────────────────────────────────────────────────────────────────
+  Probability:     2 (Unlikely — requires attacker to understand rate
+                   limiter implementation and manipulate IP header)
+  Impact:          2 (Minor — rate limit bypass enables slightly higher
+                   request volume from a single actor; secondary controls
+                   (auth, RBAC) still apply)
+  Inherent Score:  4 — LOW RISK
+
+  Risk Description:
+    The RateLimiter in security.py uses request.client.host as the bucket
+    key (the _key() method). In a proxy deployment (nginx → FastAPI), the
+    actual client IP reaches FastAPI via the X-Forwarded-For header. If
+    nginx is not correctly configured to set the real IP, an attacker could
+    manipulate the X-Forwarded-For header to cycle through different IPs,
+    bypassing per-IP rate limiting.
+
+  ─────────────────────────────────────────────────────────────────────────────
+  CURRENT CONTROLS
+  ─────────────────────────────────────────────────────────────────────────────
+  Control 1: nginx proxy_set_header Configuration
+    Description:  nginx sets X-Real-IP and X-Forwarded-For headers from
+                  the actual TCP connection source; FastAPI reads the
+                  trusted IP from the proxy-set header
+    Effectiveness: HIGH — prevents header manipulation from outside nginx
+
+  Control 2: Trusted Proxy Configuration
+    Description:  FastAPI/Uvicorn configured with trusted proxy list;
+                  only proxies on the trusted list can set forwarding headers
+    Effectiveness: MEDIUM — reduces but does not eliminate spoofing risk
+                   if nginx configuration has gaps
+
+  Control 3: Authentication Still Required
+    Description:  Even if rate limiting is bypassed, all sensitive routes
+                  require valid JWT/API key authentication; rate limit bypass
+                  alone does not grant data access
+    Effectiveness: HIGH — defence in depth; rate limit bypass has limited
+                   marginal impact
+
+  ─────────────────────────────────────────────────────────────────────────────
+  RESIDUAL RISK
+  ─────────────────────────────────────────────────────────────────────────────
+  Residual Probability:  1
+  Residual Impact:       2
+  Residual Score:        2 — LOW RISK
+
+================================================================================
+RISK-010: GLYPHIC SEQUENCE INJECTION
+================================================================================
+
+  Risk ID:              RISK-010
+  Risk Title:           Glyphic Sequence Injection Attack
+  Category:             Security / AI (Prompt Injection)
+  NIST AI RMF Category: MAP — AI-specific attack surface
+  Owner:                Engineering (Security / AI)
+  Review Date:          2026-05-24
+  Status:               ACTIVE — MITIGATED
+
+  ─────────────────────────────────────────────────────────────────────────────
+  INHERENT RISK
+  ─────────────────────────────────────────────────────────────────────────────
+  Probability:     2 (Unlikely — requires knowledge of the glyphic protocol
+                   schema; attacker must have API access; User-tier auth
+                   required for glyph interpretation)
+  Impact:          3 (Moderate — successful injection could manipulate
+                   cognitive processing state, corrupt memory lattice,
+                   or redirect AI routing in unexpected ways)
+  Inherent Score:  6 — MEDIUM RISK
+
+  Risk Description:
+    The glyphic protocol (APEX->CORE->EMIT sequences) is a novel symbolic
+    communication layer unique to Sentinel Forge. The glyphic sequence
+    interpreter (POST /api/glyphs/interpret) parses user-provided sequence
+    strings and maps them to cognitive routing paths. This creates an AI
+    prompt injection surface where crafted glyph sequences could:
+
+    - Override legitimate routing logic (e.g., injecting ADMIN->BYPASS->EXEC)
+    - Corrupt the alias map via /api/glyphs/aliases if write access obtained
+    - Poison seed data via /api/cog/seeds, affecting downstream cognitive state
+    - Manipulate bulk pack operations via /api/glyphs/pack to inject malicious
+      rules or aliases
+
+    This is an AI-specific attack vector distinct from traditional injection
+    (SQL injection, XSS) because it exploits the AI reasoning layer through
+    symbolic manipulation rather than the data layer.
+
+  ─────────────────────────────────────────────────────────────────────────────
+  CURRENT CONTROLS
+  ─────────────────────────────────────────────────────────────────────────────
+  Control 1: Input Validation on POST /api/glyphs/interpret
+    Description:  Pydantic schema validation on request body;
+                  sequence field type-checked; length limits enforced;
+                  unexpected field types rejected with HTTP 422
+    Effectiveness: MEDIUM — type validation prevents crude injection;
+                   semantic injection within valid types still possible
+
+  Control 2: POST /api/glyphs/validate Endpoint
+    Description:  Dedicated sequence validation endpoint verifies sequences
+                  against the registered glyph schema before interpretation;
+                  unknown glyph tokens rejected
+    Effectiveness: HIGH — schema-based validation rejects unknown glyphs
+
+  Control 3: RBAC on Write Operations
+    Description:  Glyph alias write, pack operations, seed write all require
+                  Operator+ or User+ tier; Viewer cannot modify glyph state;
+                  reduces attack surface to authenticated users only
+    Effectiveness: HIGH — unauthenticated injection not possible; requires
+                   valid User+ credentials to attempt
+
+  Control 4: Sequence Pattern Validation
+    Description:  Glyph sequences parsed with expected delimiter (->) and
+                  validated against registered token set; unregistered tokens
+                  are rejected
+    Effectiveness: MEDIUM — known token set restricts injection vocabulary
+
+  ─────────────────────────────────────────────────────────────────────────────
+  RESIDUAL RISK
+  ─────────────────────────────────────────────────────────────────────────────
+  Residual Probability:  1 (requires valid User+ auth + knowledge of protocol)
+  Residual Impact:       3 (semantic state manipulation remains possible in
+                         theory for sufficiently crafted sequences)
+  Residual Score:        3 — LOW RISK
+
+  Planned Enhancements:
+    - Security fuzzing tests for /api/glyphs/* endpoints (Phase 4)
+    - Glyph sequence rate limiting (separate from IP rate limit)
+    - Anomaly detection on unusual glyph routing patterns
+
+================================================================================
+SECTION 3 — RISK REGISTER SUMMARY
+================================================================================
+
+  Risk ID    Title                         P  I  Score  Level   Residual  Trend
+  ─────────  ────────────────────────────  ─  ─  ─────  ──────  ────────  ─────
+  RISK-001   Azure OpenAI API Outage       3  5  15     HIGH    6/MED     STABLE
+  RISK-002   Cosmos DB Conn. Exhaustion    2  4  8      MEDIUM  6/MED     STABLE
+  RISK-003   JWT Token Compromise          1  5  5      MEDIUM  3/LOW     STABLE
+  RISK-004   WebSocket Connection Storm    3  3  9      MEDIUM  6/MED     STABLE
+  RISK-005   Stripe Webhook Replay         1  4  4      LOW     2/LOW     STABLE
+  RISK-006   RBAC Privilege Escalation     1  5  5      MEDIUM  2/LOW     STABLE
+  RISK-007   Cognitive Model Drift         3  3  9      MEDIUM  6/MED     MONITOR
+  RISK-008   Data Residency Compliance     2  4  8      MEDIUM  4/LOW     MONITOR
+  RISK-009   Rate Limit IP Spoofing        2  2  4      LOW     2/LOW     STABLE
+  RISK-010   Glyphic Sequence Injection    2  3  6      MEDIUM  3/LOW     STABLE
+  ─────────  ────────────────────────────  ─  ─  ─────  ──────  ────────  ─────
+  PORTFOLIO RISK SUMMARY:
+    HIGH risks (score 10-15):     1 (RISK-001 — inherent only; residual MEDIUM)
+    MEDIUM risks (score 5-9):     7 (inherent)
+    LOW risks (score 1-4):        2 (inherent)
+    CRITICAL risks (score 16-25): 0
+
+  All residual risks: MEDIUM or LOW.
+  No unmitigated CRITICAL or HIGH residual risks.
+
+================================================================================
+DOCUMENT FOOTER
+================================================================================
+  Document ID:          SENTINEL-RISK-REGISTER-001
+  Version:              v001
+  Classification:       ENTERPRISE CONFIDENTIAL — RISK SENSITIVE
+  Effective Date:       2026-04-24
+  Next Review:          2026-05-24 (monthly)
+  Risks Registered:     10 (RISK-001 through RISK-010)
+  Highest Inherent:     RISK-001 (Score 15 — HIGH)
+  Highest Residual:     RISK-001, RISK-002, RISK-004, RISK-007 (Score 6 — MED)
+  Unmitigated CRIT/HIGH: 0
+================================================================================
+                         END OF DOCUMENT
+================================================================================

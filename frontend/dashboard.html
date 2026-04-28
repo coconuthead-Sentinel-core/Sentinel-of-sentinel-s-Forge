@@ -1,281 +1,1512 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quantum Nexus Forge - Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #fff;
-            padding: 20px;
-        }
-        .container { max-width: 1400px; margin: 0 auto; }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            background: rgba(255,255,255,0.1);
-            padding: 20px;
-            border-radius: 10px;
-            backdrop-filter: blur(10px);
-        }
-        .status-badge {
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 0.9em;
-        }
-        .status-green { background: #10b981; }
-        .status-yellow { background: #f59e0b; }
-        .status-red { background: #ef4444; }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        .card {
-            background: rgba(255,255,255,0.1);
-            padding: 20px;
-            border-radius: 10px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-        .card h3 {
-            margin-bottom: 15px;
-            font-size: 1.2em;
-            border-bottom: 2px solid rgba(255,255,255,0.3);
-            padding-bottom: 10px;
-        }
-        .metric {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        .metric-value {
-            font-weight: bold;
-            color: #10b981;
-        }
-        .chart-container {
-            position: relative;
-            height: 200px;
-            margin-top: 15px;
-        }
-        .activity-item {
-            padding: 10px;
-            margin: 5px 0;
-            background: rgba(255,255,255,0.05);
-            border-radius: 5px;
-            border-left: 3px solid #10b981;
-        }
-        .timestamp {
-            font-size: 0.8em;
-            opacity: 0.7;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sentinel Forge — Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    [x-cloak] { display: none !important; }
+
+    :root {
+      --bg-base:    #0f172a;
+      --bg-surface: #1e293b;
+      --bg-card:    #1e293b;
+      --border:     #334155;
+      --accent:     #3b82f6;
+      --purple:     #7c3aed;
+      --text:       #e2e8f0;
+      --muted:      #94a3b8;
+    }
+
+    body { background: var(--bg-base); color: var(--text); font-family: 'Inter', system-ui, sans-serif; }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+
+    /* Panel transitions */
+    .panel-enter { animation: fadeSlide .25s ease forwards; }
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Skeleton loader */
+    .skeleton { background: linear-gradient(90deg, #1e293b 25%, #2d3f55 50%, #1e293b 75%);
+                background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 6px; }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    /* Toast */
+    .toast-enter { animation: toastIn .3s ease forwards; }
+    .toast-leave { animation: toastOut .3s ease forwards; }
+    @keyframes toastIn  { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:translateX(0); } }
+    @keyframes toastOut { from { opacity:1; transform:translateX(0); }   to { opacity:0; transform:translateX(20px); } }
+
+    /* Sidebar nav item active glow */
+    .nav-active { background: rgba(59,130,246,.15); border-left: 2px solid #3b82f6; color: #93c5fd; }
+    .nav-item { border-left: 2px solid transparent; transition: all .2s; }
+    .nav-item:hover:not(.nav-active) { background: rgba(255,255,255,.04); color: #e2e8f0; }
+
+    /* Glyph accent animations */
+    .glyph-pulse { animation: glyphPulse 3s ease-in-out infinite; }
+    @keyframes glyphPulse { 0%,100% { opacity:.4; } 50% { opacity:1; } }
+
+    /* Zone indicator */
+    .zone-green  { box-shadow: 0 0 16px rgba(34,197,94,.4); }
+    .zone-yellow { box-shadow: 0 0 16px rgba(234,179,8,.4); }
+    .zone-red    { box-shadow: 0 0 16px rgba(239,68,68,.4); }
+
+    /* WS log fade */
+    .ws-event { animation: fadeSlide .3s ease; }
+
+    /* Input / button base */
+    input, textarea, select {
+      background: #0f172a; border: 1px solid #334155; color: #e2e8f0;
+      border-radius: 8px; padding: .5rem .75rem; width: 100%; outline: none; transition: border-color .2s;
+    }
+    input:focus, textarea:focus, select:focus { border-color: #3b82f6; }
+    .btn-primary {
+      background: #3b82f6; color: #fff; border-radius: 8px; padding: .5rem 1.25rem;
+      font-weight: 600; cursor: pointer; transition: background .2s, transform .1s;
+    }
+    .btn-primary:hover   { background: #2563eb; }
+    .btn-primary:active  { transform: scale(.97); }
+    .btn-secondary {
+      background: transparent; border: 1px solid #334155; color: #94a3b8;
+      border-radius: 8px; padding: .5rem 1.25rem; font-weight: 600; cursor: pointer; transition: all .2s;
+    }
+    .btn-secondary:hover { border-color: #3b82f6; color: #e2e8f0; }
+    .btn-danger {
+      background: rgba(239,68,68,.15); border: 1px solid rgba(239,68,68,.4); color: #f87171;
+      border-radius: 8px; padding: .5rem 1.25rem; font-weight: 600; cursor: pointer; transition: all .2s;
+    }
+    .btn-danger:hover { background: rgba(239,68,68,.3); }
+
+    /* Card */
+    .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; }
+
+    /* Stat card hover */
+    .stat-card { transition: transform .2s, box-shadow .2s; }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,.4); }
+
+    /* Modal backdrop */
+    .modal-bg { background: rgba(0,0,0,.7); backdrop-filter: blur(4px); }
+
+    /* Tag badge */
+    .tag { background: rgba(124,58,237,.2); border: 1px solid rgba(124,58,237,.4); color: #a78bfa;
+           border-radius: 4px; padding: 2px 8px; font-size: .75rem; }
+
+    /* Thread item */
+    .thread-item { transition: background .15s; }
+    .thread-item:hover { background: rgba(255,255,255,.04); }
+
+    /* Glyph card hover */
+    .glyph-card { transition: transform .2s, border-color .2s; }
+    .glyph-card:hover { transform: scale(1.03); border-color: #7c3aed; }
+
+    /* Light theme overrides */
+    body.light {
+      --bg-base: #f1f5f9; --bg-surface: #ffffff; --bg-card: #ffffff;
+      --border: #e2e8f0; --text: #1e293b; --muted: #64748b;
+      background: #f1f5f9; color: #1e293b;
+    }
+    body.light input, body.light textarea, body.light select { background: #f8fafc; border-color: #e2e8f0; color: #1e293b; }
+    body.light .card { background: #ffffff; border-color: #e2e8f0; }
+    body.light .skeleton { background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%); background-size: 200% 100%; }
+    body.light .nav-active { background: rgba(59,130,246,.1); }
+    body.light .nav-item:hover:not(.nav-active) { background: rgba(0,0,0,.04); }
+  </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <div>
-                <h1>🧠 Quantum Nexus Forge</h1>
-                <p>Neurodivergent AI Middleware Dashboard</p>
-            </div>
-            <div>
-                <span id="statusBadge" class="status-badge status-green">● OPERATIONAL</span>
-                <div class="timestamp" id="timestamp"></div>
-            </div>
-        </div>
+<body id="appBody" x-data="sentinelApp()" x-init="init()" x-cloak>
 
-        <div class="grid">
-            <!-- Core Status Card -->
-            <div class="card">
-                <h3>⚙️ Core Status</h3>
-                <div class="metric">
-                    <span>Status</span>
-                    <span id="coreStatus" class="metric-value">--</span>
-                </div>
-                <div class="metric">
-                    <span>Active Pools</span>
-                    <span id="corePools" class="metric-value">--</span>
-                </div>
-                <div class="metric">
-                    <span>Processors</span>
-                    <span id="coreProcessors" class="metric-value">--</span>
-                </div>
-                <div class="metric">
-                    <span>Total Executions</span>
-                    <span id="coreExecutions" class="metric-value">--</span>
-                </div>
-            </div>
-
-            <!-- Performance Card -->
-            <div class="card">
-                <h3>📊 Performance</h3>
-                <div class="metric">
-                    <span>Avg Latency</span>
-                    <span id="perfAvgLatency" class="metric-value">-- ms</span>
-                </div>
-                <div class="metric">
-                    <span>P95 Latency</span>
-                    <span id="perfP95Latency" class="metric-value">-- ms</span>
-                </div>
-                <div class="metric">
-                    <span>Heap Memory</span>
-                    <span id="perfHeapMib" class="metric-value">-- MiB</span>
-                </div>
-                <div class="chart-container">
-                    <canvas id="latencyChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Cognition Card -->
-            <div class="card">
-                <h3>🧠 Cognition Engine</h3>
-                <div class="metric">
-                    <span>Status</span>
-                    <span id="cogEnabled" class="metric-value">--</span>
-                </div>
-                <div class="metric">
-                    <span>Memory Entries</span>
-                    <span id="cogMemory" class="metric-value">--</span>
-                </div>
-                <div class="metric">
-                    <span>Symbolic Rules</span>
-                    <span id="cogRules" class="metric-value">--</span>
-                </div>
-                <div class="metric">
-                    <span>Embedding Active</span>
-                    <span id="cogEmbedding" class="metric-value">--</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Activity Feed -->
-        <div class="card">
-            <h3>📡 Recent Activity</h3>
-            <div id="activityFeed"></div>
-        </div>
-
-        <!-- Sentinel Profile -->
-        <div class="card">
-            <h3>👤 Sentinel Profile</h3>
-            <div class="metric">
-                <span>Codename</span>
-                <span id="sentinelCodename" class="metric-value">--</span>
-            </div>
-            <div class="metric">
-                <span>Performance Boost</span>
-                <span id="sentinelBoost" class="metric-value">--</span>
-            </div>
-            <div class="metric">
-                <span>Active Rules</span>
-                <span id="sentinelRules" class="metric-value">--</span>
-            </div>
-        </div>
+<!-- ─── TOAST CONTAINER ─── -->
+<div class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none" style="min-width:280px">
+  <template x-for="toast in toasts" :key="toast.id">
+    <div class="toast-enter pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-2xl text-sm font-medium"
+         :class="toast.type==='success'
+           ? 'bg-emerald-900 border border-emerald-700 text-emerald-200'
+           : toast.type==='error'
+           ? 'bg-red-900 border border-red-700 text-red-200'
+           : 'bg-slate-800 border border-slate-600 text-slate-200'">
+      <span x-text="toast.type==='success' ? '✦' : toast.type==='error' ? '◈' : '◇'"></span>
+      <span x-text="toast.msg"></span>
     </div>
+  </template>
+</div>
 
-    <script>
-        // Chart setup
-        const latencyData = { labels: [], datasets: [{
-            label: 'Avg Latency (ms)',
-            data: [],
-            borderColor: '#10b981',
-            tension: 0.4,
-            fill: false
-        }]};
-        
-        const latencyChart = new Chart(document.getElementById('latencyChart'), {
-            type: 'line',
-            data: latencyData,
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: { y: { beginAtZero: true } },
-                plugins: { legend: { display: false } }
-            }
-        });
+<!-- ─── MODAL ─── -->
+<template x-if="modal.show">
+  <div class="modal-bg fixed inset-0 z-40 flex items-center justify-center p-4" @click.self="modal.show=false">
+    <div class="card p-6 w-full max-w-md panel-enter">
+      <h3 class="text-lg font-semibold mb-2 text-white" x-text="modal.title"></h3>
+      <p class="text-sm text-slate-400 mb-6" x-text="modal.body"></p>
+      <div class="flex gap-3 justify-end">
+        <button class="btn-secondary" @click="modal.show=false">Cancel</button>
+        <button class="btn-danger" @click="modal.confirm(); modal.show=false" x-text="modal.confirmLabel || 'Confirm'"></button>
+      </div>
+    </div>
+  </div>
+</template>
 
-        async function updateDashboard() {
-            try {
-                // Fetch aggregated metrics
-                const metrics = await fetch('/api/dashboard/metrics').then(r => r.json());
-                const activity = await fetch('/api/dashboard/activity').then(r => r.json());
-                const sentinel = await fetch('/api/dashboard/sentinel').then(r => r.json());
+<!-- ═══════════════════════════════════════════
+     VIEW 1 — AUTH
+═══════════════════════════════════════════ -->
+<template x-if="!authToken">
+  <div class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+      <!-- Logo -->
+      <div class="text-center mb-8">
+        <div class="inline-flex items-center gap-2 mb-3">
+          <span class="text-3xl glyph-pulse" style="color:#7c3aed">⬡</span>
+          <span class="text-3xl font-black tracking-tight text-white">SENTINEL <span style="color:#3b82f6">FORGE</span></span>
+          <span class="text-3xl glyph-pulse" style="color:#3b82f6; animation-delay:.5s">◈</span>
+        </div>
+        <p class="text-sm text-slate-400 tracking-widest uppercase">Cognitive Infrastructure Platform</p>
+      </div>
 
-                // Update timestamp
-                document.getElementById('timestamp').textContent = new Date().toLocaleTimeString();
+      <!-- Auth card -->
+      <div class="card p-8">
+        <!-- Tab toggle -->
+        <div class="flex bg-slate-900 rounded-lg p-1 mb-6">
+          <button class="flex-1 py-2 text-sm font-semibold rounded-md transition-all"
+                  :class="authTab==='login' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'"
+                  @click="authTab='login'; authError=''">Login</button>
+          <button class="flex-1 py-2 text-sm font-semibold rounded-md transition-all"
+                  :class="authTab==='signup' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'"
+                  @click="authTab='signup'; authError=''">Sign Up</button>
+        </div>
 
-                // Update status badge
-                const badge = document.getElementById('statusBadge');
-                badge.className = `status-badge status-${metrics.health_status}`;
-                badge.textContent = `● ${metrics.health_status.toUpperCase()}`;
+        <!-- Error -->
+        <template x-if="authError">
+          <div class="bg-red-900/40 border border-red-700 text-red-300 text-sm px-4 py-3 rounded-lg mb-4 flex items-center gap-2">
+            <span>◈</span><span x-text="authError"></span>
+          </div>
+        </template>
 
-                // Update core metrics
-                document.getElementById('coreStatus').textContent = metrics.core.status;
-                document.getElementById('corePools').textContent = metrics.core.pools;
-                document.getElementById('coreProcessors').textContent = metrics.core.processors;
-                document.getElementById('coreExecutions').textContent = metrics.core.executions;
+        <!-- LOGIN FORM -->
+        <template x-if="authTab==='login'">
+          <form @submit.prevent="login()" class="space-y-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">Email</label>
+              <input type="email" x-model="loginForm.email" placeholder="you@example.com" required />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">Password</label>
+              <input type="password" x-model="loginForm.password" placeholder="••••••••" required />
+            </div>
+            <button type="submit" class="btn-primary w-full mt-2 flex items-center justify-center gap-2 py-2.5" :disabled="authLoading">
+              <template x-if="authLoading">
+                <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.4 0 0 5.4 0 12h4z"></path>
+                </svg>
+              </template>
+              <span x-text="authLoading ? 'Authenticating…' : 'Login'"></span>
+            </button>
+            <p class="text-center text-xs text-slate-500 pt-2">Demo: use any email / password to enter mock mode</p>
+          </form>
+        </template>
 
-                // Update performance metrics
-                document.getElementById('perfAvgLatency').textContent = `${metrics.performance.avg_latency_ms.toFixed(2)} ms`;
-                document.getElementById('perfP95Latency').textContent = `${metrics.performance.p95_latency_ms.toFixed(2)} ms`;
-                document.getElementById('perfHeapMib').textContent = `${metrics.performance.heap_mib.toFixed(2)} MiB`;
+        <!-- SIGNUP FORM -->
+        <template x-if="authTab==='signup'">
+          <form @submit.prevent="signup()" class="space-y-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">Name</label>
+              <input type="text" x-model="signupForm.name" placeholder="Jane Forge" required />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">Email</label>
+              <input type="email" x-model="signupForm.email" placeholder="you@example.com" required />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">Password</label>
+              <input type="password" x-model="signupForm.password" placeholder="••••••••" required />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">Plan</label>
+              <select x-model="signupForm.tier">
+                <option value="starter">Starter — Free</option>
+                <option value="pro">Pro — $49/mo</option>
+                <option value="enterprise">Enterprise — Custom</option>
+              </select>
+            </div>
+            <button type="submit" class="btn-primary w-full mt-2 flex items-center justify-center gap-2 py-2.5" :disabled="authLoading">
+              <template x-if="authLoading">
+                <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.4 0 0 5.4 0 12h4z"></path>
+                </svg>
+              </template>
+              <span x-text="authLoading ? 'Creating account…' : 'Create Account'"></span>
+            </button>
+          </form>
+        </template>
+      </div>
 
-                // Update chart
-                const now = new Date().toLocaleTimeString();
-                latencyData.labels.push(now);
-                latencyData.datasets[0].data.push(metrics.performance.avg_latency_ms);
-                if (latencyData.labels.length > 20) {
-                    latencyData.labels.shift();
-                    latencyData.datasets[0].data.shift();
-                }
-                latencyChart.update();
+      <p class="text-center text-xs text-slate-600 mt-6">✦ Powered by Sentinel Cognitive Engine v2 ✦</p>
+    </div>
+  </div>
+</template>
 
-                // Update cognition
-                document.getElementById('cogEnabled').textContent = metrics.cognition.enabled ? '✅ Active' : '❌ Inactive';
-                document.getElementById('cogMemory').textContent = metrics.cognition.memory_entries;
-                document.getElementById('cogRules').textContent = metrics.cognition.symbolic_rules;
-                document.getElementById('cogEmbedding').textContent = metrics.cognition.embedding_active ? '✅ Yes' : '❌ No';
+<!-- ═══════════════════════════════════════════
+     VIEW 2 — MAIN DASHBOARD
+═══════════════════════════════════════════ -->
+<template x-if="authToken">
+  <div class="flex flex-col min-h-screen">
 
-                // Update sentinel profile
-                document.getElementById('sentinelCodename').textContent = sentinel.codename;
-                document.getElementById('sentinelBoost').textContent = sentinel.performance_boost;
-                document.getElementById('sentinelRules').textContent = sentinel.active_rules;
+    <!-- TOP NAV -->
+    <header class="flex items-center justify-between px-6 py-3 border-b sticky top-0 z-30"
+            style="background:#1e293b; border-color:#334155;">
+      <div class="flex items-center gap-3">
+        <span style="color:#7c3aed" class="text-xl">⬡</span>
+        <span class="font-black tracking-tight text-white text-lg">SENTINEL <span style="color:#3b82f6">FORGE</span></span>
+      </div>
+      <div class="flex items-center gap-4">
+        <!-- API health indicator -->
+        <div class="flex items-center gap-2 text-xs text-slate-400">
+          <span class="w-2 h-2 rounded-full" :class="apiHealthy ? 'bg-emerald-400' : 'bg-red-400'"
+                :title="apiHealthy ? 'API Online' : 'API Offline — mock mode'"></span>
+          <span x-text="apiHealthy ? 'Online' : 'Mock'"></span>
+        </div>
+        <div class="hidden sm:flex items-center gap-2 text-sm text-slate-300">
+          <span class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold text-white"
+                x-text="userData.email ? userData.email[0].toUpperCase() : 'U'"></span>
+          <span x-text="userData.email || 'user@sentinel.io'"></span>
+        </div>
+        <button class="btn-secondary text-xs px-3 py-1.5" @click="logout()">Logout</button>
+      </div>
+    </header>
 
-                // Update activity feed
-                const feed = document.getElementById('activityFeed');
-                feed.innerHTML = '';
-                const intents = Object.entries(activity.intents || {}).slice(0, 5);
-                intents.forEach(([intent, count]) => {
-                    const item = document.createElement('div');
-                    item.className = 'activity-item';
-                    item.innerHTML = `<strong>${intent}</strong>: ${count} occurrences`;
-                    feed.appendChild(item);
-                });
+    <div class="flex flex-1 overflow-hidden">
 
-            } catch (error) {
-                console.error('Dashboard update failed:', error);
-                
-                // Visual feedback for connection failure
-                const badge = document.getElementById('statusBadge');
-                badge.className = 'status-badge status-red';
-                badge.textContent = '● OFFLINE';
-                
-                document.getElementById('coreStatus').textContent = 'Connection Failed';
-            }
+      <!-- SIDEBAR -->
+      <aside class="hidden md:flex flex-col w-56 border-r shrink-0 py-4 px-2 gap-1 overflow-y-auto"
+             style="background:#1e293b; border-color:#334155;">
+        <template x-for="item in navItems" :key="item.id">
+          <button class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 w-full text-left"
+                  :class="currentView===item.id ? 'nav-active' : ''"
+                  @click="switchView(item.id)">
+            <span x-text="item.icon" class="text-base w-5 text-center"></span>
+            <span x-text="item.label"></span>
+          </button>
+        </template>
+
+        <div class="mt-auto pt-4 border-t mx-2" style="border-color:#334155;">
+          <div class="text-xs text-slate-500 px-3 mb-2 uppercase tracking-wider">Glyphic State</div>
+          <div class="flex items-center gap-2 px-3">
+            <span class="glyph-pulse text-purple-400">◇</span>
+            <span class="text-xs text-slate-400">Zone: </span>
+            <span class="text-xs font-semibold"
+                  :class="cogZone==='GREEN' ? 'text-emerald-400' : cogZone==='YELLOW' ? 'text-yellow-400' : 'text-red-400'"
+                  x-text="cogZone"></span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <main class="flex-1 overflow-y-auto p-4 md:p-6" style="background:#0f172a;">
+
+        <!-- ── DASHBOARD PANEL ── -->
+        <div x-show="currentView==='dashboard'" class="panel-enter space-y-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <h1 class="text-2xl font-bold text-white">Dashboard</h1>
+              <p class="text-sm text-slate-400 mt-1">Cognitive system overview ✦</p>
+            </div>
+            <button class="btn-primary text-sm" @click="refreshDashboard()">↻ Refresh</button>
+          </div>
+
+          <!-- Stat Cards -->
+          <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
+            <template x-for="stat in dashStats" :key="stat.label">
+              <div class="card stat-card p-5">
+                <template x-if="dashLoading">
+                  <div><div class="skeleton h-3 w-20 mb-3"></div><div class="skeleton h-8 w-16"></div></div>
+                </template>
+                <template x-if="!dashLoading">
+                  <div>
+                    <div class="flex items-center justify-between mb-3">
+                      <span class="text-xs font-medium text-slate-400 uppercase tracking-wider" x-text="stat.label"></span>
+                      <span x-text="stat.icon" class="text-lg"></span>
+                    </div>
+                    <div class="text-3xl font-black text-white" x-text="stat.value"></div>
+                    <div class="text-xs mt-1" :class="stat.trend > 0 ? 'text-emerald-400' : 'text-red-400'"
+                         x-text="(stat.trend > 0 ? '↑ ' : '↓ ') + Math.abs(stat.trend) + '% this hour'"></div>
+                  </div>
+                </template>
+              </div>
+            </template>
+          </div>
+
+          <!-- Chart + Zone Status -->
+          <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
+            <div class="card p-5 xl:col-span-2">
+              <div class="flex items-center justify-between mb-4">
+                <h2 class="font-semibold text-white">Cognitive Load</h2>
+                <span class="tag">Live</span>
+              </div>
+              <canvas id="cogChart" height="100"></canvas>
+            </div>
+            <div class="card p-5 flex flex-col">
+              <h2 class="font-semibold text-white mb-4">Zone Status</h2>
+              <div class="flex-1 flex flex-col items-center justify-center gap-4">
+                <div class="w-24 h-24 rounded-full flex items-center justify-center text-3xl font-black border-4"
+                     :class="cogZone==='GREEN'  ? 'bg-emerald-950 border-emerald-500 text-emerald-300 zone-green'
+                           : cogZone==='YELLOW' ? 'bg-yellow-950 border-yellow-500 text-yellow-300 zone-yellow'
+                           :                      'bg-red-950 border-red-500 text-red-300 zone-red'"
+                     x-text="cogZone==='GREEN' ? '✓' : cogZone==='YELLOW' ? '!' : '✕'"></div>
+                <div class="text-center">
+                  <div class="text-lg font-bold"
+                       :class="cogZone==='GREEN' ? 'text-emerald-400' : cogZone==='YELLOW' ? 'text-yellow-400' : 'text-red-400'"
+                       x-text="cogZone + ' ZONE'"></div>
+                  <div class="text-xs text-slate-400 mt-1" x-text="'Load: ' + cogLoad + '%'"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Action -->
+          <div class="card p-5">
+            <h2 class="font-semibold text-white mb-4">◈ Quick Process</h2>
+            <textarea x-model="quickInput" rows="3" placeholder="Enter cognitive input… e.g. APEX->CORE->EMIT or natural language" class="mb-3"></textarea>
+            <div class="flex gap-3">
+              <button class="btn-primary" @click="quickProcess()" :disabled="quickLoading">
+                <span x-text="quickLoading ? 'Processing…' : 'Submit'"></span>
+              </button>
+              <button class="btn-secondary" @click="quickInput=''; quickResult=null">Clear</button>
+            </div>
+            <template x-if="quickResult">
+              <div class="mt-4 bg-slate-900 rounded-lg p-4 text-sm font-mono text-emerald-300 border border-emerald-900 overflow-auto max-h-40">
+                <pre x-text="JSON.stringify(quickResult, null, 2)"></pre>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- ── COGNITIVE ENGINE PANEL ── -->
+        <div x-show="currentView==='cognitive'" class="panel-enter space-y-6">
+          <h1 class="text-2xl font-bold text-white">Cognitive Engine</h1>
+
+          <!-- Status Card -->
+          <div class="card p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="font-semibold text-white">⬡ Orchestrator Status</h2>
+              <button class="btn-secondary text-xs" @click="loadCogStatus()">Refresh</button>
+            </div>
+            <template x-if="cogStatusLoading">
+              <div class="grid grid-cols-3 gap-4">
+                <template x-for="i in [1,2,3]"><div class="skeleton h-12 rounded-lg"></div></template>
+              </div>
+            </template>
+            <template x-if="!cogStatusLoading && cogStatus">
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <template x-for="(val, key) in cogStatus" :key="key">
+                  <div class="bg-slate-900 rounded-lg p-3">
+                    <div class="text-xs text-slate-400 mb-1 capitalize" x-text="key.replace(/_/g,' ')"></div>
+                    <div class="text-sm font-semibold text-white truncate" x-text="typeof val === 'object' ? JSON.stringify(val) : val"></div>
+                  </div>
+                </template>
+              </div>
+            </template>
+          </div>
+
+          <!-- Rules Table -->
+          <div class="card p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="font-semibold text-white">Rules</h2>
+              <button class="btn-primary text-xs" @click="showAddRule=!showAddRule">+ Add Rule</button>
+            </div>
+            <template x-if="showAddRule">
+              <div class="bg-slate-900 rounded-lg p-4 mb-4 flex gap-3">
+                <input x-model="newRule.pattern" placeholder="Pattern (regex or keyword)" class="flex-1 text-sm" />
+                <input x-model="newRule.tag" placeholder="Tag" class="w-32 text-sm" />
+                <button class="btn-primary text-xs whitespace-nowrap" @click="addRule()">Save</button>
+              </div>
+            </template>
+            <div class="overflow-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="text-left text-xs text-slate-400 uppercase tracking-wider border-b" style="border-color:#334155">
+                    <th class="pb-2 pr-4">Pattern</th><th class="pb-2 pr-4">Tag</th><th class="pb-2">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <template x-for="(rule, idx) in cogRules" :key="idx">
+                    <tr class="border-b" style="border-color:#1e293b">
+                      <td class="py-2 pr-4 font-mono text-xs text-slate-300" x-text="rule.pattern"></td>
+                      <td class="py-2 pr-4"><span class="tag" x-text="rule.tag"></span></td>
+                      <td class="py-2"><button class="text-xs text-red-400 hover:text-red-300" @click="deleteRule(idx)">Delete</button></td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Prime Metrics -->
+          <div class="card p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="font-semibold text-white">✦ Prime Metrics</h2>
+              <button class="btn-secondary text-xs" @click="loadPrime()">Refresh</button>
+            </div>
+            <template x-if="primeLoading">
+              <div class="grid grid-cols-3 gap-4"><template x-for="i in [1,2,3]"><div class="skeleton h-16 rounded-lg"></div></template></div>
+            </template>
+            <template x-if="!primeLoading && prime">
+              <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <template x-for="(val, key) in prime" :key="key">
+                  <div class="bg-slate-900 rounded-lg p-4 text-center">
+                    <div class="text-2xl font-black text-purple-400 mb-1" x-text="val"></div>
+                    <div class="text-xs text-slate-400 capitalize" x-text="key.replace(/_/g,' ')"></div>
+                  </div>
+                </template>
+              </div>
+            </template>
+          </div>
+
+          <!-- Memory -->
+          <div class="card p-5">
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="font-semibold text-white mb-1">Memory Store</h2>
+                <p class="text-xs text-slate-400" x-text="'~' + (cogStatus?.memory_nodes || 0) + ' nodes allocated'"></p>
+              </div>
+              <button class="btn-danger text-xs" @click="confirmClearMemory()">Clear Memory</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── THREADS PANEL ── -->
+        <div x-show="currentView==='threads'" class="panel-enter space-y-6">
+          <div class="flex items-center justify-between">
+            <h1 class="text-2xl font-bold text-white">Threads</h1>
+            <button class="btn-secondary text-xs" @click="loadThreads()">↻ Refresh</button>
+          </div>
+
+          <!-- Stats bar -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <template x-for="s in threadStats" :key="s.label">
+              <div class="card p-4 text-center">
+                <div class="text-xl font-black text-blue-400" x-text="s.value"></div>
+                <div class="text-xs text-slate-400 mt-1" x-text="s.label"></div>
+              </div>
+            </template>
+          </div>
+
+          <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            <!-- Thread list -->
+            <div class="card overflow-hidden">
+              <div class="px-5 py-3 border-b flex items-center justify-between" style="border-color:#334155">
+                <h2 class="font-semibold text-white text-sm">Thread List</h2>
+                <input x-model="threadFilter" placeholder="Filter by topic…" class="text-xs w-40 py-1 px-2" />
+              </div>
+              <div class="divide-y" style="border-color:#1e293b">
+                <template x-if="threadsLoading">
+                  <div class="p-4 space-y-3">
+                    <template x-for="i in [1,2,3]"><div class="skeleton h-14 rounded-lg"></div></template>
+                  </div>
+                </template>
+                <template x-for="t in filteredThreads" :key="t.id">
+                  <div class="thread-item px-5 py-3 cursor-pointer" @click="selectThread(t.id)"
+                       :class="selectedThreadId===t.id ? 'bg-blue-900/20' : ''">
+                    <div class="flex items-center justify-between">
+                      <span class="text-sm font-medium text-white" x-text="t.topic || t.id"></span>
+                      <span class="tag text-xs" x-text="t.status || 'active'"></span>
+                    </div>
+                    <div class="text-xs text-slate-400 mt-1" x-text="(t.intent_count || 0) + ' intents · ' + (t.created_at || 'just now')"></div>
+                  </div>
+                </template>
+              </div>
+            </div>
+
+            <!-- Thread detail -->
+            <div class="card p-5">
+              <template x-if="!selectedThread">
+                <div class="h-48 flex flex-col items-center justify-center text-slate-500">
+                  <span class="text-4xl mb-3 glyph-pulse">◇</span>
+                  <p class="text-sm">Select a thread to inspect</p>
+                </div>
+              </template>
+              <template x-if="selectedThread">
+                <div>
+                  <div class="flex items-center justify-between mb-4">
+                    <h2 class="font-semibold text-white" x-text="selectedThread.topic || selectedThread.id"></h2>
+                    <span class="tag" x-text="selectedThread.status || 'active'"></span>
+                  </div>
+                  <div class="space-y-2 text-xs">
+                    <template x-for="(val, key) in selectedThread" :key="key">
+                      <div class="flex gap-2">
+                        <span class="text-slate-400 capitalize w-28 shrink-0" x-text="key.replace(/_/g,' ')"></span>
+                        <span class="text-slate-200 truncate" x-text="typeof val==='object' ? JSON.stringify(val) : val"></span>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── GLYPHS PANEL ── -->
+        <div x-show="currentView==='glyphs'" class="panel-enter space-y-6">
+          <h1 class="text-2xl font-bold text-white">Glyph Registry ⬡</h1>
+
+          <!-- Aliases grid -->
+          <div class="card p-5">
+            <h2 class="font-semibold text-white mb-4">Alias Map</h2>
+            <template x-if="glyphsLoading">
+              <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
+                <template x-for="i in [1,2,3,4,5]"><div class="skeleton h-20 rounded-xl"></div></template>
+              </div>
+            </template>
+            <template x-if="!glyphsLoading">
+              <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
+                <template x-for="glyph in glyphAliases" :key="glyph.alias">
+                  <div class="glyph-card card p-4 text-center cursor-default">
+                    <div class="text-3xl mb-2" x-text="glyph.icon || '◈'"></div>
+                    <div class="text-xs font-bold text-blue-300 mb-1" x-text="glyph.alias"></div>
+                    <div class="text-xs text-slate-400" x-text="glyph.target"></div>
+                  </div>
+                </template>
+              </div>
+            </template>
+          </div>
+
+          <!-- Sequence interpreter -->
+          <div class="card p-5">
+            <h2 class="font-semibold text-white mb-4">◇ Sequence Interpreter</h2>
+            <div class="flex gap-3 mb-4">
+              <input x-model="glyphSeq" placeholder="APEX->CORE->EMIT" class="flex-1 font-mono text-sm" />
+              <button class="btn-primary whitespace-nowrap" @click="interpretGlyph()" :disabled="glyphInterpreting">
+                <span x-text="glyphInterpreting ? 'Parsing…' : 'Interpret'"></span>
+              </button>
+            </div>
+            <template x-if="glyphResult">
+              <div class="bg-slate-900 rounded-lg p-5 space-y-4">
+                <div>
+                  <div class="text-xs text-slate-400 mb-2 uppercase tracking-wider">Tokens</div>
+                  <div class="flex flex-wrap gap-2">
+                    <template x-for="tok in (glyphResult.tokens || [])" :key="tok">
+                      <span class="tag" x-text="tok"></span>
+                    </template>
+                  </div>
+                </div>
+                <div>
+                  <div class="text-xs text-slate-400 mb-2 uppercase tracking-wider">Topics</div>
+                  <div class="flex flex-wrap gap-2">
+                    <template x-for="top in (glyphResult.topics || [])" :key="top">
+                      <span class="bg-blue-900/40 border border-blue-700 text-blue-300 rounded px-2 py-0.5 text-xs" x-text="top"></span>
+                    </template>
+                  </div>
+                </div>
+                <div>
+                  <div class="text-xs text-slate-400 mb-2 uppercase tracking-wider">Route</div>
+                  <div class="font-mono text-sm text-purple-300" x-text="glyphResult.route || '—'"></div>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- ── SYNC PANEL ── -->
+        <div x-show="currentView==='sync'" class="panel-enter space-y-6">
+          <div class="flex items-center justify-between">
+            <h1 class="text-2xl font-bold text-white">Sync ◈</h1>
+            <div class="flex items-center gap-2 text-xs">
+              <span class="w-2 h-2 rounded-full" :class="wsConnected ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'"></span>
+              <span :class="wsConnected ? 'text-emerald-400' : 'text-red-400'" x-text="wsConnected ? 'WS Connected' : 'WS Disconnected'"></span>
+            </div>
+          </div>
+
+          <!-- Trinode roles -->
+          <div class="card p-5">
+            <h2 class="font-semibold text-white mb-4">⬡ Trinode Roles</h2>
+            <template x-if="trinodeLoading">
+              <div class="grid grid-cols-3 gap-4"><template x-for="i in [1,2,3]"><div class="skeleton h-24 rounded-xl"></div></template></div>
+            </template>
+            <template x-if="!trinodeLoading">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <template x-for="node in trinode" :key="node.role">
+                  <div class="bg-slate-900 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-center gap-2 mb-2">
+                      <span class="text-purple-400 text-lg">⬡</span>
+                      <span class="font-semibold text-white text-sm" x-text="node.role"></span>
+                    </div>
+                    <div class="text-xs text-slate-400" x-text="'Agent: ' + node.agent"></div>
+                    <div class="text-xs mt-1">
+                      <span class="w-2 h-2 rounded-full inline-block mr-1"
+                            :class="node.online ? 'bg-emerald-400' : 'bg-slate-500'"></span>
+                      <span :class="node.online ? 'text-emerald-400' : 'text-slate-500'" x-text="node.online ? 'Online' : 'Offline'"></span>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </template>
+          </div>
+
+          <!-- Session snapshot -->
+          <div class="card p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="font-semibold text-white">Session Snapshot</h2>
+              <button class="btn-secondary text-xs" @click="loadSnapshot()">Refresh</button>
+            </div>
+            <template x-if="snapshotLoading">
+              <div class="space-y-2"><template x-for="i in [1,2,3]"><div class="skeleton h-4 w-full rounded"></div></template></div>
+            </template>
+            <template x-if="!snapshotLoading && snapshot">
+              <div class="bg-slate-900 rounded-lg p-4 font-mono text-xs text-slate-300 overflow-auto max-h-48">
+                <pre x-text="JSON.stringify(snapshot, null, 2)"></pre>
+              </div>
+            </template>
+          </div>
+
+          <!-- WS live feed -->
+          <div class="card p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="font-semibold text-white">Live Event Stream</h2>
+              <div class="flex gap-2">
+                <button class="btn-secondary text-xs" @click="connectWS()" x-show="!wsConnected">Connect</button>
+                <button class="btn-secondary text-xs" @click="disconnectWS()" x-show="wsConnected">Disconnect</button>
+                <button class="btn-secondary text-xs" @click="wsEvents=[]">Clear</button>
+              </div>
+            </div>
+            <div class="bg-slate-900 rounded-lg p-3 h-48 overflow-y-auto font-mono text-xs space-y-1.5">
+              <template x-if="wsEvents.length===0">
+                <p class="text-slate-500 text-center pt-16">No events yet — connect to /ws/sync</p>
+              </template>
+              <template x-for="ev in wsEvents" :key="ev.id">
+                <div class="ws-event flex gap-2 text-xs">
+                  <span class="text-slate-500 shrink-0" x-text="ev.time"></span>
+                  <span class="shrink-0" :class="ev.type==='cog.intent' ? 'text-blue-400' : 'text-purple-400'" x-text="ev.type"></span>
+                  <span class="text-slate-300 truncate" x-text="JSON.stringify(ev.data)"></span>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── BILLING PANEL ── -->
+        <div x-show="currentView==='billing'" class="panel-enter space-y-6">
+          <h1 class="text-2xl font-bold text-white">Billing ✦</h1>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <template x-for="plan in billingPlans" :key="plan.id">
+              <div class="card p-6 relative overflow-hidden"
+                   :class="plan.id===userData.tier ? 'border-blue-500' : ''">
+                <template x-if="plan.id===userData.tier">
+                  <div class="absolute top-0 right-0 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">CURRENT</div>
+                </template>
+                <div class="text-sm font-bold text-purple-400 mb-1" x-text="plan.badge || ''"></div>
+                <h3 class="text-xl font-black text-white mb-1" x-text="plan.name"></h3>
+                <div class="text-3xl font-black mb-4" :class="plan.id===userData.tier ? 'text-blue-400' : 'text-slate-300'">
+                  <span x-text="plan.price"></span><span class="text-sm font-normal text-slate-400">/mo</span>
+                </div>
+                <ul class="space-y-2 mb-6">
+                  <template x-for="feat in plan.features" :key="feat">
+                    <li class="text-sm text-slate-300 flex items-center gap-2">
+                      <span class="text-emerald-400">✦</span><span x-text="feat"></span>
+                    </li>
+                  </template>
+                </ul>
+                <button class="w-full text-sm"
+                        :class="plan.id===userData.tier ? 'btn-secondary cursor-default' : 'btn-primary'"
+                        :disabled="plan.id===userData.tier"
+                        @click="plan.id!==userData.tier && confirmPlanChange(plan)"
+                        x-text="plan.id===userData.tier ? 'Active Plan' : plan.id==='enterprise' ? 'Contact Sales' : 'Upgrade'">
+                </button>
+              </div>
+            </template>
+          </div>
+
+          <!-- Usage stats -->
+          <div class="card p-5">
+            <h2 class="font-semibold text-white mb-4">Usage This Month</h2>
+            <div class="space-y-4">
+              <template x-for="u in usageStats" :key="u.label">
+                <div>
+                  <div class="flex justify-between text-sm mb-1">
+                    <span class="text-slate-300" x-text="u.label"></span>
+                    <span class="text-slate-400" x-text="u.used + ' / ' + u.limit"></span>
+                  </div>
+                  <div class="w-full bg-slate-800 rounded-full h-2">
+                    <div class="h-2 rounded-full transition-all duration-700"
+                         :class="(u.used/u.limit)>.85 ? 'bg-red-500' : (u.used/u.limit)>.6 ? 'bg-yellow-500' : 'bg-blue-500'"
+                         :style="'width:' + Math.min(100, Math.round(u.used/u.limit*100)) + '%'"></div>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── SETTINGS PANEL ── -->
+        <div x-show="currentView==='settings'" class="panel-enter space-y-6">
+          <h1 class="text-2xl font-bold text-white">Settings ◇</h1>
+
+          <!-- Profile -->
+          <div class="card p-5">
+            <h2 class="font-semibold text-white mb-4">Profile</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">Email</label>
+                <input type="email" :value="userData.email || ''" readonly class="bg-slate-900 cursor-not-allowed opacity-70" />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">Plan</label>
+                <input :value="(userData.tier || 'starter').charAt(0).toUpperCase() + (userData.tier || 'starter').slice(1)" readonly class="bg-slate-900 cursor-not-allowed opacity-70" />
+              </div>
+            </div>
+          </div>
+
+          <!-- API Key -->
+          <div class="card p-5">
+            <h2 class="font-semibold text-white mb-4">API Key</h2>
+            <div class="flex gap-3">
+              <input :type="showApiKey ? 'text' : 'password'" :value="apiKey" readonly class="flex-1 font-mono text-sm bg-slate-900" />
+              <button class="btn-secondary text-xs px-3" @click="showApiKey=!showApiKey"
+                      x-text="showApiKey ? 'Hide' : 'Show'"></button>
+              <button class="btn-secondary text-xs px-3" @click="copyApiKey()">Copy</button>
+            </div>
+          </div>
+
+          <!-- Theme -->
+          <div class="card p-5">
+            <h2 class="font-semibold text-white mb-4">Appearance</h2>
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-sm font-medium text-slate-200" x-text="lightTheme ? 'Light Mode' : 'Dark Mode'"></div>
+                <div class="text-xs text-slate-400 mt-0.5">Toggle interface theme</div>
+              </div>
+              <button class="relative w-12 h-6 rounded-full transition-colors duration-300 flex items-center"
+                      :class="lightTheme ? 'bg-blue-600' : 'bg-slate-700'"
+                      @click="toggleTheme()">
+                <span class="absolute w-5 h-5 bg-white rounded-full shadow transition-transform duration-300"
+                      :class="lightTheme ? 'translate-x-6' : 'translate-x-1'"></span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Danger -->
+          <div class="card p-5 border border-red-900/40">
+            <h2 class="font-semibold text-red-400 mb-4">Danger Zone</h2>
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-sm text-slate-300">Delete Account</div>
+                <div class="text-xs text-slate-500 mt-0.5">Permanently remove all data</div>
+              </div>
+              <button class="btn-danger text-xs" @click="toast('This action is disabled in demo mode.', 'info')">Delete Account</button>
+            </div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+</template>
+
+<script>
+function sentinelApp() {
+  return {
+    // ── Auth state ──
+    authToken: null,
+    authTab: 'login',
+    authLoading: false,
+    authError: '',
+    loginForm: { email: '', password: '' },
+    signupForm: { name: '', email: '', password: '', tier: 'starter' },
+    userData: {},
+
+    // ── UI state ──
+    currentView: 'dashboard',
+    lightTheme: false,
+    toasts: [],
+    modal: { show: false, title: '', body: '', confirm: () => {}, confirmLabel: '' },
+
+    // ── Nav ──
+    navItems: [
+      { id: 'dashboard',  label: 'Dashboard',       icon: '◈' },
+      { id: 'cognitive',  label: 'Cognitive Engine', icon: '⬡' },
+      { id: 'threads',    label: 'Threads',          icon: '◇' },
+      { id: 'glyphs',     label: 'Glyphs',           icon: '✦' },
+      { id: 'sync',       label: 'Sync',             icon: '↻' },
+      { id: 'billing',    label: 'Billing',          icon: '💳' },
+      { id: 'settings',   label: 'Settings',         icon: '⚙' },
+    ],
+
+    // ── API ──
+    API_BASE: window.location.origin === 'null' || window.location.protocol === 'file:'
+      ? 'http://localhost:8000'
+      : window.location.origin,
+    apiKey: 'sf_live_a7f3d2e1c9b8k4m5n6p7q8r9s0t1u2v3',
+    showApiKey: false,
+    apiHealthy: false,
+    MOCK_MODE: false,
+
+    // ── Dashboard ──
+    dashLoading: false,
+    dashStats: [
+      { label: 'Active Threads',    value: '—', icon: '◇', trend: 0 },
+      { label: 'Intents Processed', value: '—', icon: '✦', trend: 0 },
+      { label: 'Memory Nodes',      value: '—', icon: '⬡', trend: 0 },
+      { label: 'System Uptime',     value: '—', icon: '◈', trend: 0 },
+    ],
+    cogLoad: 42,
+    cogZone: 'GREEN',
+    cogChart: null,
+    cogChartData: [],
+    quickInput: '',
+    quickLoading: false,
+    quickResult: null,
+
+    // ── Cognitive ──
+    cogStatus: null,
+    cogStatusLoading: false,
+    cogRules: [],
+    showAddRule: false,
+    newRule: { pattern: '', tag: '' },
+    prime: null,
+    primeLoading: false,
+
+    // ── Threads ──
+    threads: [],
+    threadsLoading: false,
+    threadFilter: '',
+    selectedThreadId: null,
+    selectedThread: null,
+    threadStats: [
+      { label: 'Total Threads', value: 0 },
+      { label: 'Active',        value: 0 },
+      { label: 'Intents',       value: 0 },
+      { label: 'Topics',        value: 0 },
+    ],
+
+    // ── Glyphs ──
+    glyphAliases: [],
+    glyphsLoading: false,
+    glyphSeq: 'APEX->CORE->EMIT',
+    glyphResult: null,
+    glyphInterpreting: false,
+
+    // ── Sync ──
+    trinode: [],
+    trinodeLoading: false,
+    snapshot: null,
+    snapshotLoading: false,
+    wsConnected: false,
+    wsSocket: null,
+    wsEvents: [],
+    wsReconnectTimer: null,
+    wsReconnectDelay: 1000,
+
+    // ── Billing ──
+    billingPlans: [
+      { id: 'starter',    name: 'Starter',    price: '$0',    badge: '',
+        features: ['5 Threads', '1K intents/mo', '100 Memory nodes', 'Basic glyph support', 'Community support'] },
+      { id: 'pro',        name: 'Pro',        price: '$49',   badge: '⭐ Most Popular',
+        features: ['50 Threads', '100K intents/mo', '10K Memory nodes', 'Full glyph registry', 'Priority support', 'WebSocket sync', 'REST API access'] },
+      { id: 'enterprise', name: 'Enterprise', price: 'Custom', badge: '✦ Full Power',
+        features: ['Unlimited threads', 'Unlimited intents', 'Unlimited memory', 'Custom glyphs', 'Dedicated support', 'SLA guarantee', 'SSO / SAML', 'On-prem deploy'] },
+    ],
+    usageStats: [
+      { label: 'Intents',        used: 7430,  limit: 100000 },
+      { label: 'Memory Nodes',   used: 2891,  limit: 10000 },
+      { label: 'Threads',        used: 12,    limit: 50 },
+      { label: 'API Calls',      used: 15220, limit: 50000 },
+    ],
+
+    // ─────────────────────────────────────
+    // MOCK DATA
+    // ─────────────────────────────────────
+    MOCK: {
+      status: { pools: 3, processors: 8, latency_ms: 12.4, queue_depth: 7, memory_nodes: 2891,
+                uptime_hours: 143.7, version: '2.4.1', mode: 'cognitive' },
+      prime:  { intents: 7430, resonance: 0.94, entropy: 0.18, prime_nodes: 37, coherence: 0.87, cycles: 1204 },
+      rules: [
+        { pattern: 'APEX.*', tag: 'apex-routing' },
+        { pattern: 'crit(ical)?', tag: 'critical' },
+        { pattern: '^SYS:.*', tag: 'system' },
+        { pattern: 'memory|recall', tag: 'recall' },
+        { pattern: 'forge|build', tag: 'construction' },
+      ],
+      threads: [
+        { id: 'thd_a1b2c3', topic: 'APEX Analysis', status: 'active',  intent_count: 142, created_at: '2h ago', zone: 'GREEN' },
+        { id: 'thd_d4e5f6', topic: 'CORE Routing',  status: 'active',  intent_count: 87,  created_at: '4h ago', zone: 'YELLOW' },
+        { id: 'thd_g7h8i9', topic: 'EMIT Stream',   status: 'paused',  intent_count: 39,  created_at: '1d ago', zone: 'GREEN' },
+      ],
+      threadDetail: { id: 'thd_a1b2c3', topic: 'APEX Analysis', status: 'active', intent_count: 142,
+                      created_at: '2h ago', last_intent: 'route(CORE)', zone: 'GREEN', resonance: 0.92, entropy: 0.14 },
+      glyphs: [
+        { alias: 'APEX',  target: 'apex.node.primary',  icon: '⬡' },
+        { alias: 'CORE',  target: 'core.processor.main', icon: '◈' },
+        { alias: 'EMIT',  target: 'emit.output.stream',  icon: '✦' },
+        { alias: 'FORGE', target: 'forge.construct.seq', icon: '◇' },
+        { alias: 'SYNC',  target: 'sync.trinode.relay',  icon: '↻' },
+      ],
+      interpret: {
+        tokens: ['APEX', 'CORE', 'EMIT'],
+        topics: ['apex-routing', 'core-processing', 'output-stream'],
+        route: 'apex.node.primary → core.processor.main → emit.output.stream',
+      },
+      trinode: [
+        { role: 'ALPHA', agent: 'sentinel-prime',  online: true },
+        { role: 'BETA',  agent: 'sentinel-relay',  online: true },
+        { role: 'GAMMA', agent: 'sentinel-mirror', online: false },
+      ],
+      snapshot: {
+        session_id: 'ses_x9y8z7w6', agent: 'sentinel-prime', timestamp: new Date().toISOString(),
+        nodes_active: 2891, threads_open: 3, intent_buffer: 14, zone: 'GREEN',
+        trinode: { alpha: 'online', beta: 'online', gamma: 'offline' },
+      },
+      stats: { intents: 7430, topics: 18 },
+    },
+
+    // ─────────────────────────────────────
+    // CORE FETCH HELPER
+    // ─────────────────────────────────────
+    async api(method, path, body = null) {
+      const headers = { 'Content-Type': 'application/json' };
+      if (this.authToken) headers['Authorization'] = `Bearer ${this.authToken}`;
+      if (this.apiKey) headers['X-API-Key'] = this.apiKey;
+      const opts = { method, headers };
+      if (body) opts.body = JSON.stringify(body);
+      const res = await fetch(this.API_BASE + path, opts);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const ct = res.headers.get('content-type') || '';
+      if (res.status === 204 || !ct.includes('json')) return null;
+      return res.json();
+    },
+
+    // ─────────────────────────────────────
+    // INIT
+    // ─────────────────────────────────────
+    async init() {
+      await this.checkHealth();
+      this.startChartUpdater();
+    },
+
+    async checkHealth() {
+      try {
+        await this.api('GET', '/api/healthz');
+        this.apiHealthy = true;
+        this.MOCK_MODE = false;
+      } catch {
+        this.apiHealthy = false;
+        this.MOCK_MODE = true;
+      }
+    },
+
+    // ─────────────────────────────────────
+    // AUTH
+    // ─────────────────────────────────────
+    async login() {
+      this.authLoading = true;
+      this.authError = '';
+      try {
+        let token, user;
+        if (this.MOCK_MODE) {
+          await this.delay(800);
+          token = 'mock_jwt_' + Math.random().toString(36).slice(2);
+          user = { email: this.loginForm.email, tier: 'pro' };
+        } else {
+          const data = await this.api('POST', '/api/auth/login', this.loginForm);
+          token = data.token || data.access_token;
+          user = data.user || { email: this.loginForm.email, tier: data.tier || 'starter' };
         }
+        this.authToken = token;
+        this.userData = user;
+        this.toast('Welcome back, ' + (user.email || 'user') + '!', 'success');
+        await this.afterLogin();
+      } catch (e) {
+        this.authError = this.MOCK_MODE
+          ? 'Could not connect. Entering mock mode — click Login again.'
+          : 'Invalid credentials. Please check your email and password.';
+        this.MOCK_MODE = true;
+      } finally {
+        this.authLoading = false;
+      }
+    },
 
-        // Update every 3 seconds
-        updateDashboard();
-        setInterval(updateDashboard, 3000);
-    </script>
+    async signup() {
+      this.authLoading = true;
+      this.authError = '';
+      try {
+        let token, user;
+        if (this.MOCK_MODE) {
+          await this.delay(900);
+          token = 'mock_jwt_' + Math.random().toString(36).slice(2);
+          user = { email: this.signupForm.email, name: this.signupForm.name, tier: this.signupForm.tier };
+        } else {
+          const data = await this.api('POST', '/api/auth/register', this.signupForm);
+          token = data.token || data.access_token;
+          user = data.user || { email: this.signupForm.email, tier: this.signupForm.tier };
+        }
+        this.authToken = token;
+        this.userData = user;
+        this.toast('Account created! Welcome to Sentinel Forge.', 'success');
+        await this.afterLogin();
+      } catch (e) {
+        this.authError = 'Registration failed. Please try again.';
+      } finally {
+        this.authLoading = false;
+      }
+    },
+
+    logout() {
+      this.authToken = null;
+      this.userData = {};
+      this.currentView = 'dashboard';
+      this.disconnectWS();
+      this.toast('Logged out.', 'info');
+    },
+
+    async afterLogin() {
+      this.currentView = 'dashboard';
+      await this.refreshDashboard();
+    },
+
+    // ─────────────────────────────────────
+    // PANEL SWITCH
+    // ─────────────────────────────────────
+    async switchView(id) {
+      this.currentView = id;
+      if (id === 'dashboard')  this.refreshDashboard();
+      if (id === 'cognitive')  { this.loadCogStatus(); this.loadRules(); this.loadPrime(); }
+      if (id === 'threads')    this.loadThreads();
+      if (id === 'glyphs')     this.loadGlyphs();
+      if (id === 'sync')       { this.loadTrinode(); this.loadSnapshot(); }
+    },
+
+    // ─────────────────────────────────────
+    // DASHBOARD
+    // ─────────────────────────────────────
+    async refreshDashboard() {
+      this.dashLoading = true;
+      try {
+        let status;
+        if (this.MOCK_MODE) {
+          await this.delay(600);
+          status = this.MOCK.status;
+        } else {
+          status = await this.api('GET', '/api/status');
+        }
+        this.dashStats = [
+          { label: 'Active Threads',    value: status.threads_open || this.MOCK.threads.length, icon: '◇', trend: 12 },
+          { label: 'Intents Processed', value: this.fmt(this.MOCK.prime.intents), icon: '✦', trend: 7 },
+          { label: 'Memory Nodes',      value: this.fmt(status.memory_nodes || 2891), icon: '⬡', trend: -3 },
+          { label: 'System Uptime',     value: (status.uptime_hours || 143.7).toFixed(1) + 'h', icon: '◈', trend: 0.1 },
+        ];
+      } catch {
+        this.dashStats = [
+          { label: 'Active Threads',    value: '3',      icon: '◇', trend: 12 },
+          { label: 'Intents Processed', value: '7,430',  icon: '✦', trend: 7 },
+          { label: 'Memory Nodes',      value: '2,891',  icon: '⬡', trend: -3 },
+          { label: 'System Uptime',     value: '143.7h', icon: '◈', trend: 0.1 },
+        ];
+      } finally {
+        this.dashLoading = false;
+      }
+    },
+
+    async quickProcess() {
+      if (!this.quickInput.trim()) return;
+      this.quickLoading = true;
+      this.quickResult = null;
+      try {
+        let result;
+        if (this.MOCK_MODE) {
+          await this.delay(700);
+          result = { input: this.quickInput, output: 'PROCESSED:' + this.quickInput.toUpperCase(),
+                     processing_time: 0.042, metadata: { zone: 'GREEN', resonance: 0.91, route: 'APEX→CORE→EMIT' } };
+        } else {
+          result = await this.api('POST', '/api/cog/process', { data: this.quickInput });
+        }
+        this.quickResult = result;
+        this.toast('Input processed successfully.', 'success');
+      } catch (e) {
+        this.toast('Process failed: ' + e.message, 'error');
+      } finally {
+        this.quickLoading = false;
+      }
+    },
+
+    // ─────────────────────────────────────
+    // CHART
+    // ─────────────────────────────────────
+    startChartUpdater() {
+      // Seed initial data
+      for (let i = 0; i < 10; i++) this.cogChartData.push(Math.random() * 60 + 20);
+      this.$nextTick(() => this.initChart());
+      setInterval(() => {
+        const next = Math.max(5, Math.min(95, (this.cogChartData[this.cogChartData.length-1] || 50) + (Math.random()-0.45)*12));
+        this.cogChartData.push(next);
+        if (this.cogChartData.length > 20) this.cogChartData.shift();
+        this.cogLoad = Math.round(next);
+        this.cogZone = next < 40 ? 'GREEN' : next < 70 ? 'YELLOW' : 'RED';
+        if (this.cogChart) {
+          this.cogChart.data.datasets[0].data = [...this.cogChartData];
+          this.cogChart.data.labels = this.cogChartData.map((_,i) => 't-' + (this.cogChartData.length-1-i));
+          this.cogChart.update('none');
+        }
+      }, 2000);
+    },
+
+    initChart() {
+      const canvas = document.getElementById('cogChart');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const grad = ctx.createLinearGradient(0, 0, 0, 200);
+      grad.addColorStop(0, 'rgba(59,130,246,0.4)');
+      grad.addColorStop(1, 'rgba(59,130,246,0.01)');
+      this.cogChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: this.cogChartData.map((_,i) => 't-' + (this.cogChartData.length-1-i)),
+          datasets: [{
+            label: 'Cognitive Load %',
+            data: [...this.cogChartData],
+            borderColor: '#3b82f6',
+            backgroundColor: grad,
+            borderWidth: 2,
+            pointRadius: 3,
+            pointBackgroundColor: '#3b82f6',
+            fill: true,
+            tension: 0.4,
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
+          scales: {
+            y: { min: 0, max: 100, grid: { color: '#1e293b' }, ticks: { color: '#64748b', callback: v => v + '%' } },
+            x: { grid: { display: false }, ticks: { color: '#64748b', maxTicksLimit: 6 } },
+          },
+          animation: { duration: 400 },
+        }
+      });
+    },
+
+    // ─────────────────────────────────────
+    // COGNITIVE ENGINE
+    // ─────────────────────────────────────
+    async loadCogStatus() {
+      this.cogStatusLoading = true;
+      try {
+        this.cogStatus = this.MOCK_MODE
+          ? (await this.delay(500), this.MOCK.status)
+          : await this.api('GET', '/api/cog/status');
+      } catch { this.cogStatus = this.MOCK.status; }
+      finally { this.cogStatusLoading = false; }
+    },
+
+    async loadRules() {
+      try {
+        const data = this.MOCK_MODE
+          ? (await this.delay(300), { rules: this.MOCK.rules })
+          : await this.api('GET', '/api/cog/rules');
+        this.cogRules = Object.entries(data.rules || {}).map(([pattern, tag]) => ({ pattern, tag }));
+        if (!this.cogRules.length && Array.isArray(data.rules)) this.cogRules = data.rules;
+        if (!this.cogRules.length) this.cogRules = this.MOCK.rules;
+      } catch { this.cogRules = this.MOCK.rules; }
+    },
+
+    async addRule() {
+      if (!this.newRule.pattern || !this.newRule.tag) return;
+      const allRules = {};
+      this.cogRules.forEach(r => { allRules[r.pattern] = r.tag; });
+      allRules[this.newRule.pattern] = this.newRule.tag;
+      try {
+        if (!this.MOCK_MODE) await this.api('PUT', '/api/cog/rules', { rules: allRules });
+        this.cogRules.push({ ...this.newRule });
+        this.newRule = { pattern: '', tag: '' };
+        this.showAddRule = false;
+        this.toast('Rule added.', 'success');
+      } catch (e) {
+        this.toast('Failed to save rule.', 'error');
+      }
+    },
+
+    deleteRule(idx) {
+      this.cogRules.splice(idx, 1);
+      this.toast('Rule deleted.', 'success');
+    },
+
+    confirmClearMemory() {
+      this.modal = {
+        show: true, title: 'Clear Memory Store',
+        body: 'This will permanently delete all memory nodes. This action cannot be undone.',
+        confirmLabel: 'Clear Memory',
+        confirm: async () => {
+          try {
+            if (!this.MOCK_MODE) await this.api('DELETE', '/api/cog/memory');
+            this.toast('Memory cleared.', 'success');
+          } catch { this.toast('Failed to clear memory.', 'error'); }
+        },
+      };
+    },
+
+    async loadPrime() {
+      this.primeLoading = true;
+      try {
+        this.prime = this.MOCK_MODE
+          ? (await this.delay(400), this.MOCK.prime)
+          : await this.api('GET', '/api/cog/prime');
+      } catch { this.prime = this.MOCK.prime; }
+      finally { this.primeLoading = false; }
+    },
+
+    // ─────────────────────────────────────
+    // THREADS
+    // ─────────────────────────────────────
+    async loadThreads() {
+      this.threadsLoading = true;
+      try {
+        let data;
+        if (this.MOCK_MODE) {
+          await this.delay(500);
+          data = { threads: this.MOCK.threads };
+        } else {
+          data = await this.api('GET', '/api/cog/threads');
+        }
+        this.threads = Array.isArray(data) ? data : (data.threads || []);
+        if (!this.threads.length) this.threads = this.MOCK.threads;
+        await this.loadThreadStats();
+      } catch { this.threads = this.MOCK.threads; }
+      finally { this.threadsLoading = false; }
+    },
+
+    async loadThreadStats() {
+      try {
+        let stats;
+        if (this.MOCK_MODE) stats = this.MOCK.stats;
+        else stats = await this.api('GET', '/api/cog/stats');
+        this.threadStats = [
+          { label: 'Total Threads', value: this.threads.length },
+          { label: 'Active',        value: this.threads.filter(t => t.status === 'active').length },
+          { label: 'Intents',       value: this.fmt(stats?.intents || 7430) },
+          { label: 'Topics',        value: stats?.topics || 18 },
+        ];
+      } catch {}
+    },
+
+    async selectThread(id) {
+      this.selectedThreadId = id;
+      try {
+        let detail;
+        if (this.MOCK_MODE) {
+          await this.delay(300);
+          detail = { ...this.MOCK.threadDetail, ...this.threads.find(t => t.id === id) };
+        } else {
+          detail = await this.api('GET', `/api/cog/threads/${id}`);
+        }
+        this.selectedThread = detail;
+      } catch {
+        this.selectedThread = this.threads.find(t => t.id === id) || null;
+      }
+    },
+
+    get filteredThreads() {
+      if (!this.threadFilter) return this.threads;
+      const f = this.threadFilter.toLowerCase();
+      return this.threads.filter(t => (t.topic || t.id || '').toLowerCase().includes(f));
+    },
+
+    // ─────────────────────────────────────
+    // GLYPHS
+    // ─────────────────────────────────────
+    async loadGlyphs() {
+      this.glyphsLoading = true;
+      try {
+        let data;
+        if (this.MOCK_MODE) {
+          await this.delay(400);
+          data = this.MOCK.glyphs;
+        } else {
+          const raw = await this.api('GET', '/api/glyphs/aliases');
+          data = Array.isArray(raw)
+            ? raw
+            : Object.entries(raw).map(([alias, target]) => ({ alias, target, icon: '◈' }));
+        }
+        this.glyphAliases = data.length ? data : this.MOCK.glyphs;
+      } catch { this.glyphAliases = this.MOCK.glyphs; }
+      finally { this.glyphsLoading = false; }
+    },
+
+    async interpretGlyph() {
+      if (!this.glyphSeq.trim()) return;
+      this.glyphInterpreting = true;
+      this.glyphResult = null;
+      try {
+        let result;
+        if (this.MOCK_MODE) {
+          await this.delay(600);
+          const toks = this.glyphSeq.split('->').map(s => s.trim());
+          result = {
+            tokens: toks,
+            topics: toks.map(t => t.toLowerCase() + '-processing'),
+            route: toks.map(t => (this.MOCK.glyphs.find(g => g.alias === t) || { target: t.toLowerCase() + '.node' }).target).join(' → '),
+          };
+        } else {
+          result = await this.api('POST', '/api/glyphs/interpret', { sequence: this.glyphSeq });
+        }
+        this.glyphResult = result;
+        this.toast('Sequence interpreted.', 'success');
+      } catch (e) {
+        this.toast('Interpretation failed: ' + e.message, 'error');
+      } finally {
+        this.glyphInterpreting = false;
+      }
+    },
+
+    // ─────────────────────────────────────
+    // SYNC
+    // ─────────────────────────────────────
+    async loadTrinode() {
+      this.trinodeLoading = true;
+      try {
+        const data = this.MOCK_MODE
+          ? (await this.delay(400), this.MOCK.trinode)
+          : await this.api('GET', '/api/sync/trinode');
+        this.trinode = Array.isArray(data) ? data : (data.nodes || this.MOCK.trinode);
+      } catch { this.trinode = this.MOCK.trinode; }
+      finally { this.trinodeLoading = false; }
+    },
+
+    async loadSnapshot() {
+      this.snapshotLoading = true;
+      try {
+        this.snapshot = this.MOCK_MODE
+          ? (await this.delay(350), this.MOCK.snapshot)
+          : await this.api('GET', '/api/sync/snapshot');
+      } catch { this.snapshot = this.MOCK.snapshot; }
+      finally { this.snapshotLoading = false; }
+    },
+
+    connectWS() {
+      if (this.wsSocket) return;
+      const wsUrl = this.API_BASE.replace(/^http/, 'ws') + '/ws/sync';
+      try {
+        this.wsSocket = new WebSocket(wsUrl);
+        this.wsSocket.onopen = () => {
+          this.wsConnected = true;
+          this.wsReconnectDelay = 1000;
+          this.toast('WebSocket connected.', 'success');
+        };
+        this.wsSocket.onmessage = (e) => {
+          try {
+            const msg = JSON.parse(e.data);
+            this.pushWsEvent(msg.type || 'event', msg.data || msg);
+          } catch { this.pushWsEvent('raw', { text: e.data }); }
+        };
+        this.wsSocket.onerror = () => { this.toast('WebSocket error.', 'error'); };
+        this.wsSocket.onclose = () => {
+          this.wsConnected = false;
+          this.wsSocket = null;
+          this.scheduleWsReconnect();
+        };
+      } catch {
+        this.wsConnected = false;
+        this.startMockWsStream();
+      }
+    },
+
+    startMockWsStream() {
+      // Simulate WS events in mock mode
+      this.wsConnected = true;
+      const types = ['cog.intent', 'sync.update'];
+      const mockData = [
+        { intent: 'route(APEX→CORE)',  confidence: 0.94 },
+        { sync: 'trinode.heartbeat',   agent: 'sentinel-prime' },
+        { intent: 'process(EMIT)',     resonance: 0.89 },
+        { sync: 'snapshot.update',    nodes: 2891 },
+      ];
+      let i = 0;
+      this._mockWsTimer = setInterval(() => {
+        if (!this.wsConnected) return;
+        this.pushWsEvent(types[i % 2], mockData[i % mockData.length]);
+        i++;
+      }, 2500);
+      this.toast('WebSocket: mock stream active.', 'info');
+    },
+
+    disconnectWS() {
+      if (this.wsSocket) { this.wsSocket.close(); this.wsSocket = null; }
+      if (this._mockWsTimer) { clearInterval(this._mockWsTimer); this._mockWsTimer = null; }
+      this.wsConnected = false;
+      if (this.wsReconnectTimer) { clearTimeout(this.wsReconnectTimer); this.wsReconnectTimer = null; }
+    },
+
+    scheduleWsReconnect() {
+      if (this.wsReconnectDelay > 30000) return;
+      this.wsReconnectTimer = setTimeout(() => {
+        this.wsReconnectDelay = Math.min(this.wsReconnectDelay * 2, 30000);
+        this.connectWS();
+      }, this.wsReconnectDelay);
+    },
+
+    pushWsEvent(type, data) {
+      const now = new Date();
+      const time = now.toTimeString().slice(0, 8);
+      this.wsEvents.unshift({ id: Date.now() + Math.random(), type, data, time });
+      if (this.wsEvents.length > 50) this.wsEvents.pop();
+    },
+
+    // ─────────────────────────────────────
+    // BILLING
+    // ─────────────────────────────────────
+    confirmPlanChange(plan) {
+      if (plan.id === 'enterprise') {
+        this.toast('Contact sales@sentinelforge.io for Enterprise pricing.', 'info');
+        return;
+      }
+      this.modal = {
+        show: true, title: 'Change Plan',
+        body: `Switch to ${plan.name} (${plan.price}/mo)? This will take effect immediately.`,
+        confirmLabel: 'Confirm Change',
+        confirm: () => {
+          this.userData.tier = plan.id;
+          this.toast(`Switched to ${plan.name} plan.`, 'success');
+        },
+      };
+    },
+
+    // ─────────────────────────────────────
+    // SETTINGS
+    // ─────────────────────────────────────
+    copyApiKey() {
+      navigator.clipboard.writeText(this.apiKey).then(() => {
+        this.toast('API key copied to clipboard.', 'success');
+      }).catch(() => {
+        this.toast('Could not copy — please copy manually.', 'error');
+      });
+    },
+
+    toggleTheme() {
+      this.lightTheme = !this.lightTheme;
+      document.getElementById('appBody').classList.toggle('light', this.lightTheme);
+    },
+
+    // ─────────────────────────────────────
+    // UTILITIES
+    // ─────────────────────────────────────
+    toast(msg, type = 'info') {
+      const id = Date.now() + Math.random();
+      this.toasts.push({ id, msg, type });
+      setTimeout(() => { this.toasts = this.toasts.filter(t => t.id !== id); }, 3800);
+    },
+
+    fmt(n) {
+      return Number(n).toLocaleString();
+    },
+
+    delay(ms) {
+      return new Promise(r => setTimeout(r, ms));
+    },
+  };
+}
+</script>
 </body>
 </html>
