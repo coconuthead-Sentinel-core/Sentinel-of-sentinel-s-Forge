@@ -9,6 +9,12 @@ An enterprise-grade cognitive architecture that processes information using dive
 ![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
 ![Status](https://img.shields.io/badge/status-production--ready-success)
 
+## Project Identity
+
+The canonical public name for this repo is **Sentinel-of-sentinel-s-Forge**.
+Approved short form: `Sentinel-Forge`.
+This project is distinct from **Sentinel Prime Network**, **Sovereign Forge**, and **Sentinel Forge Cognitive AI Orchestrator**.
+
 ---
 
 ## 🎯 What It Does

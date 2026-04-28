@@ -6,6 +6,12 @@
 
 A production-ready, full-stack **AI orchestration platform** built on FastAPI + Azure OpenAI + Azure Cosmos DB. Designed around a neuro-symbolic cognitive architecture with a three-zone entropy-driven memory system. Demonstrates competence across backend services, async I/O, AI provider integration, authentication, billing, real-time WebSockets, container deployment, and frontend.
 
+## Naming
+
+Canonical public name: **Sentinel-of-sentinel-s-Forge**.
+Approved short form: `Sentinel-Forge`.
+Do not use **Sentinel Prime Network** or **Sentinel Forge Cognitive AI Orchestrator** as aliases for this repo.
+
 ## What this project demonstrates
 
 | Capability | Evidence in the codebase |

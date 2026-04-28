@@ -7,6 +7,8 @@ Additive edits only — fix encoding bugs, add documentation, surface what's alr
 
 This document records every change made during the polish pass so the audit trail is explicit and the work can be reviewed or reverted.
 
+Naming note: the canonical public name remains **Sentinel-of-sentinel-s-Forge**. Approved short form: `Sentinel-Forge`.
+
 ---
 
 ## Why this pass happened
